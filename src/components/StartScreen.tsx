@@ -103,21 +103,21 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
                       const kind = keyKind(e);
                       return (
                         <tr key={e.id} data-testid={`exam-row-${e.id}`}>
-                          <td>{e.academicYear}</td>
-                          <td>{e.title}</td>
-                          <td>
+                          <td data-label="Year">{e.academicYear}</td>
+                          <td data-label="Exam">{e.title}</td>
+                          <td data-label="Type">
                             {e.examType === 'resit' ? 'Resit' : 'Regular'}
                             {e.examTypeAssumed && <span className="muted small"> (assumed)</span>}
                           </td>
-                          <td className="num">{e.questions.length}</td>
-                          <td className="num">
+                          <td className="num" data-label="Questions">{e.questions.length}</td>
+                          <td className="num" data-label="Duration">
                             {e.durationMinutes} min
                             {e.durationSource === 'assumed' && <span className="muted small" title="Not stated in the source; assumed"> *</span>}
                           </td>
-                          <td>
+                          <td data-label="Answer key">
                             <span className={`pill ${kind === 'Official' ? 'official' : kind === 'AI-solved' ? 'ai' : 'mixed'}`}>{kind}</span>
                           </td>
-                          <td className="num" data-testid="best-score">
+                          <td className="num" data-label="Best score" data-testid="best-score">
                             {b ? (
                               <>
                                 {fmtGrade(b.score.grade)} <span className="muted small">({fmtPoints(b.score.points)}/{fmtPoints(b.score.maxPoints)})</span>

@@ -109,7 +109,8 @@ export function ConfirmScreen({ exam, questionIds, durationMinutes, mode, otherS
           </ul>
           {otherSession && !resumable && (
             <div className="banner warn">
-              You still have another exam in progress ({otherLabel ?? otherSession.examId}). Starting this one discards it.
+              You still have an exam in progress ({otherLabel ?? otherSession.examId}
+              {otherSession.mode === 'retry' ? ', retry of wrong questions' : ''}). Starting this one discards it.
             </div>
           )}
           {resumable && <div className="small muted">Starting again discards the answers you have saved for this exam.</div>}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { examLabel, resolveImage } from '../lib/exams';
 import { fmtClock } from '../lib/format';
 import { isAnswered, questionsById } from '../lib/scoring';
-import { KEY_SESSION, loadSession, saveSession } from '../lib/storage';
+import { KEY_SESSION, loadSession, newId, saveSession } from '../lib/storage';
 import type { AnswerValue, Exam, Question, Session } from '../types';
 import { AnswerInput } from './AnswerInput';
 import { Calculator } from './Calculator';
@@ -30,16 +30,44 @@ export function ExamScreen({ exam, session: initial, onHandIn }: Props) {
   const [confirm, setConfirm] = useState(false);
   const handedIn = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  // Set when another tab or window changes the saved exam (opened it, handed it in, cleared it). This tab then
-  // stops saving and cannot hand in, so it never overwrites or resurrects the other tab's exam.
+  // One tab owns the saved exam: the tab that opened it last. `owner` is this tab's token, stored inside the
+  // saved session. When another tab or window takes the exam over (opens it, hands it in, discards or clears it),
+  // this tab is `claimed`: it stops saving and cannot hand in, so it never overwrites or resurrects the other
+  // tab's exam.
+  const [owner] = useState(newId);
   const [claimed, setClaimed] = useState(false);
   useEffect(() => {
+    // Take ownership when this screen opens. If the exam is no longer the saved one (handed in or replaced
+    // elsewhere), do not bring it back.
+    const cur = loadSession();
+    if (cur && cur.attemptId === initial.attemptId) saveSession({ ...cur, owner });
+    else setClaimed(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
     const on = (e: StorageEvent) => {
-      if (e.storageArea === window.localStorage && (e.key === KEY_SESSION || e.key === null)) setClaimed(true);
+      if (e.storageArea !== window.localStorage) return;
+      if (e.key === null) return setClaimed(true); // storage cleared
+      if (e.key !== KEY_SESSION) return;
+      let by: string | undefined;
+      try {
+        by = e.newValue ? (JSON.parse(e.newValue) as Session).owner : undefined;
+      } catch {
+        /* unreadable value: treat as taken over */
+      }
+      if (!e.newValue || by !== owner) setClaimed(true);
     };
     window.addEventListener('storage', on);
     return () => window.removeEventListener('storage', on);
-  }, []);
+  }, [owner]);
+  // Taking over closes this tab's other dialogs so the notice below is never hidden behind one.
+  useEffect(() => {
+    if (claimed) {
+      setOverview(false);
+      setConfirm(false);
+      setResOpen(false);
+    }
+  }, [claimed]);
 
   const byId = useMemo(() => questionsById(exam), [exam]);
   const questions = useMemo(() => s.questionIds.map((id) => byId.get(id)).filter((q): q is Question => !!q), [s.questionIds, byId]);
@@ -65,16 +93,27 @@ export function ExamScreen({ exam, session: initial, onHandIn }: Props) {
 
   // Autosave answers, flags, position and remaining time on every change (and every second).
   useEffect(() => {
-    if (!handedIn.current && !claimed) saveSession({ ...s, remainingSec: remaining });
-  }, [s, remaining, claimed]);
+    if (handedIn.current || claimed) return;
+    const cur = loadSession();
+    if (!cur || cur.attemptId !== s.attemptId || cur.owner !== owner) {
+      setClaimed(true); // another tab took over before its storage event reached us
+      return;
+    }
+    saveSession({ ...s, remainingSec: remaining, owner });
+  }, [s, remaining, claimed, owner]);
 
   const handIn = useCallback(
     (auto: boolean) => {
       if (handedIn.current || claimed) return;
+      const cur = loadSession();
+      if (!cur || cur.attemptId !== s.attemptId || cur.owner !== owner) {
+        setClaimed(true);
+        return;
+      }
       handedIn.current = true;
       onHandIn({ ...s, remainingSec: remaining }, auto);
     },
-    [s, remaining, onHandIn, claimed],
+    [s, remaining, onHandIn, claimed, owner],
   );
 
   useEffect(() => {
@@ -207,23 +246,6 @@ export function ExamScreen({ exam, session: initial, onHandIn }: Props) {
 
       {calcOpen && <Calculator onClose={() => setCalcOpen(false)} />}
 
-      {claimed && (
-        <Modal
-          title="This exam is open in another tab"
-          testId="claimed-modal"
-          footer={
-            <a className="btn primary" href="#/" data-testid="claimed-leave">
-              Go to the overview
-            </a>
-          }
-        >
-          <p>
-            This exam was changed in another tab or window, so this tab has stopped saving. That keeps the other tab&apos;s answers safe.
-          </p>
-          <p className="muted">Continue in the other tab, or go to the overview and click Resume to continue here.</p>
-        </Modal>
-      )}
-
       {resOpen && exam.resources && (
         <Modal title="Formula sheets and tables" onClose={() => setResOpen(false)} wide>
           <div className="tabs">
@@ -327,6 +349,23 @@ export function ExamScreen({ exam, session: initial, onHandIn }: Props) {
         >
           <p>After handing in you can no longer change your answers.</p>
           {unanswered.length > 0 && <p className="muted">{unanswered.length} question(s) are still unanswered.</p>}
+        </Modal>
+      )}
+
+      {claimed && (
+        <Modal
+          title="This exam is open in another tab"
+          testId="claimed-modal"
+          footer={
+            <a className="btn primary" href="#/" data-testid="claimed-leave">
+              Go to the overview
+            </a>
+          }
+        >
+          <p>
+            Another tab or window took over this exam (it was resumed, handed in or discarded there), so this tab has stopped saving. That keeps the other tab&apos;s answers safe.
+          </p>
+          <p className="muted">Continue in the other tab. To continue here instead, go to the overview and click Resume: the other tab then stops saving.</p>
         </Modal>
       )}
     </div>

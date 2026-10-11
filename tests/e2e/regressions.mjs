@@ -185,6 +185,16 @@ await page.getByTestId('resume-banner').waitFor();
 await page.getByRole('button', { name: 'Discard' }).click();
 await page.getByTestId('confirm-yes').click();
 await page.setViewportSize({ width: 683, height: 700 });
+await page.locator('[data-testid="exam-row-qm1-2023-first-sit"] [data-testid="best-score"]').scrollIntoViewIfNeeded();
+const best = await page.evaluate(() => {
+  const c = document.querySelector('[data-testid="exam-row-qm1-2023-first-sit"] [data-testid="best-score"]');
+  const r = c.getBoundingClientRect();
+  const el = document.elementFromPoint(r.left + Math.min(20, r.width / 2), r.top + r.height / 2);
+  return { ok: c.contains(el), text: c.innerText.trim().replace(/\s+/g, ' ').slice(0, 30) };
+});
+check(best.ok && best.text !== '—', `the Best score stays readable in a 683 px wide window (${best.text})`);
+const [sw3, iw3] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
+check(sw3 <= iw3, `the overview does not scroll sideways at 683 px (${sw3} <= ${iw3})`);
 const box = await page.getByTestId('start-qm1-2023-first-sit').boundingBox();
 check(!!box && box.x >= 0 && box.x + box.width <= 683, `Start button is inside a 683 px wide window (x ${Math.round(box?.x ?? -1)}..${Math.round((box?.x ?? 0) + (box?.width ?? 0))})`);
 await page.getByTestId('start-qm1-2023-first-sit').click(); // fails if something covers it
@@ -200,6 +210,115 @@ for (const id of ['qm1-2021-2022-first-sit', 'qm1-2023-first-sit', 'qm1-2024-202
 }
 await page.goto(`${BASE}#/`);
 check(!(await page.locator('body').innerText()).includes('data/exams'), 'the overview does not mention data/exams/*.json');
+
+// ---- 11. Idle tabs follow other tabs; a stale Resume / Start cannot bring back or replace an exam
+const startIn = async (p, id) => {
+  await p.goto(`${BASE}#/start/${id}`);
+  await p.getByTestId('confirm-check').check();
+  await p.getByTestId('start-exam').click();
+  await p.getByTestId('timer').waitFor();
+};
+const handInIn = async (p) => {
+  await p.getByTestId('ready').click();
+  await p.getByTestId('handin-continue').click();
+  await p.getByTestId('handin-confirm-yes').click();
+  await p.getByTestId('summary').waitFor();
+};
+await page.goto(`${BASE}#/`);
+await page.evaluate(() => localStorage.clear());
+await startIn(page, 'qm1-2023-first-sit'); // tab A runs the exam
+await page.getByTestId('tile-23').click();
+await page.getByTestId('option-A').click();
+const tabB = await context.newPage();
+await tabB.goto(`${BASE}#/`);
+await tabB.getByTestId('resume-banner').waitFor();
+const tabC = await context.newPage();
+await tabC.goto(`${BASE}#/start/qm1-2023-first-sit`);
+await tabC.getByTestId('resume-here').waitFor();
+await handInIn(page);
+await tabB.getByTestId('resume-banner').waitFor({ state: 'detached', timeout: 5000 });
+check(true, 'an idle overview tab drops the "Resume" banner when the exam is handed in elsewhere');
+await tabC.getByTestId('resume-here').waitFor({ state: 'detached', timeout: 5000 });
+check((await tabC.getByTestId('start-exam').innerText()) === 'Start', 'an idle confirm page goes back to "Start"');
+await tabB.close();
+await tabC.close();
+
+// the same, but the idle tab MISSES the update (its storage events are swallowed): the click re-checks storage
+await page.goto(`${BASE}#/`);
+await startIn(page, 'qm1-2023-first-sit');
+await page.getByTestId('tile-23').click();
+await page.getByTestId('option-A').click();
+const tabD = await context.newPage();
+// this tab never registers 'storage' listeners, so it misses every update from other tabs
+await tabD.addInitScript(() => {
+  const orig = window.addEventListener.bind(window);
+  window.addEventListener = (type, ...rest) => (type === 'storage' ? undefined : orig(type, ...rest));
+});
+await tabD.goto(`${BASE}#/`);
+await tabD.getByTestId('resume-banner').waitFor();
+await handInIn(page);
+await page.waitForTimeout(1200);
+check((await tabD.getByTestId('resume-banner').count()) === 1, '(setup) the idle tab really missed the hand-in and still shows "Resume"');
+const attemptsBefore = await tabD.evaluate(() => localStorage.getItem('mtv:v1:attempts'));
+await tabD.getByTestId('resume').click();
+await tabD.getByTestId('resume-banner').waitFor({ state: 'detached', timeout: 3000 });
+check((await tabD.evaluate(() => location.hash)) === '#/', 'a stale "Resume" does not open the finished exam');
+check((await tabD.evaluate(() => localStorage.getItem('mtv:v1:session'))) === null, 'a stale "Resume" does not bring the finished exam back');
+check((await tabD.evaluate(() => localStorage.getItem('mtv:v1:attempts'))) === attemptsBefore, 'the finished attempt (and its answers) is untouched');
+
+// a stale confirm page cannot replace an exam started in another tab
+await tabD.goto(`${BASE}#/start/qm1-2025-exam`);
+await tabD.getByTestId('confirm-check').check();
+await startIn(page, 'qm1-2025-exam'); // tab A starts that exam meanwhile
+await page.getByTestId('tile-1').click();
+await page.getByTestId('option-E').click();
+await page.waitForTimeout(1200);
+const sessionBefore = await page.evaluate(() => JSON.parse(localStorage.getItem('mtv:v1:session')).attemptId);
+await tabD.getByTestId('start-exam').click();
+await tabD.getByTestId('resume-here').waitFor({ timeout: 3000 });
+check((await tabD.evaluate(() => JSON.parse(localStorage.getItem('mtv:v1:session')).attemptId)) === sessionBefore, 'a stale "Start" does not replace the exam another tab is running');
+await tabD.close();
+
+// ---- 12. The tab that resumes last owns the exam; the older tab is told, the new one keeps working
+const tabE = await context.newPage();
+await tabE.goto(`${BASE}#/`);
+await tabE.getByTestId('resume').click();
+await tabE.getByTestId('timer').waitFor();
+await page.getByTestId('claimed-modal').waitFor({ timeout: 5000 });
+check(true, 'resuming in a second tab tells the OLDER tab that the exam moved');
+await tabE.waitForTimeout(2500);
+check((await tabE.getByTestId('claimed-modal').count()) === 0, 'the tab that just resumed is NOT locked out');
+await tabE.getByTestId('tile-2').click();
+await tabE.getByTestId('option-C').click();
+await tabE.waitForTimeout(1500);
+check((await tabE.evaluate(() => JSON.parse(localStorage.getItem('mtv:v1:session')).answers.q2)) === 'C', 'the new tab keeps saving its answers');
+// the modal's advice works: go to the overview, Resume, and the other tab is the one told
+await page.getByTestId('claimed-leave').click();
+await page.getByTestId('resume').click();
+await page.getByTestId('timer').waitFor();
+await tabE.getByTestId('claimed-modal').waitFor({ timeout: 5000 });
+await page.waitForTimeout(2500);
+check((await page.getByTestId('claimed-modal').count()) === 0, 'following the notice ("Resume") takes the exam back; the other tab is told');
+check((await page.getByTestId('tile-2').getAttribute('data-state')) === 'answered', 'and no answer was lost on the way');
+
+// ---- 13. The notice is never hidden behind an open dialog
+await page.getByTestId('ready').click();
+await page.getByTestId('handin-overview').waitFor();
+await tabE.getByTestId('claimed-leave').click();
+await tabE.getByTestId('resume').click(); // tabE takes the exam over while A shows its hand-in dialog
+await tabE.getByTestId('timer').waitFor();
+await page.getByTestId('claimed-modal').waitFor({ timeout: 5000 });
+check((await page.getByTestId('handin-overview').count()) === 0, 'the hand-in dialog is closed when the exam is taken over');
+const onTop = await page.evaluate(() => {
+  const r = document.querySelector('[data-testid="claimed-modal"]').getBoundingClientRect();
+  return !!document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.closest('[data-testid="claimed-modal"]');
+});
+check(onTop, 'the "open in another tab" notice is on top');
+await tabE.close();
+await page.getByTestId('claimed-leave').click();
+await page.getByTestId('resume').click(); // leave a clean, running exam behind
+await page.goto(`${BASE}#/`);
+await page.evaluate(() => localStorage.clear());
 
 // ---- 10. A browser that refuses localStorage: the exam still starts, with a warning
 const blockedCtx = await browser.newContext({ viewport: { width: 1366, height: 860 } });

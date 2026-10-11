@@ -139,6 +139,8 @@ export interface Session {
   remainingSec: number;
   startedAt: string;
   retryOf?: string;
+  /** Token of the browser tab that has this exam open; the tab that opened it last owns it. */
+  owner?: string;
 }
 
 export interface ScoreSnapshot {

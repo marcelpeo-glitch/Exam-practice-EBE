@@ -1,7 +1,7 @@
 import type { Attempt, Session } from '../types';
 
 // Everything is kept in localStorage under these keys.
-const KEY_ATTEMPTS = 'mtv:v1:attempts';
+export const KEY_ATTEMPTS = 'mtv:v1:attempts';
 export const KEY_SESSION = 'mtv:v1:session';
 
 // If the browser refuses localStorage (site data blocked by a setting or a school policy), everything is

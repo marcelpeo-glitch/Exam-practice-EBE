@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ConfirmScreen } from './components/ConfirmScreen';
 import { ExamScreen } from './components/ExamScreen';
 import { ResultsScreen } from './components/ResultsScreen';
 import { StartScreen } from './components/StartScreen';
 import { examLabel, getExam } from './lib/exams';
 import { scoreExam, snapshot } from './lib/scoring';
-import { clearAll, loadAttempts, loadSession, newId, saveSession, upsertAttempt } from './lib/storage';
+import { KEY_ATTEMPTS, KEY_SESSION, clearAll, loadAttempts, loadSession, newId, saveSession, upsertAttempt } from './lib/storage';
 import type { Attempt, Session } from './types';
 
 // Hash routes: #/  ·  #/start/<examId>  ·  #/start/<examId>/retry/<attemptId>  ·  #/exam  ·  #/results/<attemptId>
@@ -59,6 +59,23 @@ export default function App() {
     setAttempts(loadAttempts());
   }, [hash]);
 
+  // Idle tabs (overview, confirm page, results) follow what other tabs do: a stale "Resume" button must never
+  // bring back an exam that was handed in or discarded elsewhere. The exam screen handles takeovers itself.
+  useEffect(() => {
+    const on = (e: StorageEvent) => {
+      if (e.storageArea !== window.localStorage) return;
+      if (e.key !== null && e.key !== KEY_SESSION && e.key !== KEY_ATTEMPTS) return;
+      if (window.location.hash.startsWith('#/exam')) return;
+      setSession(loadSession());
+      setAttempts(loadAttempts());
+    };
+    window.addEventListener('storage', on);
+    return () => window.removeEventListener('storage', on);
+  }, []);
+
+  // The exam route always works from what is saved right now, never from this tab's in-memory copy.
+  const examSession = useMemo(() => (parts[0] === 'exam' ? loadSession() : null), [hash]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const startSession = useCallback((examId: string, questionIds: string[], durationMinutes: number, mode: 'full' | 'retry', retryOf?: string) => {
     const s: Session = {
       attemptId: newId(),
@@ -108,9 +125,9 @@ export default function App() {
 
   // ---- routes ----
   if (parts[0] === 'exam') {
-    const exam = session ? getExam(session.examId) : undefined;
-    if (!session || !exam) return <Redirect to="#/" navigate={go} />;
-    return <ExamScreen key={session.attemptId} exam={exam} session={session} onHandIn={handIn} />;
+    const exam = examSession ? getExam(examSession.examId) : undefined;
+    if (!examSession || !exam) return <Redirect to="#/" navigate={go} />;
+    return <ExamScreen key={examSession.attemptId} exam={exam} session={examSession} onHandIn={handIn} />;
   }
 
   if (parts[0] === 'start' && parts[1]) {
@@ -140,8 +157,21 @@ export default function App() {
         otherSession={session}
         otherLabel={otherExam ? examLabel(otherExam) : undefined}
         resumable={resumable}
-        onResume={() => go('#/exam', true)}
-        onStart={() => startSession(exam.id, questionIds, duration, mode, retryOf)}
+        onResume={() => {
+          // Re-check what is saved right now (this page may be stale, e.g. the exam was handed in in another tab).
+          const live = loadSession();
+          setSession(live);
+          if (live && live.examId === exam.id && live.mode === mode && live.retryOf === retryOf) go('#/exam', true);
+        }}
+        onStart={() => {
+          // Never replace an exam this page does not know about (started in another tab since it was loaded).
+          const live = loadSession();
+          if ((live?.attemptId ?? null) !== (session?.attemptId ?? null)) {
+            setSession(live);
+            return;
+          }
+          startSession(exam.id, questionIds, duration, mode, retryOf);
+        }}
       />
     );
   }
@@ -170,8 +200,17 @@ export default function App() {
     <StartScreen
       attempts={attempts}
       session={session}
-      onResume={() => go('#/exam')}
+      onResume={() => {
+        const live = loadSession();
+        setSession(live);
+        if (live) go('#/exam');
+      }}
       onDiscard={() => {
+        const live = loadSession();
+        if (live && live.attemptId !== session?.attemptId) {
+          setSession(live); // another tab started a different exam since this page was loaded
+          return;
+        }
         saveSession(null);
         setSession(null);
       }}
