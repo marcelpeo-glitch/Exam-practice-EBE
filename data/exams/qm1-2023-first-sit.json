@@ -1,0 +1,1546 @@
+{
+  "schemaVersion": 1,
+  "id": "qm1-2023-first-sit",
+  "courseCode": "EBC1005/EBC1006/EBC1007",
+  "courseName": "Quantitative Methods 1",
+  "academicYear": "2023",
+  "examType": "regular",
+  "title": "First sit",
+  "durationMinutes": 180,
+  "durationSource": "assumed",
+  "source": {
+    "file": "Exam_2023_first_sit.pdf",
+    "kind": "TestVision export with the correct option marked and official feedback per question"
+  },
+  "grading": {
+    "method": "linear",
+    "passGrade": 5.5,
+    "multiSelectScoring": "partial",
+    "guessingCorrection": false
+  },
+  "resources": [
+    {
+      "title": "Formulas: mathematics",
+      "src": "img/qm1-shared/formulas-mathematics.png"
+    },
+    {
+      "title": "Formulas: statistics",
+      "src": "img/qm1-shared/formulas-statistics.png"
+    },
+    {
+      "title": "Table Z (negative z)",
+      "src": "img/qm1-shared/table-z-negative.png"
+    },
+    {
+      "title": "Table Z (positive z)",
+      "src": "img/qm1-shared/table-z-positive.png"
+    },
+    {
+      "title": "Table T",
+      "src": "img/qm1-shared/table-t.png"
+    }
+  ],
+  "notes": [
+    "Answer key and explanations: official (TestVision export with feedback).",
+    "The source only says 'Exam 2023 first sit'; the academic year is not stated.",
+    "The duration is not stated in the source; 180 minutes is assumed. Edit durationMinutes in the JSON to change it."
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "number": 1,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Functions & domains",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\frac{x^2}{x^2+1}$$The domain of $f(x)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$(-\\infty,0]\\cup(1,\\infty)$"
+        },
+        {
+          "id": "B",
+          "text": "$(1,\\infty)$"
+        },
+        {
+          "id": "C",
+          "text": "$[1,\\infty)$"
+        },
+        {
+          "id": "D",
+          "text": "$(-\\infty,\\infty)$"
+        },
+        {
+          "id": "E",
+          "text": "$(-\\infty,1)$"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "Since the denominator is positive for every $x$, the function $f(x)$ is defined everywhere.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q2",
+      "number": 2,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Derivatives",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\frac{x^2}{x^2+1}$$The derivative $f'(x)$ of $f(x)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$f'(x)=\\dfrac{2x}{(x^2+1)^2}$"
+        },
+        {
+          "id": "B",
+          "text": "$f'(x)=\\dfrac{x}{(x^2+1)^2}$"
+        },
+        {
+          "id": "C",
+          "text": "$f'(x)=\\dfrac{x^2-1}{(x^2+1)^2}$"
+        },
+        {
+          "id": "D",
+          "text": "$f'(x)=\\dfrac{x^2}{(x^2+1)^2}$"
+        },
+        {
+          "id": "E",
+          "text": "$f'(x)=\\dfrac{x^2+1}{(x^2+1)^2}$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "By the quotient rule: $$f'(x)=\\frac{2x(x^2+1)-2x(x^2)}{(x^2+1)^2}=\\frac{2x}{(x^2+1)^2}$$",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q3",
+      "number": 3,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Inverse functions",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\frac{x^2}{x^2+1}\\quad\\text{for } x>0.$$ Its inverse $f^{-1}(y)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$f^{-1}(y)=\\sqrt{\\dfrac{y}{1-y}}$"
+        },
+        {
+          "id": "B",
+          "text": "$f^{-1}(y)=\\sqrt{\\dfrac{y}{y-1}}$"
+        },
+        {
+          "id": "C",
+          "text": "$f^{-1}(y)=\\dfrac{y^2}{1-y^2}$"
+        },
+        {
+          "id": "D",
+          "text": "$f^{-1}(y)=\\dfrac{y^2+1}{y^2}$"
+        },
+        {
+          "id": "E",
+          "text": "$f^{-1}(y)=\\dfrac{y^2-1}{y^2}$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$$y=\\frac{x^2}{1+x^2}\\Rightarrow y(1+x^2)=x^2\\Rightarrow y+yx^2=x^2\\Rightarrow x^2(1-y)=y\\Rightarrow x^2=\\frac{y}{1-y}\\Rightarrow x=\\sqrt{\\frac{y}{1-y}}$$",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q4",
+      "number": 4,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "Let the demand $D$ for rice as function of price be $d(p)=40-\\frac32\\sqrt p$. Let the supply $S$ as function of price be $s(p)=\\frac52\\sqrt p$.\nAt which price $p$ do we have a market equilibrium, where demand and supply are equal?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$p=100$"
+        },
+        {
+          "id": "B",
+          "text": "$p=\\sqrt{10}$"
+        },
+        {
+          "id": "C",
+          "text": "$p=40$"
+        },
+        {
+          "id": "D",
+          "text": "$p=3600$"
+        },
+        {
+          "id": "E",
+          "text": "$p=\\sqrt{40}$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$$d(p)=s(p)\\Rightarrow40-\\tfrac32\\sqrt p=\\tfrac52\\sqrt p\\Rightarrow4\\sqrt p=40\\Rightarrow\\sqrt p=10\\Rightarrow p=100$$",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q5",
+      "number": 5,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "Let the demand $D$ for rice as function of price be $d(p)=40-\\frac32\\sqrt p$. Let the supply $S$ as function of price be $s(p)=\\frac52\\sqrt p$.\nWhat is the price elasticity $E_s(p)$ of the supply function $s(p)$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$E_s(p)=\\dfrac12$"
+        },
+        {
+          "id": "B",
+          "text": "$E_s(p)=\\dfrac52$"
+        },
+        {
+          "id": "C",
+          "text": "$E_s(p)=-\\dfrac34\\times\\dfrac{1}{\\left(40-\\frac32\\sqrt p\\right)\\sqrt p}$"
+        },
+        {
+          "id": "D",
+          "text": "$E_s(p)=-\\dfrac34\\times\\dfrac{\\sqrt p}{\\left(40-\\frac32\\sqrt p\\right)}$"
+        },
+        {
+          "id": "E",
+          "text": "$E_s(p)=-\\dfrac34\\times\\dfrac{p\\sqrt p}{\\left(40-\\frac32\\sqrt p\\right)}$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$$E_s(p)=s'(p)\\frac{p}{s(p)}=\\frac12\\times\\frac{5}{2\\sqrt p}\\times\\frac{p}{\\frac52\\sqrt p}=\\frac12$$",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q6",
+      "number": 6,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "Consider the function $f(x)=a^x\\ (a>0)$. For which value of $a$ is $E_f(2)$, the elasticity of $f$ at $x=2$, equal to 2?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$e$"
+        },
+        {
+          "id": "B",
+          "text": "1"
+        },
+        {
+          "id": "C",
+          "text": "0"
+        },
+        {
+          "id": "D",
+          "text": "2"
+        },
+        {
+          "id": "E",
+          "text": "4"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$E_f(x)=f'(x)\\dfrac{x}{f(x)}=\\ln(a)\\,a^x\\cdot\\dfrac{x}{a^x}=x\\ln(a)$. For $x=2$: $2\\ln(a)=2\\Rightarrow\\ln(a)=1\\Rightarrow a=e$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q7",
+      "number": 7,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Derivatives",
+      "points": 1,
+      "stem": "Consider the functions $$h_c(x)=\\frac{c(1+\\ln(x))}{x}.$$ What is the line $l_c(x)$ tangent at the point of the graph for which $x=1$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$l_c(x)=c(x-1)+c$"
+        },
+        {
+          "id": "B",
+          "text": "$l_c(x)=(1-c)(x-1)+c-1$"
+        },
+        {
+          "id": "C",
+          "text": "$l_c(x)=c$"
+        },
+        {
+          "id": "D",
+          "text": "$l_c(x)=x(1-c)+c$"
+        },
+        {
+          "id": "E",
+          "text": "$l_c(x)=(1-x)+c$"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "Applying the quotient rule: $h_c'(x)=\\dfrac{c\\frac1x\\cdot x-c-c\\ln(x)}{x^2}=\\dfrac{-c\\ln(x)}{x^2}$. In $x=1$, $\\ln(1)=0$, so $h_c'(1)=0$: a horizontal tangent.\nIn $x=1$: $h_c(1)=\\dfrac{c+c\\ln(1)}{1}=c$. So $l_c(x)=c$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q8",
+      "number": 8,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "The probability density function (pdf) of the standard normal distribution N(0,1) is pictured below.\nHow many inflection points has this function?",
+      "images": [
+        {
+          "src": "img/qm1-2023/q08-normal-pdf.png",
+          "alt": "Density plot of the standard normal distribution"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "0"
+        },
+        {
+          "id": "B",
+          "text": "1"
+        },
+        {
+          "id": "C",
+          "text": "2"
+        },
+        {
+          "id": "D",
+          "text": "3"
+        },
+        {
+          "id": "E",
+          "text": "4"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "We find inflection points where the function changes from being concave to convex, or vice versa. In other words: where the rate of increase is at its max or its min. For the normal pdf, this is at 1 standard deviation from the mean, or $z=-1$ and $z=1$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q9",
+      "number": 9,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the function $f(x)$ for which the **first derivative** is given by $f'(x)=(x^2-1)^3$. How many extreme points does $f(x)$ have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0"
+        },
+        {
+          "id": "B",
+          "text": "1"
+        },
+        {
+          "id": "C",
+          "text": "2"
+        },
+        {
+          "id": "D",
+          "text": "3"
+        },
+        {
+          "id": "E",
+          "text": "4"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$f'(x)$ changes sign in two points: $x=-1$ and $x=1$. Therefore, 2 extreme points.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q10",
+      "number": 10,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "A Ford Ka dealer sells 60 cars per year. We assume that the stock decreases linearly in time. Immediately after all cars in stock have been sold, the dealer orders new cars that are being delivered at once. The order costs equal 200 Euros per order regardless of its size. The costs for keeping cars in stock equal 5% of the total value of the cars in stock on a yearly basis. Each car has a value of 30000 Euros. Note that the average inventory is half the ordered amount.\nWhat are the annual ordering costs and the annual inventory costs in case 6 cars are ordered every time stock is sold-out?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Annual ordering costs are 2000 and annual inventory costs are 3000"
+        },
+        {
+          "id": "B",
+          "text": "Annual ordering costs are 2000 and annual inventory costs are 4500"
+        },
+        {
+          "id": "C",
+          "text": "Annual ordering costs are 3000 and annual inventory costs are 4500"
+        },
+        {
+          "id": "D",
+          "text": "Annual ordering costs are 4500 and annual inventory costs are 4500"
+        },
+        {
+          "id": "E",
+          "text": "Annual ordering costs are 3000 and annual inventory costs are 3000"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "If $x$ represents the size of the order, the number of yearly orders equals $60/x$. Now\norder costs: $200\\cdot(60/x)=12000/x$; inventory costs: $\\tfrac12\\cdot x\\cdot30000\\cdot5\\%=750x$.\nFor $x=6$: order costs $12000/6=2000$ and inventory costs $750\\cdot6=4500$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q11",
+      "number": 11,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "A Ford Ka dealer sells 60 cars per year. We assume that the stock decreases linearly in time. Immediately after all cars in stock have been sold, the dealer orders new cars that are being delivered at once. The order costs equal 200 Euros per order regardless of its size. The costs for keeping cars in stock equal 5% of the total value of the cars in stock on a yearly basis. Each car has a value of 30000 Euros. Note that the average inventory is half the ordered amount.\nWhat is the optimal order quantity?",
+      "options": [
+        {
+          "id": "A",
+          "text": "4 cars per order."
+        },
+        {
+          "id": "B",
+          "text": "5 cars per order."
+        },
+        {
+          "id": "C",
+          "text": "6 cars per order."
+        },
+        {
+          "id": "D",
+          "text": "7 cars per order."
+        },
+        {
+          "id": "E",
+          "text": "8 cars per order."
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Order costs $12000/x$ and inventory costs $750x$ (see above). Total costs $C(x)=750x+12000/x$, so $C'(x)=750-12000/x^2$.\nStationary point: $x=\\sqrt{\\dfrac{12000}{750}}=\\sqrt{16}=4$. $C'$ is negative to the left of $x=4$ and positive to the right, so this is a minimum.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q12",
+      "number": 12,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Exponential & logistic growth",
+      "points": 1,
+      "stem": "At the first lecture of QM1, in week 1, there were 800 students in the lecture hall. At the last lecture, in week 7, the number of students was reduced to 200. Suppose that the number of students attending the lectures every week, decreases exponentially. In which week does the number of students attending the lecture drop below 500 for the first time?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Week 2"
+        },
+        {
+          "id": "B",
+          "text": "Week 3"
+        },
+        {
+          "id": "C",
+          "text": "Week 4"
+        },
+        {
+          "id": "D",
+          "text": "Week 5"
+        },
+        {
+          "id": "E",
+          "text": "Week 6"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "Going down with a factor 4 between weeks 1 and 7 (in six steps) implies halving in 3 steps: in week 4 the audience equals 400. The decline per week: $d^3=1/2$, so $d=0.7937$. Thus week 2: 635 students; week 3: 504 students. So it is week 4 when the number of students is below 500. In full: $y=800\\cdot0.7937^t$ with $t=0$ in week 1.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q13",
+      "number": 13,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the following function $$f(x)=\\frac{x}{x+1}.$$ Where is this function concave?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$(-\\infty,-1)$"
+        },
+        {
+          "id": "B",
+          "text": "$(-\\infty,1)\\cup(1,\\infty)$"
+        },
+        {
+          "id": "C",
+          "text": "$(-\\infty,-1)\\cup(1,\\infty)$"
+        },
+        {
+          "id": "D",
+          "text": "$(-1,\\infty)$"
+        },
+        {
+          "id": "E",
+          "text": "$(1,\\infty)$"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$$f(x)=\\frac{x}{x+1}\\Rightarrow f'(x)=\\frac{1(x+1)-x}{(x+1)^2}=(x+1)^{-2}\\Rightarrow f''(x)=-2(x+1)^{-3}=\\frac{-2}{(x+1)^3}$$ For $x>-1$ the second order derivative is negative, resulting in a concave interval.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q14",
+      "number": 14,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "The function $f(x)=x^3-3x^2-9x$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "decreasing and convex on the interval (-1,1)"
+        },
+        {
+          "id": "B",
+          "text": "increasing and convex on the interval (1,3)"
+        },
+        {
+          "id": "C",
+          "text": "decreasing and concave on the interval (-1,1)"
+        },
+        {
+          "id": "D",
+          "text": "increasing and concave on the interval (1,3)"
+        },
+        {
+          "id": "E",
+          "text": "increasing and concave on the interval (-1,3)"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$f'(x)=3x^2-6x-9=3(x-3)(x+1)$ and $f''(x)=6x-6=6(x-1)$.\n$f'(x)<0$ for $-1<x<3$: decreasing. $f''(x)<0$ for $x<1$, so on $(-1,1)$ the function is decreasing and concave.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q15",
+      "number": 15,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: partial derivatives & level curves",
+      "points": 1,
+      "stem": "Consider the following function of two variables: $f(x,y)=\\sqrt{y-\\ln(x)}$. The level curves $f(x,y)=a\\ (a\\ge0)$ have a shape, as a function of $x$, which is described as:",
+      "options": [
+        {
+          "id": "A",
+          "text": "A straight line"
+        },
+        {
+          "id": "B",
+          "text": "An exponential function"
+        },
+        {
+          "id": "C",
+          "text": "A logarithmic function"
+        },
+        {
+          "id": "D",
+          "text": "A square-root function"
+        },
+        {
+          "id": "E",
+          "text": "A circle"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$$f(x,y)=a\\Rightarrow\\sqrt{y-\\ln(x)}=a\\Rightarrow y-\\ln(x)=a^2\\Rightarrow y=\\ln(x)+a^2$$ where $a^2$ is a constant. This is a logarithmic function.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q16",
+      "number": 16,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "What is the partial elasticity of the function $f(x,y)=\\sqrt{x^4y}$ with respect to $x$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$2x$"
+        },
+        {
+          "id": "B",
+          "text": "$2$"
+        },
+        {
+          "id": "C",
+          "text": "$4y$"
+        },
+        {
+          "id": "D",
+          "text": "$4$"
+        },
+        {
+          "id": "E",
+          "text": "$8xy$"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$f(x,y)=\\sqrt{x^4y}=x^2\\sqrt y$, so $E_xf(x,y)=2x\\sqrt y\\cdot\\dfrac{x}{x^2\\sqrt y}=2$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q17",
+      "number": 17,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=4x^2+4y^2-x^2y^2.$$ The point $(0,0)$ is a stationary point of $f(x,y)$.\nHow many other stationary points does this function have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0"
+        },
+        {
+          "id": "B",
+          "text": "1"
+        },
+        {
+          "id": "C",
+          "text": "2"
+        },
+        {
+          "id": "D",
+          "text": "3"
+        },
+        {
+          "id": "E",
+          "text": "4 or more"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "$f_x(x,y)=8x-2xy^2=2x(4-y^2)$ and $f_y(x,y)=8y-2x^2y=2y(4-x^2)$.\nStationary points: $(0,0),(2,2),(2,-2),(-2,2)$ and $(-2,-2)$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q18",
+      "number": 18,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=4x^2+4y^2-x^2y^2.$$ The point $(0,0)$ is a stationary point of $f(x,y)$.\nWhat is the status of the stationary point $(0,0)$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "(0,0) is a maximum"
+        },
+        {
+          "id": "B",
+          "text": "(0,0) is a minimum"
+        },
+        {
+          "id": "C",
+          "text": "(0,0) is a saddle-point"
+        },
+        {
+          "id": "D",
+          "text": "The status of (0,0) can not be determined; it is either a maximum or a saddle-point"
+        },
+        {
+          "id": "E",
+          "text": "The status of (0,0) can not be determined; it is either a minimum or a saddle-point"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$f''_{xx}=2(4-y^2)$, $f''_{yy}=2(4-x^2)$ and $f''_{xy}=-4xy$. In $(0,0)$: $f''_{xx}=8>0$ and $C=8\\cdot8-0=64>0$, so a minimum.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q19",
+      "number": 19,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "On the usual Thursday evening party of the student association a student consumes mixed nuts and wine. Let $\\boldsymbol w$ be the amount of wine in 100 cl and $\\boldsymbol n$ the amount of mixed nuts in 100 gr, which are being consumed during the evening. The utility function of the student is of the Cobb-Douglas type and is given by\n$$U(w,n)=w^{\\frac34}n^{\\frac14}\\qquad(w\\ge0,\\ n\\ge0)$$\nAssume that on this evening the student consumes 600 cl of wine (6 glasses) and 200 gr of mixed nuts. As became clear the next morning during the examination in Quantitative Methods, the amount of wine that was consumed was obviously too much. On the other hand, the experience by itself also gives rise to a deeper understanding of the concepts of elasticity and marginal substitution ratio of mixed nuts for wine!\nAssume that the student had drunk 6% (a few sips) less of wine. By means of the elasticity of the utility function with respect to $\\boldsymbol w$ it can be deduced that",
+      "options": [
+        {
+          "id": "A",
+          "text": "the utility would have decreased by approximately 4.5%."
+        },
+        {
+          "id": "B",
+          "text": "the utility would have decreased by approximately 1.5%."
+        },
+        {
+          "id": "C",
+          "text": "the utility would have decreased by approximately 1.0%."
+        },
+        {
+          "id": "D",
+          "text": "the utility would have decreased by approximately 0.75%."
+        },
+        {
+          "id": "E",
+          "text": "the utility would have decreased by approximately 0.25%."
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$$U(w,n)=w^{\\frac34}n^{\\frac14}\\Rightarrow E_w(w,n)=\\frac34w^{-\\frac14}n^{\\frac14}\\cdot\\frac{w}{w^{\\frac34}n^{\\frac14}}=\\frac34$$ $6\\%\\cdot\\tfrac34=4.5\\%$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q20",
+      "number": 20,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: partial derivatives & level curves",
+      "points": 1,
+      "stem": "On the usual Thursday evening party of the student association a student consumes mixed nuts and wine. Let $\\boldsymbol w$ be the amount of wine in 100 cl and $\\boldsymbol n$ the amount of mixed nuts in 100 gr, which are being consumed during the evening. The utility function of the student is of the Cobb-Douglas type and is given by\n$$U(w,n)=w^{\\frac34}n^{\\frac14}\\qquad(w\\ge0,\\ n\\ge0)$$\nAssume that on this evening the student consumes 600 cl of wine (6 glasses) and 200 gr of mixed nuts. As became clear the next morning during the examination in Quantitative Methods, the amount of wine that was consumed was obviously too much. On the other hand, the experience by itself also gives rise to a deeper understanding of the concepts of elasticity and marginal substitution ratio of mixed nuts for wine!\nOn the evening prior to the reexamination the student has decided to drink less, but at the same time to keep his utility equal (based on $\\boldsymbol w=6$ and $\\boldsymbol n=2$). Halfway through the evening he finds that he is very well capable of calculating the marginal substitution rate of mixed nuts for wine. Note: the **marginal rate of substitution** (**MRS**) is the rate at which a consumer can give up some amount of one good (wine) in exchange for another good (nuts) while maintaining the same level of utility. In formula format: $$-\\frac{U'_w}{U'_n}$$",
+      "options": [
+        {
+          "id": "A",
+          "text": "This marginal substitution rate equals 1/3."
+        },
+        {
+          "id": "B",
+          "text": "This marginal substitution rate equals –1."
+        },
+        {
+          "id": "C",
+          "text": "This marginal substitution rate equals 0."
+        },
+        {
+          "id": "D",
+          "text": "This marginal substitution rate equals 1."
+        },
+        {
+          "id": "E",
+          "text": "This marginal substitution rate equals -1/3."
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$$-\\frac{U'_w}{U'_n}=-\\frac{\\frac34w^{-\\frac14}n^{\\frac14}}{\\frac14w^{\\frac34}n^{-\\frac34}}=-3\\frac nw$$ For $w=6$ and $n=2$ this equals $-1$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q21",
+      "number": 21,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Data & displays",
+      "points": 1,
+      "stem": "What measurement scale is used to indicate the quarter of the town in Maastricht (Wijck, Markt, Brusselsepoort, etc) for a student living in Maastricht?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Quantitative"
+        },
+        {
+          "id": "B",
+          "text": "Ratio"
+        },
+        {
+          "id": "C",
+          "text": "Interval"
+        },
+        {
+          "id": "D",
+          "text": "Ordinal"
+        },
+        {
+          "id": "E",
+          "text": "Nominal"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "Quarter of town is a categorical variable, which excludes the measurement scales quantitative, interval and ratio. Quarters cannot be ranked in a natural way, excluding the ordinal scale. So we are left with the lowest level: nominal scale.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q22",
+      "number": 22,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Data & displays",
+      "points": 1,
+      "stem": "An inquiry was carried out by a business researcher, involving 500 students, to ascertain the residential quarter in Maastricht where they reside. The table below presents the quarters along with the respective count of residing students. Which of the following types of charts would be suitable for effectively presenting this data?",
+      "table": {
+        "header": [
+          "Quarter",
+          "No. of students"
+        ],
+        "rows": [
+          [
+            "Brusselsepoort",
+            "155"
+          ],
+          [
+            "Binnenstad",
+            "112"
+          ],
+          [
+            "Wijck",
+            "125"
+          ],
+          [
+            "Markt",
+            "55"
+          ],
+          [
+            "Heer",
+            "28"
+          ],
+          [
+            "Other",
+            "25"
+          ]
+        ]
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "Line Graph"
+        },
+        {
+          "id": "B",
+          "text": "Segmented bar chart"
+        },
+        {
+          "id": "C",
+          "text": "Boxplot"
+        },
+        {
+          "id": "D",
+          "text": "Histogram"
+        },
+        {
+          "id": "E",
+          "text": "Pie Chart"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "Histogram, boxplots and line graph are for quantitative data, whereas the provided data represent counts, thus qualitative data. A segmented bar chart fits qualitative data, but requires a second categorical variable to create the segments.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q23",
+      "number": 23,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Describing distributions",
+      "points": 1,
+      "stem": "Janelle collected data on the amount of time in minutes each person in a large sample of customers spent in a local store. The data also included recording the gender of each customer. The data were used to generate the boxplots shown below.\nWhich of the following statements is true?",
+      "images": [
+        {
+          "src": "img/qm1-2023/q23-boxplots.png",
+          "alt": "Boxplots of time spent in the store by gender"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "The range in the amount of time in minutes males in the sample of customers spent in the store is approximately 40 minutes."
+        },
+        {
+          "id": "B",
+          "text": "The mean amount of time in minutes males in the sample of customers spent in the store is 20 minutes."
+        },
+        {
+          "id": "C",
+          "text": "The third quartile of the amount of time in minutes males in the sample of customers spent in the store is approximately 45 minutes."
+        },
+        {
+          "id": "D",
+          "text": "The interquartile range of the amount of time in minutes females in the sample of customers spent in the store is 15 minutes."
+        },
+        {
+          "id": "E",
+          "text": "Approximately half of the males in the sample of customers spent at least as much time in the store as any female in the sample of customers."
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "The highest score for female customers is 20 minutes, equal to the median score of males. Therefore, half of all males spent at least as much time as the highest female time score. Range of male time scores is 85 minutes, the median time is 20 but due to skewness, the mean is higher; the third quartile is about 28 minutes and the IQR for females is about 10 (the full range is 15, not the IQR).",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q24",
+      "number": 24,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Describing distributions",
+      "points": 1,
+      "stem": "A random sample of 25 households living in Maastricht was surveyed. In this survey, data were collected on the age of the youngest child living in each household. The histogram below displays the data collected in the survey.\nIn which of the following intervals is the median of these data located?",
+      "images": [
+        {
+          "src": "img/qm1-2023/q24-histogram.png",
+          "alt": "Histogram of the age of the youngest child"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "0 years old to less than 2 years old"
+        },
+        {
+          "id": "B",
+          "text": "4 years old to less than 6 years old"
+        },
+        {
+          "id": "C",
+          "text": "6 years old to less than 8 years old"
+        },
+        {
+          "id": "D",
+          "text": "8 years old to less than 10 years old"
+        },
+        {
+          "id": "E",
+          "text": "10 years old to less than 12 years old"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "With 25 observations, the middle observation is the 13th observation (12 below, 12 above). The 13th observation is within the 8-10 years old class.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q25",
+      "number": 25,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Probability",
+      "points": 1,
+      "stem": "The director of a technical school was curious about whether there is a relationship between students who complete one of the school's most popular health sciences certificate programs and whether those students go on to complete more advanced studies in the health sciences within two years of completing the certificate program. She randomly selected 100 students who completed the program. Data collected on these students are shown in the table below.\nWhich of the following statements is true for these 100 students?",
+      "table": {
+        "header": [
+          "Completed most popular health sciences certificate program",
+          "Completed more advanced studies: Yes",
+          "Completed more advanced studies: No",
+          "Total"
+        ],
+        "rows": [
+          [
+            "Yes",
+            "35",
+            "25",
+            "60"
+          ],
+          [
+            "No",
+            "5",
+            "35",
+            "40"
+          ],
+          [
+            "Total",
+            "40",
+            "60",
+            "100"
+          ]
+        ]
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "Being a person who completed more advanced studies is more likely than being a person who did not complete more advanced studies."
+        },
+        {
+          "id": "B",
+          "text": "Being a person who completed the program is less likely than being a person who did not complete the program."
+        },
+        {
+          "id": "C",
+          "text": "Being a person who completed the program and completed more advanced studies is more likely than being a person who did not complete the program and did not complete more advanced studies."
+        },
+        {
+          "id": "D",
+          "text": "Being a person who did not complete the program but completed more advanced studies is less likely than being a person who completed the program and completed more advanced studies."
+        },
+        {
+          "id": "E",
+          "text": "Being a person who completed the program but did not complete more advanced studies is more likely than being a person who did not complete the program and did not complete more advanced studies."
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "5 students did not complete the program but completed advanced studies, which is less than the 35 students completing the program and more advanced studies as well.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q26",
+      "number": 26,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Probability",
+      "points": 1,
+      "stem": "The probability that there will be an accident on Highway A1 each day depends on the weather. If the weather is dry that day, there is a 0.2% chance of an accident on Highway A1; if the weather is wet that day, there is a 1.0% chance of an accident. Today, the weather station announced that there is a 20% chance of the weather being wet. What is the probability that there will be an accident on Highway A1 today?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0.0004"
+        },
+        {
+          "id": "B",
+          "text": "0.0016"
+        },
+        {
+          "id": "C",
+          "text": "0.0020"
+        },
+        {
+          "id": "D",
+          "text": "0.0036"
+        },
+        {
+          "id": "E",
+          "text": "0.0060"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "A tree diagram makes this problem easiest to visualize (see figure). The chance of an accident depends on whether or not the weather is wet, so the weather condition is our first branching on the tree. The probabilities at the next branch are conditional. Two final branches end with an accident: $P(\\text{wet}\\cap\\text{accident})=0.2\\times0.010=0.0020$ and $P(\\text{dry}\\cap\\text{accident})=0.80\\times0.002=0.0016$. Therefore the total probability of an accident is $0.0020+0.0016=0.0036$.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "explanationImages": [
+        {
+          "src": "img/qm1-2023/q26-tree.png",
+          "alt": "Tree diagram: wet 0.20 / dry 0.80, then accident 0.010 / 0.002"
+        }
+      ]
+    },
+    {
+      "id": "q27",
+      "number": 27,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Random variables & binomial",
+      "points": 1,
+      "stem": "Two dice are rolled simultaneously. If both dice show 6, then the player wins \\$20; otherwise the player loses the game. It costs \\$2.00 to play the game. What is the expected gain or loss per game?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The player will gain about \\$0.55."
+        },
+        {
+          "id": "B",
+          "text": "The player will gain about \\$1.44."
+        },
+        {
+          "id": "C",
+          "text": "The player will lose about \\$0.55."
+        },
+        {
+          "id": "D",
+          "text": "The player will lose about \\$1.44."
+        },
+        {
+          "id": "E",
+          "text": "The player will lose about \\$2.00."
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "P(both dice roll 6) $=1/36$. So there is a 1 out of 36 chance that the player will win \\$20, and a 35/36 chance that the player will win nothing. The expected amount won is $20\\cdot(1/36)=\\$0.56$. It costs \\$2.00 to play, so the expected gain is $0.56-2.00=-1.44$: on average the player will lose \\$1.44.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q28",
+      "number": 28,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Random variables & binomial",
+      "points": 1,
+      "stem": "A new smartwatch is manufactured in one part of a factory, then secured for shipping in another, independent part of the factory. The weight of the smartwatch has a mean of 62 grams and a standard deviation of 1.0 grams. The weight of the packaging (box, user's guide, bubble wrap, etc.) has a mean of 456 grams and a standard deviation of 6 grams. Together, the distribution of the weight of the smartwatch and its packaging would have the following mean and standard deviation:",
+      "options": [
+        {
+          "id": "A",
+          "text": "Mean 518 grams; standard deviation 7.0 grams"
+        },
+        {
+          "id": "B",
+          "text": "Mean 518 grams; standard deviation 3.5 grams"
+        },
+        {
+          "id": "C",
+          "text": "Mean 518 grams; standard deviation 6.1 grams"
+        },
+        {
+          "id": "D",
+          "text": "Mean 394 grams; standard deviation 6.1 grams"
+        },
+        {
+          "id": "E",
+          "text": "Mean 394 grams; standard deviation 3.5 grams"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "The mean of the total weight is the sum of the individual means: $62+456=518$ grams. The parts are independent, so the variance of the total weight is $(1.0)^2+(6)^2$, and the standard deviation is $\\sqrt{1^2+6^2}=6.1$ grams.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q29",
+      "number": 29,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Normal model",
+      "points": 1,
+      "stem": "A certain type of remote control car has a fully charged battery at the time of purchase. The distribution of running times of cars of this type, before they require recharging of the battery for the first time after its period of initial use, is approximately Normal with a mean of 80 minutes and a standard deviation of 2.5 minutes. The shaded area in the figure below represents which of the following probabilities?",
+      "images": [
+        {
+          "src": "img/qm1-2023/q29-shaded-normal.png",
+          "alt": "Normal curve shaded from mu minus 2 sigma to mu plus sigma"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "The probability that the running time of a randomly selected car of this type, before it requires recharging of the battery for the first time after its period of initial use, is between 75 minutes and 82.5 minutes."
+        },
+        {
+          "id": "B",
+          "text": "The probability that the running time of a randomly selected car of this type, before it requires recharging of the battery for the first time after its period of initial use, is between 75 minutes and 85 minutes."
+        },
+        {
+          "id": "C",
+          "text": "The probability that the running time of a randomly selected car of this type, before it requires recharging of the battery for the first time after its period of initial use, is between 77.5 minutes and 82.5 minutes."
+        },
+        {
+          "id": "D",
+          "text": "The probability that the running time of a randomly selected car of this type, before it requires recharging of the battery for the first time after its period of initial use, is between 77.5 minutes and 85 minutes."
+        },
+        {
+          "id": "E",
+          "text": "The probability that the running time of a randomly selected car of this type, before it requires recharging of the battery for the first time after its period of initial use, is between 77.5 minutes and 87.5 minutes."
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "The interval $(\\mu-2\\sigma,\\ \\mu+\\sigma)$ corresponds with $(80-2\\cdot2.5,\\ 80+2.5)=(75,\\ 82.5)$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q30",
+      "number": 30,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Normal model",
+      "points": 1,
+      "stem": "Suppose that 60% of a particular electronic part last over 3 years, while 70% last less than 6 years. Assuming a Normal distribution, what are the mean and standard deviation with regard to length of life of these parts?",
+      "options": [
+        {
+          "id": "A",
+          "text": "μ = 3.677, σ = 3.561"
+        },
+        {
+          "id": "B",
+          "text": "μ = 3.977, σ = 3.861"
+        },
+        {
+          "id": "C",
+          "text": "μ = 4.177, σ = 3.561"
+        },
+        {
+          "id": "D",
+          "text": "μ = 4.377, σ = 3.261"
+        },
+        {
+          "id": "E",
+          "text": "The mean and standard deviation cannot be computed from the information given."
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "The critical z-scores for 60% to the right and 70% to the left are $-0.253$ and $0.524$, respectively. Then $\\{\\mu-0.253\\sigma=3,\\ \\mu+0.524\\sigma=6\\}$ gives $\\mu=3.977$ and $\\sigma=3.861$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q31",
+      "number": 31,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "A sample of size 35 is to be drawn from a large population. The sampling technique is such that every possible sample of size 35 that could be drawn from the population is equally likely. What name is given to this type of sample?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Stratified sample"
+        },
+        {
+          "id": "B",
+          "text": "Cluster sample"
+        },
+        {
+          "id": "C",
+          "text": "Simple random sample"
+        },
+        {
+          "id": "D",
+          "text": "Voluntary response sample"
+        },
+        {
+          "id": "E",
+          "text": "Systematic sample"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "A random sample from a population is one in which every member of the population is equally likely to be selected. A simple random sample is one in which every sample of a given size is equally likely to be selected. A sample can be a random sample without being a simple random sample.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q32",
+      "number": 32,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "The director of a fitness center wants to examine the effects of two exercise classes (spinning and aerobics) on body fat percentage. A six-week spinning class and a six-week aerobics class are offered at the same time and on the same days, so that a person can enroll in only one of them. A new class of each is about to begin, and each class has 25 people in it. Ten people are randomly selected from each class. Each person's body fat percentage is measured at the beginning and again at the end of the six-week class. The change in body fat percentage is used as the response variable. Which of the following is a confounding variable in the study?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The director's choice of spinning and aerobics classes as the types for use in the study."
+        },
+        {
+          "id": "B",
+          "text": "The random sample of 10 people from each class."
+        },
+        {
+          "id": "C",
+          "text": "The participants' choice of which class to take."
+        },
+        {
+          "id": "D",
+          "text": "The use of body fat percentage as the measure of effectiveness of the treatment."
+        },
+        {
+          "id": "E",
+          "text": "The fact that both classes were conducted three times each week at the same time of the day and for the same amount of time each day."
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "The fact that participants self-select their classes rather than being assigned randomly could introduce confounding. For instance, because spinning is widely recognized for its efficacy in reducing body fat, the spinning class may draw individuals primarily interested in fat loss, while the aerobics class may attract participants with diverse fitness-related objectives.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q33",
+      "number": 33,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling distributions",
+      "points": 1,
+      "stem": "A recent study was conducted to investigate the duration of time required to complete a certain manual skill task. The reported mean was 10.2 seconds with a standard deviation of 16.0 seconds. Suppose the reported values are the true mean and standard deviation for the population of subjects in the study. If a random sample of 144 subjects is selected from the population, what is the approximate probability that the mean of the sample will be more than 11.0 seconds?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0.1151"
+        },
+        {
+          "id": "B",
+          "text": "0.2743"
+        },
+        {
+          "id": "C",
+          "text": "0.7257"
+        },
+        {
+          "id": "D",
+          "text": "0.8849"
+        },
+        {
+          "id": "E",
+          "text": "We cannot calculate this approximate probability without knowing the population distribution."
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "Applying the Central Limit Theorem, we use the normal distribution with mean 10.2 seconds and standard deviation $\\dfrac{\\sigma}{\\sqrt n}=\\dfrac{16}{\\sqrt{144}}=\\dfrac{16}{12}=\\dfrac43$. The probability of the sample mean being more than 11 equals the probability of $z$ exceeding $\\dfrac{11-10.2}{4/3}=0.8\\cdot\\tfrac34=0.6$, which is $0.2743$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q34",
+      "number": 34,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling distributions",
+      "points": 1,
+      "stem": "The histogram below represents data obtained after the census of an entire population was conducted.\nThe sampling distribution of the sample mean based on samples of size 2 for the population was simulated, and a histogram of the results was produced. Which of the following histograms is most likely the histogram of that sampling distribution?",
+      "images": [
+        {
+          "src": "img/qm1-2023/q34-population.png",
+          "alt": "U-shaped population histogram on 0 to 1"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "image": "img/qm1-2023/q34-option-a.png"
+        },
+        {
+          "id": "B",
+          "image": "img/qm1-2023/q34-option-b.png"
+        },
+        {
+          "id": "C",
+          "image": "img/qm1-2023/q34-option-c.png"
+        },
+        {
+          "id": "D",
+          "image": "img/qm1-2023/q34-option-d.png"
+        },
+        {
+          "id": "E",
+          "image": "img/qm1-2023/q34-option-e.png"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "The population distribution has two peaks, one at the low end, one at the high end. If we take samples of size 2, we can expect 3 peaks, corresponding with the following sample outcomes: two drawings from the low peak, two drawings from the high peak, and the mixture of one drawing from the low peak and one from the high peak. That mixture has the higher probability, so we expect three peaks with the middle peak being the highest.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q35",
+      "number": 35,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "Which of the following is NOT true about $t$-distributions?",
+      "options": [
+        {
+          "id": "A",
+          "text": "There are different t-distributions for different values of df (degrees of freedom)."
+        },
+        {
+          "id": "B",
+          "text": "$t$-distributions are bell-shaped and symmetric."
+        },
+        {
+          "id": "C",
+          "text": "$t$-distributions always have mean 0 and standard deviation 1."
+        },
+        {
+          "id": "D",
+          "text": "$t$-distributions are more spread out than the normal distribution."
+        },
+        {
+          "id": "E",
+          "text": "The larger the df (degrees of freedom) value, the closer the distribution is to the normal distribution."
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "The mean of a $t$-distribution is indeed 0, but the standard deviation is different for different values of df, and therefore different from 1.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q36",
+      "number": 36,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "The principal of a school is interested in estimating the average income per family of her students. She selects a random sample of students and collects information about their family income. A 95 percent confidence interval computed from this data for the mean income per family is (\\$35,095, \\$45,005). Which of the following provides the best interpretation of this confidence interval?",
+      "options": [
+        {
+          "id": "A",
+          "text": "95 percent of the students in her school are from families whose income is between \\$35,095 and \\$45,005."
+        },
+        {
+          "id": "B",
+          "text": "We are 95% confident that the families of all the students in this school have an income of between \\$35,095 and \\$45,005."
+        },
+        {
+          "id": "C",
+          "text": "If we were to take another sample of the same size and compute a 95 percent confidence interval, we would have a 95% chance of getting the interval (\\$35,095, \\$45,005)."
+        },
+        {
+          "id": "D",
+          "text": "We are 95% confident that the mean of another sample with the same size will fall between \\$35,095 and \\$45,005."
+        },
+        {
+          "id": "E",
+          "text": "We are 95% confident that the mean income per family in the school is between \\$35,095 and \\$45,005."
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "A confidence interval is a statement about the mean of the population the sample is drawn from; there is a 95 percent probability that a 95 percent confidence interval contains the mean of the population.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q37",
+      "number": 37,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Errors & power",
+      "points": 1,
+      "stem": "Consider a hypothesis test with $H_0:\\mu=70$ and $H_A:\\mu<70$. Which of the following choices of significance level and sample size results in the greatest power of the test when $\\mu=65$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "α = 0.05, n = 15"
+        },
+        {
+          "id": "B",
+          "text": "α = 0.01, n = 15"
+        },
+        {
+          "id": "C",
+          "text": "α = 0.05, n = 30"
+        },
+        {
+          "id": "D",
+          "text": "α = 0.01, n = 30"
+        },
+        {
+          "id": "E",
+          "text": "We cannot answer without knowing the strength of the given power"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "Power $=1-\\beta$, and $\\beta$ is smallest when $\\alpha$ is larger and $n$ is larger.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q38",
+      "number": 38,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Hypothesis tests",
+      "points": 1,
+      "stem": "The weight of an aspirin tablet is 300 milligrams according to the bottle label. An FDA investigator weighs a simple random sample of seven tablets, obtains weights of 299, 300, 305, 302, 299, 301, and 303, and runs a hypothesis test of the manufacturer's claim. Which of the following gives the P-value of this test?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$P(t>1.54)$ with df = 6"
+        },
+        {
+          "id": "B",
+          "text": "$2P(t>1.54)$ with df = 6"
+        },
+        {
+          "id": "C",
+          "text": "$P(t>1.54)$ with df = 7"
+        },
+        {
+          "id": "D",
+          "text": "$2P(t>1.54)$ with df = 7"
+        },
+        {
+          "id": "E",
+          "text": "$0.5P(t>1.54)$ with df = 7"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "Since no direction for the test is specified (we are not told that the investigator suspects that the average weight is over 300 mg or under 300 mg, and since a tablet containing too little or too much of a drug clearly should be brought to the manufacturer's attention), this is a two-sided test. Thus, the P-value is twice the tail probability obtained (using the $t$-distribution with $df=n-1=6$).",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q39",
+      "number": 39,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Errors & power",
+      "points": 1,
+      "stem": "Given a hypothesis test with $H_0:\\mu=10$, $H_A:\\mu>10$, $\\alpha=0.05$ and a possible correct value of 11, which of the following increases as $n$ increases?\nI. The probability of a Type I error.\nII. The probability of a Type II error.\nIII. The power of the test.",
+      "options": [
+        {
+          "id": "A",
+          "text": "I only"
+        },
+        {
+          "id": "B",
+          "text": "II only"
+        },
+        {
+          "id": "C",
+          "text": "III only"
+        },
+        {
+          "id": "D",
+          "text": "II and III"
+        },
+        {
+          "id": "E",
+          "text": "none"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "As $n$ increases the probability of a Type I error stays constant at $\\alpha$ and the probability of a Type II error decreases, so only the power increases.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q40",
+      "number": 40,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Errors & power",
+      "points": 1,
+      "stem": "A drug company will conduct a randomized controlled study on the effectiveness of a new heart disease medication called Heartaid. Heartaid is more expensive than the currently used medication. The analysis will include a significance test with $H_0$: Heartaid and the current medication are equally effective at preventing heart disease and $H_A$: Heartaid is more effective than the current medication at preventing heart disease. Which of these would be a potential consequence of a Type II error?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Patients will spend more money on Heartaid, even though it is actually not any more effective than the current medication."
+        },
+        {
+          "id": "B",
+          "text": "Doctors will begin to prescribe Heartaid to patients, even though it is actually not any more effective than the current medication."
+        },
+        {
+          "id": "C",
+          "text": "Doctors will not begin to prescribe Heartaid to patients, even though it is actually more effective than the current medication."
+        },
+        {
+          "id": "D",
+          "text": "Researchers will calculate the wrong P-value, making their advice to doctors invalid."
+        },
+        {
+          "id": "E",
+          "text": "Researchers will calculate the correct P-value, but will misinterpret it in their conclusion."
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "A Type II error means that the null hypothesis is false, but we fail to reject it. In this case, a false null hypothesis means that Heartaid actually does work better. Failing to reject that null hypothesis means they don't have convincing evidence that Heartaid is better, so they won't use it.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    }
+  ]
+}

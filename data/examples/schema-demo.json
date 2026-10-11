@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "id": "demo-all-question-types",
+  "courseCode": "DEMO",
+  "courseName": "Format demo (not a real exam)",
+  "academicYear": "—",
+  "examType": "regular",
+  "title": "All question types",
+  "durationMinutes": 10,
+  "durationSource": "stated",
+  "grading": { "method": "linear", "passGrade": 5.5, "multiSelectScoring": "partial", "guessingCorrection": false },
+  "notes": [
+    "Template showing every supported question type. Only visible when the app is opened with ?demo=1.",
+    "Copy this file into data/exams/ (with a new id) as a starting point for another course."
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "number": 1,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Derivatives",
+      "points": 1,
+      "stem": "What is the derivative of $f(x)=x^3$?",
+      "options": [
+        { "id": "A", "text": "$3x^2$" },
+        { "id": "B", "text": "$x^2$" },
+        { "id": "C", "text": "$3x^3$" }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Power rule: $\\frac{d}{dx}x^n=nx^{n-1}$.",
+      "answerSource": "ai"
+    },
+    {
+      "id": "q2",
+      "number": 2,
+      "section": "Statistics",
+      "type": "multi-select",
+      "topic": "Data & displays",
+      "points": 1,
+      "stem": "Which of these variables are categorical? (choose every correct option)",
+      "options": [
+        { "id": "A", "text": "Eye colour" },
+        { "id": "B", "text": "Height in cm" },
+        { "id": "C", "text": "Country of birth" }
+      ],
+      "correctAnswer": ["A", "C"],
+      "explanation": "Eye colour and country are categories; height is quantitative.",
+      "answerSource": "ai"
+    },
+    {
+      "id": "q3",
+      "number": 3,
+      "section": "Statistics",
+      "type": "numeric",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "A sample of $n=100$ has mean 50 and standard deviation 10. Give the bounds of the approximate 95% confidence interval (use $z^*=1.96$).",
+      "instruction": "Use a dot as decimal separator.",
+      "fields": [
+        { "id": "lower", "label": "Lower bound:", "answer": 48.04, "tolerance": 0.01 },
+        { "id": "upper", "label": "Upper bound:", "answer": 51.96, "tolerance": 0.01 }
+      ],
+      "explanation": "$50\\pm1.96\\cdot\\frac{10}{\\sqrt{100}}=50\\pm1.96$.",
+      "answerSource": "ai"
+    },
+    {
+      "id": "q4",
+      "number": 4,
+      "section": "Statistics",
+      "type": "open",
+      "topic": "Hypothesis tests",
+      "points": 2,
+      "stem": "Explain in your own words what a p-value is.",
+      "correctAnswer": null,
+      "modelAnswer": "The probability, computed assuming the null hypothesis is true, of getting a test statistic at least as extreme as the one observed. (1 point for 'assuming $H_0$ is true', 1 point for 'at least as extreme'.)",
+      "explanation": "A p-value is not the probability that $H_0$ is true.",
+      "answerSource": "ai"
+    },
+    {
+      "id": "q5",
+      "number": 5,
+      "section": "Statistics",
+      "type": "matching",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "Match each description to the sampling method.",
+      "prompts": [
+        { "id": "p1", "text": "A random sample from every subgroup" },
+        { "id": "p2", "text": "Everybody in a few randomly chosen groups" }
+      ],
+      "choices": [
+        { "id": "strat", "text": "Stratified sampling" },
+        { "id": "clus", "text": "Cluster sampling" },
+        { "id": "conv", "text": "Convenience sampling" }
+      ],
+      "correctAnswer": { "p1": "strat", "p2": "clus" },
+      "explanation": "Strata: sample within every group. Clusters: take whole groups.",
+      "answerSource": "ai"
+    }
+  ]
+}

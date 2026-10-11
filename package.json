@@ -1,0 +1,30 @@
+{
+  "name": "mock-testvision",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local mock TestVision for practising past SBE exams (QM1 included).",
+  "type": "module",
+  "scripts": {
+    "start": "npm install --no-audit --no-fund --loglevel=error && vite --open",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "validate": "vitest run src/lib/examData.test.ts"
+  },
+  "dependencies": {
+    "katex": "0.16.11",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/katex": "0.16.7",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "4.3.4",
+    "typescript": "5.6.3",
+    "vite": "5.4.11",
+    "vitest": "2.1.8"
+  }
+}
