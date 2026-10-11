@@ -50,6 +50,12 @@ describe('calculator', () => {
     expect(evaluate('sin(π)', { angle: 'rad' })).toBe(0);
     expect(() => evaluate('tan(π÷2)', { angle: 'rad' })).toThrow('Math error');
     expect(evaluate('0.3−0.1−0.2')).toBe(0);
+    expect(evaluate('√(2)^2−2')).toBe(0);
+    // ...but genuine small differences survive
+    expect(evaluate('1E14+1−1E14')).toBe(1);
+    expect(evaluate('123456789012345−123456789012344')).toBe(1);
+    expect(evaluate('(1E14+100000020000001)÷2−10000000.5^2')).toBe(0.25);
+    expect(evaluate('1.00000000000001−1')).toBeGreaterThan(9e-15);
     expect(formatResult(evaluate('cos(90)'))).toBe('0');
   });
   it('rejects malformed numbers', () => {

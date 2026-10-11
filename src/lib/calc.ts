@@ -109,7 +109,8 @@ export function evaluate(expr: string, opts: { ans?: number; angle?: AngleMode }
         p++;
         const r = parseTerm();
         const nv = t.v === '+' ? v + r : v - r;
-        v = Math.abs(nv) < 1e-14 * Math.max(Math.abs(v), Math.abs(r)) ? 0 : nv;
+        // Only snap rounding noise of a few ulps; genuine small differences (1E14+1−1E14 = 1) stay.
+        v = Math.abs(nv) < 4 * Number.EPSILON * Math.max(Math.abs(v), Math.abs(r)) ? 0 : nv;
       } else return v;
     }
   }
