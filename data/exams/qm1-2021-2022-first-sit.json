@@ -1,0 +1,1073 @@
+{
+  "schemaVersion": 1,
+  "id": "qm1-2021-2022-first-sit",
+  "courseCode": "EBC1005/EBC1006/EBC1007",
+  "courseName": "Quantitative Methods 1",
+  "academicYear": "2021-2022",
+  "examType": "regular",
+  "title": "First sit",
+  "durationMinutes": 180,
+  "durationSource": "assumed",
+  "source": {
+    "file": "ExamQM1_2122_FirstSit.pdf",
+    "kind": "TestVision export with the correct option marked (no feedback)"
+  },
+  "grading": {
+    "method": "linear",
+    "passGrade": 5.5,
+    "multiSelectScoring": "partial",
+    "guessingCorrection": false
+  },
+  "resources": [
+    {
+      "title": "Formulas: mathematics",
+      "src": "img/qm1-shared/formulas-mathematics.png"
+    },
+    {
+      "title": "Formulas: statistics",
+      "src": "img/qm1-shared/formulas-statistics.png"
+    },
+    {
+      "title": "Table Z (negative z)",
+      "src": "img/qm1-shared/table-z-negative.png"
+    },
+    {
+      "title": "Table Z (positive z)",
+      "src": "img/qm1-shared/table-z-positive.png"
+    },
+    {
+      "title": "Table T",
+      "src": "img/qm1-shared/table-t.png"
+    }
+  ],
+  "notes": [
+    "Answer key: official (marked in the TestVision export). Explanations were written by AI.",
+    "The duration is not stated in the source; 180 minutes is assumed. Edit durationMinutes in the JSON to change it."
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "number": 1,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Functions & domains",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\sqrt{\\frac{x}{x-1}}$$The domain of $f(x)$ is:",
+      "options": [
+        {
+          "id": "A",
+          "text": "$(-\\infty,0]\\cup(1,\\infty)$"
+        },
+        {
+          "id": "B",
+          "text": "$(1,\\infty)$"
+        },
+        {
+          "id": "C",
+          "text": "$[1,\\infty)$"
+        },
+        {
+          "id": "D",
+          "text": "$[0,1)$"
+        },
+        {
+          "id": "E",
+          "text": "$(0,1)$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "We need $x\\ne1$ and $\\dfrac{x}{x-1}\\ge0$. The quotient is $\\ge0$ when numerator and denominator have the same sign (or $x=0$): $x\\le0$ or $x>1$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q2",
+      "number": 2,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Derivatives",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\sqrt{\\frac{x}{x-1}}$$The derivative $f'(x)$ of $f(x)$ is:",
+      "options": [
+        {
+          "id": "A",
+          "text": "$f'(x)=\\dfrac{-1}{2(x-1)^2}\\sqrt{\\dfrac{x-1}{x}}$"
+        },
+        {
+          "id": "B",
+          "text": "$f'(x)=\\dfrac{-1}{2}\\sqrt{\\dfrac{x-1}{x}}$"
+        },
+        {
+          "id": "C",
+          "text": "$f'(x)=\\dfrac{-1}{2(x-1)^2}\\sqrt{\\dfrac{x}{x-1}}$"
+        },
+        {
+          "id": "D",
+          "text": "$f'(x)=\\dfrac{1}{2(x-1)^2}\\sqrt{\\dfrac{x}{x-1}}$"
+        },
+        {
+          "id": "E",
+          "text": "$f'(x)=\\dfrac{-1}{2}\\sqrt{\\dfrac{x}{x-1}}$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Chain rule: $f'(x)=\\dfrac{1}{2}\\left(\\dfrac{x}{x-1}\\right)^{-1/2}\\cdot\\dfrac{(x-1)-x}{(x-1)^2}=\\dfrac12\\sqrt{\\dfrac{x-1}{x}}\\cdot\\dfrac{-1}{(x-1)^2}$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q3",
+      "number": 3,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Inverse functions",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\sqrt{\\frac{x}{x-1}}$$Consider $f(x)$ for $x>1$. Its inverse $f^{-1}(y)$ is:",
+      "options": [
+        {
+          "id": "A",
+          "text": "$f^{-1}(y)=\\dfrac{y^2}{y^2+1}$"
+        },
+        {
+          "id": "B",
+          "text": "$f^{-1}(y)=\\dfrac{y^2+1}{y^2}$"
+        },
+        {
+          "id": "C",
+          "text": "$f^{-1}(y)=\\dfrac{y^2}{y^2-1}$"
+        },
+        {
+          "id": "D",
+          "text": "$f^{-1}(y)=\\dfrac{y^2-1}{y^2}$"
+        },
+        {
+          "id": "E",
+          "text": "$f^{-1}(y)=\\dfrac{y^2}{1-y^2}$"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$y^2=\\dfrac{x}{x-1}\\Rightarrow y^2x-y^2=x\\Rightarrow x(y^2-1)=y^2\\Rightarrow x=\\dfrac{y^2}{y^2-1}$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q4",
+      "number": 4,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "Let the demand $D$ for rice as function of price be $D(P)=90-\\sqrt{P}$. Let the supply $S$ as function of price be $S(P)=2\\sqrt{P}$.\nAt which price $P$ do we have a market equilibrium?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$P=900$"
+        },
+        {
+          "id": "B",
+          "text": "$P=60$"
+        },
+        {
+          "id": "C",
+          "text": "$P=30$"
+        },
+        {
+          "id": "D",
+          "text": "$P=3600$"
+        },
+        {
+          "id": "E",
+          "text": "$P=90$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$90-\\sqrt P=2\\sqrt P\\Rightarrow3\\sqrt P=90\\Rightarrow\\sqrt P=30\\Rightarrow P=900$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q5",
+      "number": 5,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "Let the demand $D$ for rice as function of price be $D(P)=90-\\sqrt{P}$. Let the supply $S$ as function of price be $S(P)=2\\sqrt{P}$.\nWhat is the price elasticity of the demand function?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$E_D(P)=-\\dfrac12\\dfrac{\\sqrt P}{\\left(90-\\sqrt P\\right)}$"
+        },
+        {
+          "id": "B",
+          "text": "$E_D(P)=\\dfrac{1}{2P}\\dfrac{\\sqrt P}{\\left(90-\\sqrt P\\right)}$"
+        },
+        {
+          "id": "C",
+          "text": "$E_D(P)=-\\dfrac12\\dfrac{\\left(90-\\sqrt P\\right)}{\\sqrt P}$"
+        },
+        {
+          "id": "D",
+          "text": "$E_D(P)=\\dfrac12\\dfrac{\\sqrt P}{\\left(90-\\sqrt P\\right)}$"
+        },
+        {
+          "id": "E",
+          "text": "$E_D(P)=\\dfrac12\\dfrac{\\left(90-\\sqrt P\\right)}{\\sqrt P}$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$D'(P)=-\\dfrac{1}{2\\sqrt P}$, so $E_D(P)=\\dfrac{P\\,D'(P)}{D(P)}=\\dfrac{-P/(2\\sqrt P)}{90-\\sqrt P}=-\\dfrac12\\dfrac{\\sqrt P}{90-\\sqrt P}$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q6",
+      "number": 6,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "Let the demand $D$ for rice as function of price be $D(P)=90-\\sqrt{P}$. Let the supply $S$ as function of price be $S(P)=2\\sqrt{P}$.\nFor which price is the revenue maximum?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$P=900$"
+        },
+        {
+          "id": "B",
+          "text": "$P=60$"
+        },
+        {
+          "id": "C",
+          "text": "$P=30$"
+        },
+        {
+          "id": "D",
+          "text": "$P=3600$"
+        },
+        {
+          "id": "E",
+          "text": "$P=90$"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$R(P)=P(90-\\sqrt P)=90P-P^{3/2}$, $R'(P)=90-\\tfrac32\\sqrt P=0\\Rightarrow\\sqrt P=60\\Rightarrow P=3600$ ($R''<0$, so a maximum).",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q7",
+      "number": 7,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Derivatives",
+      "points": 1,
+      "stem": "Consider the functions $$h_c(x)=\\frac{1+c\\cdot\\ln(x)}{x}.$$ What is the line $l_c(x)$ tangent at the point of the graph for which $x=1$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$l_c(x)=(c-1)(x-1)+1$"
+        },
+        {
+          "id": "B",
+          "text": "$l_c(x)=(c-1)+(1-c)(x-1)$"
+        },
+        {
+          "id": "C",
+          "text": "$l_c(x)=c-c(x-1)$"
+        },
+        {
+          "id": "D",
+          "text": "$l_c(x)=2c+(1-c)x$"
+        },
+        {
+          "id": "E",
+          "text": "$l_c(x)=c+(1-x)$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$h_c(1)=1$. $h_c'(x)=\\dfrac{\\frac cx\\cdot x-(1+c\\ln x)}{x^2}=\\dfrac{c-1-c\\ln x}{x^2}$, so $h_c'(1)=c-1$. Tangent: $l_c(x)=h_c(1)+h_c'(1)(x-1)=(c-1)(x-1)+1$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q8",
+      "number": 8,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Exponential & logistic growth",
+      "points": 1,
+      "stem": "Solve the equation: $$4^{6-x^3}=2^{-4}$$",
+      "options": [
+        {
+          "id": "A",
+          "text": "$x=2$"
+        },
+        {
+          "id": "B",
+          "text": "$x=\\sqrt3$"
+        },
+        {
+          "id": "C",
+          "text": "$x=\\sqrt2$"
+        },
+        {
+          "id": "D",
+          "text": "$x=-2$"
+        },
+        {
+          "id": "E",
+          "text": "$x=-\\sqrt3$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$4^{6-x^3}=2^{2(6-x^3)}=2^{-4}\\Rightarrow12-2x^3=-4\\Rightarrow x^3=8\\Rightarrow x=2$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q9",
+      "number": 9,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the function $f(x)$ for which the **second order derivative** is given by $$f''(x)=(x-1)^3(x+1)^2(x+2).$$ How many inflection points does $f(x)$ have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0"
+        },
+        {
+          "id": "B",
+          "text": "1"
+        },
+        {
+          "id": "C",
+          "text": "2"
+        },
+        {
+          "id": "D",
+          "text": "3"
+        },
+        {
+          "id": "E",
+          "text": "4"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "Inflection points are where $f''$ changes sign. $(x-1)^3$ and $(x+2)$ change sign at $x=1$ and $x=-2$; $(x+1)^2$ does not change sign. So 2 inflection points.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q10",
+      "number": 10,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Exponential & logistic growth",
+      "points": 1,
+      "stem": "Number of rabbits in the Limburg woods is growing fast. Biologists found the following function describes the size of the population quite accurately: $N(t)=2000+125\\times2^t$ where $t$ is measured in years from now. How many years does it take for the number of rabbits to be doubled? Round down to the nearest integer number of years.",
+      "options": [
+        {
+          "id": "A",
+          "text": "4 years"
+        },
+        {
+          "id": "B",
+          "text": "6 years"
+        },
+        {
+          "id": "C",
+          "text": "8 years"
+        },
+        {
+          "id": "D",
+          "text": "10 years"
+        },
+        {
+          "id": "E",
+          "text": "16 years"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Now: $N(0)=2125$; doubled: $4250$. $125\\cdot2^t=2250\\Rightarrow2^t=18\\Rightarrow t=\\log_2 18\\approx4.17$, rounded down: 4 years.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q11",
+      "number": 11,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the following function $$f(x)=\\frac{x}{x^2+1}.$$ Where is this function convex?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$\\left(-\\sqrt3,0\\right)\\cup\\left(\\sqrt3,\\infty\\right)$"
+        },
+        {
+          "id": "B",
+          "text": "$\\left(-\\sqrt3,\\sqrt3\\right)$"
+        },
+        {
+          "id": "C",
+          "text": "$(-\\infty,-1)\\cup(1,\\infty)$"
+        },
+        {
+          "id": "D",
+          "text": "$(-1,1)$"
+        },
+        {
+          "id": "E",
+          "text": "$\\left(-\\infty,-\\sqrt3\\right)\\cup\\left(\\sqrt3,\\infty\\right)$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$f'(x)=\\dfrac{1-x^2}{(x^2+1)^2}$ and $f''(x)=\\dfrac{2x(x^2-3)}{(x^2+1)^3}$. $f''>0$ when $x(x^2-3)>0$: $-\\sqrt3<x<0$ or $x>\\sqrt3$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q12",
+      "number": 12,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: partial derivatives & level curves",
+      "points": 1,
+      "stem": "Consider the following function of two variables: $f(x,y)=\\sqrt{\\ln(y+x+1)}$. The level curves $f(x,y)=a\\ (a\\ge0)$ have a shape, as a function of $x$, which is described as:",
+      "options": [
+        {
+          "id": "A",
+          "text": "A straight line"
+        },
+        {
+          "id": "B",
+          "text": "An exponential function"
+        },
+        {
+          "id": "C",
+          "text": "A logarithmic function"
+        },
+        {
+          "id": "D",
+          "text": "A square-root function"
+        },
+        {
+          "id": "E",
+          "text": "A circle"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$\\sqrt{\\ln(y+x+1)}=a\\Rightarrow y+x+1=e^{a^2}\\Rightarrow y=e^{a^2}-1-x$: a straight line with slope $-1$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q13",
+      "number": 13,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=4(x-1)^2+4y^2-(x-1)^2y^2$$ The point $(1,0)$ is a stationary point of $f(x,y)$.\nHow many other stationary points does this function have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0"
+        },
+        {
+          "id": "B",
+          "text": "1"
+        },
+        {
+          "id": "C",
+          "text": "2"
+        },
+        {
+          "id": "D",
+          "text": "3"
+        },
+        {
+          "id": "E",
+          "text": "4 or more"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "$f_x=2(x-1)(4-y^2)$ and $f_y=2y(4-(x-1)^2)$. Besides $(1,0)$: $y=\\pm2$ together with $x-1=\\pm2$, i.e. $(3,2),(3,-2),(-1,2),(-1,-2)$: 4 other stationary points.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q14",
+      "number": 14,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=4(x-1)^2+4y^2-(x-1)^2y^2$$ The point $(1,0)$ is a stationary point of $f(x,y)$.\nWhat is the status of the stationary point $(1,0)$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "(1,0) is a maximum"
+        },
+        {
+          "id": "B",
+          "text": "(1,0) is a minimum"
+        },
+        {
+          "id": "C",
+          "text": "The status of (1,0) can not be determined; it is either a maximum or a saddle-point"
+        },
+        {
+          "id": "D",
+          "text": "(1,0) is a saddle-point"
+        },
+        {
+          "id": "E",
+          "text": "The status of (1,0) can not be determined; it is either a minimum or a saddle-point"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$f_{xx}=2(4-y^2)=8$, $f_{yy}=2(4-(x-1)^2)=8$, $f_{xy}=-4(x-1)y=0$ at $(1,0)$. $f_{xx}f_{yy}-f_{xy}^2=64>0$ and $f_{xx}>0$ → minimum.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q15",
+      "number": 15,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Describing distributions",
+      "points": 1,
+      "stem": "Three data sets having an equal number of observations and same range are summarized in the histograms below.\nOrder the data sets from the lowest variation from the mean to the highest variation from the mean.",
+      "images": [
+        {
+          "src": "img/qm1-2021-2022/q15-histograms.png",
+          "alt": "Histograms of Data Set A (uniform), B (mound-shaped) and C (U-shaped)"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "variation Data Set A < variation Data Set B < variation Data Set C"
+        },
+        {
+          "id": "B",
+          "text": "variation Data Set A < variation Data Set C < variation Data Set B"
+        },
+        {
+          "id": "C",
+          "text": "variation Data Set B < variation Data Set A < variation Data Set C"
+        },
+        {
+          "id": "D",
+          "text": "variation Data Set B < variation Data Set C < variation Data Set A"
+        },
+        {
+          "id": "E",
+          "text": "variation Data Set C < variation Data Set A < variation Data Set B"
+        },
+        {
+          "id": "F",
+          "text": "variation Data Set C < variation Data Set B < variation Data Set A"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "B is mound-shaped (most values near the mean) → least variation. A is uniform → in between. C is U-shaped (most values far from the mean) → most variation.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q16",
+      "number": 16,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Describing distributions",
+      "points": 1,
+      "stem": "Two different classes of students were given similar exams covering the same material. The boxplots below summarize the distributions of percent of correct answers on the exam.\nBased on the boxplots, which of the following statements is correct?",
+      "images": [
+        {
+          "src": "img/qm1-2021-2022/q16-boxplots.png",
+          "alt": "Boxplots of percent correct for Class A and Class B"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "The median is higher for class B, and there is more variability for class A."
+        },
+        {
+          "id": "B",
+          "text": "The median is higher for class B, and there is more variability for class B."
+        },
+        {
+          "id": "C",
+          "text": "The median is higher for class A, and there is more variability for class A."
+        },
+        {
+          "id": "D",
+          "text": "The median is higher for class A, and there is more variability for class B."
+        },
+        {
+          "id": "E",
+          "text": "The medians are not the same for the two classes, but the variability is the same for the two classes."
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Class B's median (≈84) is above class A's (≈70). Class A has both the larger IQR (≈57-85 vs ≈76-92) and the larger range, so more variability.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q17",
+      "number": 17,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Probability",
+      "points": 1,
+      "stem": "The table below summarizes data from a survey of 1,000 adults. Each respondent was asked whether he or she was a high school graduate and whether he or she had an annual income of more than \\$40,000 per year. Are these events independent or dependent?\nWhich of the following provides the best justification for the dependency of a person's income and whether he or she is a high school graduate?",
+      "table": {
+        "header": [
+          "ANNUAL INCOME",
+          "HIGH SCHOOL GRADUATE",
+          "NOT A HIGH SCHOOL GRADUATE",
+          "TOTAL"
+        ],
+        "rows": [
+          [
+            "\\$40,000 or less",
+            "250",
+            "150",
+            "400"
+          ],
+          [
+            "More than \\$40,000",
+            "500",
+            "100",
+            "600"
+          ],
+          [
+            "Total",
+            "750",
+            "250",
+            "1000"
+          ]
+        ]
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "About 67% (500/750) of the high school graduates have an annual income of more than \\$40,000 compared to only 40% (100/250) of the non-high school graduates."
+        },
+        {
+          "id": "B",
+          "text": "75% (750/1000) of the respondents graduated from high school, and 60% (600/1000) of the respondents have an annual income of more than \\$40,000."
+        },
+        {
+          "id": "C",
+          "text": "There are 500 high school graduates with annual incomes of more than \\$40,000 but only 250 high school graduates with annual incomes of \\$40,000 or less."
+        },
+        {
+          "id": "D",
+          "text": "There are 500 high school graduates with annual incomes of more than \\$40,000 but only 100 non-high school graduates with annual incomes of more than \\$40,000."
+        },
+        {
+          "id": "E",
+          "text": "There are 100 non-high school graduates with annual incomes of more than \\$40,000 but only 150 non-high school graduates with annual incomes of \\$40,000 or less."
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Dependence is shown by comparing *conditional* proportions: $P(>\\$40k\\mid\\text{grad})=0.67\\ne P(>\\$40k\\mid\\text{non-grad})=0.40$. Raw counts or marginal percentages do not show (in)dependence.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q18",
+      "number": 18,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Probability",
+      "points": 1,
+      "stem": "Lie detectors are controversial instruments, barred from use as evidence in many courts. Nonetheless, many employers use lie detector screening as part of their hiring process. There has been some research, but no agreement, about the reliability of polygraph tests. Based on this research, suppose that a polygraph can detect 70% of lies, but incorrectly identifies 25% of true statements as lies. A company believes that 96% of its job applicants are trustworthy. The company gives everyone a polygraph test, asking \"Have you ever stolen anything from your place of work?\" Naturally, all the applicants answer \"No,\" but the polygraph identifies some of those answers as lies, making the person ineligible for a job.\nWhat is the probability that a job applicant who is rejected by the polygraph was actually dishonest (round to four decimals)?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0.0280"
+        },
+        {
+          "id": "B",
+          "text": "0.0400"
+        },
+        {
+          "id": "C",
+          "text": "0.1045"
+        },
+        {
+          "id": "D",
+          "text": "0.2400"
+        },
+        {
+          "id": "E",
+          "text": "0.2680"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$P(\\text{rejected})=0.04\\cdot0.70+0.96\\cdot0.25=0.028+0.24=0.268$. Bayes: $P(\\text{dishonest}\\mid\\text{rejected})=\\dfrac{0.028}{0.268}=0.1045$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q19",
+      "number": 19,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Random variables & binomial",
+      "points": 1,
+      "stem": "Suppose X is a random variable with mean $\\mu$. Suppose we observe X many times and keep track of the average of the observed values. The law of large numbers says that:",
+      "options": [
+        {
+          "id": "A",
+          "text": "The value of $\\mu$ will get larger and larger as we observe X."
+        },
+        {
+          "id": "B",
+          "text": "As we observe X more and more, this average and the value of $\\mu$ will get larger and larger."
+        },
+        {
+          "id": "C",
+          "text": "This average will get closer and closer to $\\mu$ as we observe X more and more often."
+        },
+        {
+          "id": "D",
+          "text": "As we observe X more and more, this average will get to be a larger and larger multiple of $\\mu$."
+        },
+        {
+          "id": "E",
+          "text": "None of the other options."
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "The law of large numbers: the long-run average of independent observations converges to the true mean $\\mu$ (which itself is fixed).",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q20",
+      "number": 20,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Normal model",
+      "points": 1,
+      "stem": "Every Normal model is defined by its parameters, the mean and the standard deviation. If we know the mean, $\\mu=20$, and we know the 75th percentile, 25% of the distribution is above 40, what is the value of $\\sigma$, the standard deviation? Round your answer.",
+      "options": [
+        {
+          "id": "A",
+          "text": "25"
+        },
+        {
+          "id": "B",
+          "text": "27"
+        },
+        {
+          "id": "C",
+          "text": "28"
+        },
+        {
+          "id": "D",
+          "text": "30"
+        },
+        {
+          "id": "E",
+          "text": "33"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$z_{0.75}=0.674$: $20+0.674\\sigma=40\\Rightarrow\\sigma=20/0.674\\approx29.7\\approx30$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q21",
+      "number": 21,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Normal model",
+      "points": 1,
+      "stem": "The daily closing price of a stock (in \\$) is well modeled by a Normal model with mean \\$140.00 and standard deviation \\$4.00. According to this model, what cutoff value of price would separate the highest 1%? (round to one decimal)",
+      "options": [
+        {
+          "id": "A",
+          "text": "\\$ 147.80"
+        },
+        {
+          "id": "B",
+          "text": "\\$ 148.20"
+        },
+        {
+          "id": "C",
+          "text": "\\$ 149.30"
+        },
+        {
+          "id": "D",
+          "text": "\\$ 152.50"
+        },
+        {
+          "id": "E",
+          "text": "\\$ 155.50"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "99th percentile: $z=2.326$; $140+2.326\\cdot4=149.30$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q22",
+      "number": 22,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "Consider an experiment to investigate the effectiveness of different insecticides in controlling pests and their effects on subsequent yield. What is the best reason for randomly assigning treatment levels (spraying or not spraying) to the experimental units (farms)?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Randomization makes the experiment easier to conduct since we can apply the insecticide in any pattern rather than in a systematic fashion."
+        },
+        {
+          "id": "B",
+          "text": "Randomization will tend to average out all other uncontrolled factors such as soil fertility so that they are not confounded with the treatment effects."
+        },
+        {
+          "id": "C",
+          "text": "Randomization makes every individual associated with an experiment unaware of how subjects have been allocated to treatment groups, so reducing bias."
+        },
+        {
+          "id": "D",
+          "text": "Randomization isolates the variability attributable to differences between blocks."
+        },
+        {
+          "id": "E",
+          "text": "Randomization implies that it is not necessary to be careful during the experiment, during data collection, and during data analysis."
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "Random assignment spreads uncontrolled factors (soil, weather, …) evenly over the groups so they do not get confounded with the treatment. Blinding (C) and blocking (D) are different ideas.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q23",
+      "number": 23,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "A nutritionist wants to study the effect of storage time (6, 12, and 18 months) on the amount of vitamin C present in freeze-dried fruit when stored for these lengths of time. Vitamin C is measured in milligrams per 100 milligrams of fruit. Six fruit packs were randomly assigned to each of the three storage times. The treatment, experimental unit, and response are respectively:",
+      "options": [
+        {
+          "id": "A",
+          "text": "A specific storage time, amount of vitamin C, a fruit pack"
+        },
+        {
+          "id": "B",
+          "text": "A fruit pack, amount of vitamin C, a specific storage time"
+        },
+        {
+          "id": "C",
+          "text": "Random assignment, a fruit pack, amount of vitamin C"
+        },
+        {
+          "id": "D",
+          "text": "A specific storage time, a fruit pack, amount of vitamin C"
+        },
+        {
+          "id": "E",
+          "text": "A specific storage time, the nutritionist, amount of vitamin C"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "Treatment = what is assigned (a storage time); experimental unit = what it is assigned to (a fruit pack); response = what is measured (vitamin C).",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q24",
+      "number": 24,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "You have measured the systolic blood pressure of a random sample of 25 employees of a company located near you. A 95% confidence interval for the mean systolic blood pressure for the employees of this company is (122, 138). Which of the following statements gives a valid interpretation of this interval?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ninety-five percent of the sample of employees have a systolic blood pressure between 122 and 138."
+        },
+        {
+          "id": "B",
+          "text": "Ninety-five percent of the population of employees have a systolic blood pressure between 122 and 138."
+        },
+        {
+          "id": "C",
+          "text": "If the procedure were repeated many times, 95% of the resulting confidence intervals would contain the population mean systolic blood pressure."
+        },
+        {
+          "id": "D",
+          "text": "The probability that the population mean blood pressure is between 122 and 138 is 0.95."
+        },
+        {
+          "id": "E",
+          "text": "If the procedure were repeated many times, 95% of the sample means would be between 122 and 138."
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "The 95% describes the long-run success rate of the method: 95% of intervals built this way capture the population mean. It is not about individuals (A, B) and, once computed, a specific interval either contains $\\mu$ or not (D).",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q25",
+      "number": 25,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Hypothesis tests",
+      "points": 1,
+      "stem": "An educational researcher is collecting data for a study on the job market for graduating business majors in 2021. One variable of interest is the percentage of business grads who were able to find employment in their field within 6 months of obtaining their degree. The researcher hypothesizes in advance of the study that less than 40% of business grads will be able to find jobs within 6 months of graduation. To answer this question, one should use:",
+      "options": [
+        {
+          "id": "A",
+          "text": "one-proportion z test"
+        },
+        {
+          "id": "B",
+          "text": "one-sample t test"
+        },
+        {
+          "id": "C",
+          "text": "one-sample z test"
+        },
+        {
+          "id": "D",
+          "text": "one-proportion t test"
+        },
+        {
+          "id": "E",
+          "text": "none of the other options"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "The parameter is a proportion (share who found a job) for one group → one-proportion $z$-test.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q26",
+      "number": 26,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Hypothesis tests",
+      "points": 1,
+      "stem": "A random sample survey of 175 skiers at a large European resort found that 28% of those surveyed had taken a ski vacation outside their own country within the past year. The observed value of the test statistic for testing the null hypothesis $H_0: p=0.30$ versus the alternative hypothesis $H_A: p<0.30$ is:",
+      "options": [
+        {
+          "id": "A",
+          "text": "$z=\\dfrac{0.3-0.28}{\\sqrt{\\frac{0.3(0.7)}{175}}}$"
+        },
+        {
+          "id": "B",
+          "text": "$z=\\dfrac{0.28-0.3}{\\sqrt{\\frac{0.28(0.72)}{175}}}$"
+        },
+        {
+          "id": "C",
+          "text": "$z=\\dfrac{0.3-0.28}{\\sqrt{\\frac{0.28(0.72)}{175}}}$"
+        },
+        {
+          "id": "D",
+          "text": "$z=\\dfrac{0.28-0.3}{\\sqrt{\\frac{0.3(0.7)}{175}}}$"
+        },
+        {
+          "id": "E",
+          "text": "None of the other options"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$z=\\dfrac{\\hat p-p_0}{\\sqrt{p_0(1-p_0)/n}}$: observed minus hypothesised value, with the standard deviation computed from the null value $p_0=0.30$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q27",
+      "number": 27,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Hypothesis tests",
+      "points": 1,
+      "stem": "In 2013 a national vital statistics report indicated that about 4.1% of all births produced twins. Is the rate of twin births the same among very young mothers? Data from a large city hospital found only 8 sets of twins were born to 487 teenage girls. Test an appropriate hypothesis and find the P-value. The P-value is:",
+      "options": [
+        {
+          "id": "A",
+          "text": "P<0.01"
+        },
+        {
+          "id": "B",
+          "text": "0.01<P<0.025"
+        },
+        {
+          "id": "C",
+          "text": "0.025<P<0.05"
+        },
+        {
+          "id": "D",
+          "text": "0.05<P<0.10"
+        },
+        {
+          "id": "E",
+          "text": "P>0.10"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Two-sided test of $H_0:p=0.041$. $\\hat p=8/487=0.0164$, $SD=\\sqrt{0.041\\cdot0.959/487}=0.0090$, $z=\\dfrac{0.0164-0.041}{0.0090}\\approx-2.74$. $P=2\\cdot P(z<-2.74)\\approx0.006<0.01$.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q28",
+      "number": 28,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Errors & power",
+      "points": 1,
+      "stem": "Resting pulse rate is an important measure of the fitness of a person's cardiovascular system, with a lower rate indicative of greater fitness. The mean pulse rate for all adult males is approximately 72 beats per minute. A random sample of 25 male students currently enrolled in the Faculty of Agriculture was selected and the mean resting pulse rate was found to be 80 beats per minute with a standard deviation of 20 beats per minute. The experimenter wishes to test if the students are less fit, on average than the general population.\nA possible Type II error here would be to:",
+      "options": [
+        {
+          "id": "A",
+          "text": "conclude that the students are less fit (on average) than the general population when in fact they have equal fitness on average."
+        },
+        {
+          "id": "B",
+          "text": "conclude that the students have the same fitness (on average) as the general population when in fact they are less fit (on average)."
+        },
+        {
+          "id": "C",
+          "text": "conclude that the students have the same fitness (on average) as the general population when in fact they have the same fitness (on average)."
+        },
+        {
+          "id": "D",
+          "text": "conclude that the students are less fit (on average) than the general population, when, in fact, they are less fit (on average)."
+        },
+        {
+          "id": "E",
+          "text": "conclude that the students have the same fitness (on average) when in fact they are more fit (on average)."
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$H_0$: same fitness; $H_A$: students less fit. A Type II error is failing to reject $H_0$ while $H_A$ is true: concluding \"same fitness\" when they are in fact less fit.",
+      "answerSource": "official",
+      "explanationSource": "ai"
+    }
+  ]
+}

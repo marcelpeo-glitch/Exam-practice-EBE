@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "id": "qm1-2019-2020-first-sit",
+  "courseCode": "EBC1005/EBC1006/EBC1007",
+  "courseName": "Quantitative Methods 1",
+  "academicYear": "2019-2020",
+  "examType": "regular",
+  "title": "First sit, Version A",
+  "date": "2019-10-23",
+  "durationMinutes": 180,
+  "durationSource": "stated",
+  "source": {
+    "file": "2019-2020_FIRST_SIT.pdf",
+    "kind": "paper exam (no answer key in the folder)"
+  },
+  "grading": {
+    "method": "linear",
+    "passGrade": 5.5,
+    "passRule": {
+      "minPoints": 27,
+      "minSectionPoints": {
+        "Mathematics": 9,
+        "Statistics": 9
+      },
+      "description": "Norm stated on the cover page: at least 27 of the 40 multiple-choice questions correct (including bonus points), with a minimum of 9 correct answers for both mathematics and statistics. Course bonus points are not simulated here."
+    },
+    "multiSelectScoring": "partial",
+    "guessingCorrection": false
+  },
+  "resources": [
+    {
+      "title": "Formulas: mathematics",
+      "src": "img/qm1-shared/formulas-mathematics.png"
+    },
+    {
+      "title": "Formulas: statistics",
+      "src": "img/qm1-shared/formulas-statistics.png"
+    },
+    {
+      "title": "Table Z (negative z)",
+      "src": "img/qm1-shared/table-z-negative.png"
+    },
+    {
+      "title": "Table Z (positive z)",
+      "src": "img/qm1-shared/table-z-positive.png"
+    },
+    {
+      "title": "Table T",
+      "src": "img/qm1-shared/table-t.png"
+    }
+  ],
+  "notes": [
+    "Paper exam (MECC Westhal, 9.00-12.00). Calculator allowed: Casio FX-82MS or FX-85MS.",
+    "No answer key was available: every answer below was solved and double-checked by AI. Verify before relying on it."
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "number": 1,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Functions & domains",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\frac{1}{1+\\ln(x)}$$Its domain is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$(1,\\infty)$"
+        },
+        {
+          "id": "B",
+          "text": "$(0,1)\\cup(1,\\infty)$"
+        },
+        {
+          "id": "C",
+          "text": "$(0,e^{-1})\\cup(e^{-1},\\infty)$"
+        },
+        {
+          "id": "D",
+          "text": "$(0,\\infty)$"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$\\ln x$ needs $x>0$, and the denominator must not vanish: $1+\\ln x\\ne0\\Leftrightarrow x\\ne e^{-1}$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q2",
+      "number": 2,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Derivatives",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\frac{1}{1+\\ln(x)}$$Its derivative $f'(x)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$\\dfrac{-1/x}{(1+\\ln(x))^2}$"
+        },
+        {
+          "id": "B",
+          "text": "$\\dfrac{-1}{(1+\\ln(x))^2}$"
+        },
+        {
+          "id": "C",
+          "text": "$\\dfrac{1/x}{(1+\\ln(x))^2}$"
+        },
+        {
+          "id": "D",
+          "text": "$\\dfrac{1}{(1+\\ln(x))^2}$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$f(x)=(1+\\ln x)^{-1}$, so $f'(x)=-(1+\\ln x)^{-2}\\cdot\\dfrac1x=\\dfrac{-1/x}{(1+\\ln x)^2}$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q3",
+      "number": 3,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Inverse functions",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\frac{1}{1+\\ln(x)}$$Its inverse $f^{-1}(y)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$e^{(1-y)/y}$"
+        },
+        {
+          "id": "B",
+          "text": "$e^{(y-1)/y}$"
+        },
+        {
+          "id": "C",
+          "text": "$(1-y)/y$"
+        },
+        {
+          "id": "D",
+          "text": "$(y-1)/y$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$y=\\dfrac{1}{1+\\ln x}\\Rightarrow 1+\\ln x=\\dfrac1y\\Rightarrow\\ln x=\\dfrac{1-y}{y}\\Rightarrow x=e^{(1-y)/y}$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q4",
+      "number": 4,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\frac{1}{1+\\ln(x)}$$Which of the following is true. On the (restricted) domain $(1,\\infty)$ the function $f(x)$",
+      "options": [
+        {
+          "id": "A",
+          "text": "is increasing"
+        },
+        {
+          "id": "B",
+          "text": "has a maximum"
+        },
+        {
+          "id": "C",
+          "text": "has a minimum"
+        },
+        {
+          "id": "D",
+          "text": "is decreasing"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "For $x>1$: $f'(x)=\\dfrac{-1/x}{(1+\\ln x)^2}<0$, so $f$ is decreasing (and has no stationary point there).",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q5",
+      "number": 5,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the differentiable function $f(x)$, and suppose it has a positive derivative for $x<3$ and a negative derivative for $x>3$. What does this tell about the function $g(x)=2-4\\cdot f(x)$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$g(x)$ is convex"
+        },
+        {
+          "id": "B",
+          "text": "$g(x)$ is concave"
+        },
+        {
+          "id": "C",
+          "text": "$g(x)$ has a maximum"
+        },
+        {
+          "id": "D",
+          "text": "$g(x)$ has a minimum"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$g'(x)=-4f'(x)$: negative for $x<3$ and positive for $x>3$, so $g$ decreases then increases: a minimum at $x=3$. Nothing is known about $f''$, so convexity cannot be concluded.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q6",
+      "number": 6,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "We consider the differentiable function $f(x)$ on the domain $(0,\\infty)$. We know that $f(x)$ is positive on the whole domain. Which property should $f(x)$ have, so that its point elasticity is guaranteed to be positive, on the whole domain?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Convex."
+        },
+        {
+          "id": "B",
+          "text": "Increasing."
+        },
+        {
+          "id": "C",
+          "text": "Decreasing."
+        },
+        {
+          "id": "D",
+          "text": "Concave."
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$El_x f(x)=\\dfrac{x}{f(x)}f'(x)$ with $x>0$, $f(x)>0$, so its sign is the sign of $f'(x)$: positive iff $f$ is increasing.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q7",
+      "number": 7,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "The connection between the price $p$ of wheat (in Euros) and the demand $d$ (in 1000kg) is given by: $$p=10\\cdot\\sqrt{3600-20q}$$\nWith how much does demand decrease when the price increases from 200 to 210?",
+      "options": [
+        {
+          "id": "A",
+          "text": "An amount in the interval (0, 0.5] (e.g. 0 not included, 0.5 included)"
+        },
+        {
+          "id": "B",
+          "text": "An amount in the interval (1, 2]"
+        },
+        {
+          "id": "C",
+          "text": "An amount in the interval (2, 10]"
+        },
+        {
+          "id": "D",
+          "text": "An amount in the interval (0.5, 1]"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "(Here $q$ is the demand.) Solve for $q$: $q=180-\\dfrac{p^2}{2000}$. $q(200)=180-20=160$ and $q(210)=180-22.05=157.95$, so demand decreases by $2.05\\in(2,10]$.\n(A linear approximation $q'(200)\\cdot10=-2.0$ would give exactly 2; the exact change is slightly larger.)",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "Answer depends on computing the exact change (2.05). A marginal approximation gives 2.0, which would fall in (1, 2]."
+    },
+    {
+      "id": "q8",
+      "number": 8,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "The connection between the price $p$ of wheat (in Euros) and the demand $d$ (in 1000kg) is given by: $$p=10\\cdot\\sqrt{3600-20q}$$\nWhat can you say about the price elasticity at $p=200$ approximately? A 1% price increase results, approximately, in a $k$% demand DECREASE. Now $k$ is in the interval",
+      "options": [
+        {
+          "id": "A",
+          "text": "(0, 0.5]"
+        },
+        {
+          "id": "B",
+          "text": "(1, 2]"
+        },
+        {
+          "id": "C",
+          "text": "(0.5, 1]"
+        },
+        {
+          "id": "D",
+          "text": "(2, 10]"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$q=180-\\dfrac{p^2}{2000}$, $q'(p)=-\\dfrac{p}{1000}$. At $p=200$: $El=\\dfrac{p\\,q'}{q}=\\dfrac{200\\cdot(-0.2)}{160}=-0.25$, so $k=0.25\\in(0,0.5]$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q9",
+      "number": 9,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "The connection between the price $p$ of wheat (in Euros) and the demand $d$ (in 1000kg) is given by: $$p=10\\cdot\\sqrt{3600-20q}$$\nThe total revenue TR is $p\\cdot q=10\\cdot\\sqrt{3600-20q}\\cdot q$. The derivative of TR is: $$10\\cdot\\sqrt{3600-20q}-\\frac{100}{\\sqrt{3600-20q}}\\cdot q$$ Which of the following is true?",
+      "options": [
+        {
+          "id": "A",
+          "text": "TR has no extremes"
+        },
+        {
+          "id": "B",
+          "text": "TR has one maximum and no minimum"
+        },
+        {
+          "id": "C",
+          "text": "TR has one minimum and no maximum"
+        },
+        {
+          "id": "D",
+          "text": "TR has one minimum and one maximum"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$TR'=0\\Leftrightarrow10(3600-20q)=100q\\Leftrightarrow q=120$. $TR'>0$ for $q<120$ and $TR'<0$ for $120<q<180$: a single (interior) maximum and no interior minimum.",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "Interpreted as interior (stationary) extremes; the boundary values TR(0)=TR(180)=0 are not counted."
+    },
+    {
+      "id": "q10",
+      "number": 10,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "A Ford Ka dealer sells 60 cars per year. We assume that the stock decreases linearly in time. Immediately after all cars in stock have been sold, the dealer orders new cars that are being delivered at once. The order costs equal 200 Euros per order regardless of its size. The costs for keeping cars in stock equal 5% of the total value of the cars in stock on a yearly basis. Each car has a value of 30000 Euros. Note that the average inventory is half the ordered amount.\nWhat are the annual ordering costs and the annual inventory costs in case 6 cars are ordered every time stock is sold-out?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Annual ordering costs are 2000 and annual inventory costs are 3000"
+        },
+        {
+          "id": "B",
+          "text": "Annual ordering costs are 2000 and annual inventory costs are 4500"
+        },
+        {
+          "id": "C",
+          "text": "Annual ordering costs are 3000 and annual inventory costs are 4500"
+        },
+        {
+          "id": "D",
+          "text": "Annual ordering costs are 3000 and annual inventory costs are 3000"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "Order size $x=6$: $60/6=10$ orders per year → ordering costs $10\\cdot200=2000$. Average stock $x/2=3$ cars worth $90000$; 5% of that is $4500$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q11",
+      "number": 11,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "A Ford Ka dealer sells 60 cars per year. We assume that the stock decreases linearly in time. Immediately after all cars in stock have been sold, the dealer orders new cars that are being delivered at once. The order costs equal 200 Euros per order regardless of its size. The costs for keeping cars in stock equal 5% of the total value of the cars in stock on a yearly basis. Each car has a value of 30000 Euros. Note that the average inventory is half the ordered amount.\nWhat is the optimal order quantity?",
+      "options": [
+        {
+          "id": "A",
+          "text": "4 cars per order."
+        },
+        {
+          "id": "B",
+          "text": "5 cars per order."
+        },
+        {
+          "id": "C",
+          "text": "7 cars per order."
+        },
+        {
+          "id": "D",
+          "text": "8 cars per order."
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$C(x)=200\\cdot\\dfrac{60}{x}+\\dfrac{x}{2}\\cdot30000\\cdot0.05=\\dfrac{12000}{x}+750x$. $C'(x)=-\\dfrac{12000}{x^2}+750=0\\Rightarrow x^2=16\\Rightarrow x=4$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q12",
+      "number": 12,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "The probability density function (pdf) of the standard normal distribution N(0,1) is pictured below.\nHow many inflection points has this function?",
+      "images": [
+        {
+          "src": "img/qm1-2019-2020/q12-normal-pdf.png",
+          "alt": "Density plot of the standard normal distribution"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "0"
+        },
+        {
+          "id": "B",
+          "text": "1"
+        },
+        {
+          "id": "C",
+          "text": "2"
+        },
+        {
+          "id": "D",
+          "text": "3"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "The bell curve is concave around the mean and convex in both tails; it changes curvature at $z=-1$ and $z=1$ (one standard deviation from the mean): 2 inflection points.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q13",
+      "number": 13,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Exponential & logistic growth",
+      "points": 1,
+      "stem": "As a result of prospering diamond mining, Botswana experiences a fast growth of its economy. Assume that the gross national product (GNP), from January 1st of 2018 onward, will grow with 15% on a yearly basis. Then we can postulate with certainty that the GNP will be exactly three-folded during the year",
+      "options": [
+        {
+          "id": "A",
+          "text": "2023"
+        },
+        {
+          "id": "B",
+          "text": "2024"
+        },
+        {
+          "id": "C",
+          "text": "2025"
+        },
+        {
+          "id": "D",
+          "text": "2026"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$1.15^t=3\\Rightarrow t=\\dfrac{\\ln3}{\\ln1.15}\\approx7.86$ years after 1 January 2018, i.e. during 2025.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q14",
+      "number": 14,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Derivatives",
+      "points": 1,
+      "stem": "Consider the function $f(x)=x^2-3x+a$. For which value of $a$ is the line $y=-x+3$ a tangent of the function?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$a=-2$"
+        },
+        {
+          "id": "B",
+          "text": "$a=1$"
+        },
+        {
+          "id": "C",
+          "text": "$a=2$"
+        },
+        {
+          "id": "D",
+          "text": "$a=4$"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "Slope: $f'(x)=2x-3=-1\\Rightarrow x=1$. The line passes through $(1,2)$, so $f(1)=1-3+a=2\\Rightarrow a=4$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q15",
+      "number": 15,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "The function $f(x)=x^3-3x^2-9x$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "decreasing and convex on the interval [-1,1]"
+        },
+        {
+          "id": "B",
+          "text": "increasing and convex on the interval [1,3]"
+        },
+        {
+          "id": "C",
+          "text": "decreasing and concave on the interval [-1,1]"
+        },
+        {
+          "id": "D",
+          "text": "increasing and concave on the interval [1,3]"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$f'(x)=3x^2-6x-9=3(x-3)(x+1)\\le0$ on $[-1,3]$ (decreasing), and $f''(x)=6(x-1)\\le0$ for $x\\le1$ (concave). So on $[-1,1]$: decreasing and concave.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q16",
+      "number": 16,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: partial derivatives & level curves",
+      "points": 1,
+      "stem": "Consider the following function of two variables: $f(x,y)=(2x+y)^2$. The level curves $f(x,y)=a\\ (a\\ge0)$ are:",
+      "options": [
+        {
+          "id": "A",
+          "text": "Straight lines."
+        },
+        {
+          "id": "B",
+          "text": "Circles."
+        },
+        {
+          "id": "C",
+          "text": "Parabolas."
+        },
+        {
+          "id": "D",
+          "text": "None of the above."
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$(2x+y)^2=a\\Leftrightarrow 2x+y=\\pm\\sqrt a\\Leftrightarrow y=-2x\\pm\\sqrt a$: straight lines (a pair of parallel lines for $a>0$).",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q17",
+      "number": 17,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "On the usual Thursday evening party of the student association a student consumes mixed nuts and wine. Let $w$ be the amount of wine in 100 cl and $n$ the amount of mixed nuts in 100 gr, which are being consumed during the evening. The utility function of the student is of the Cobb-Douglas type and is given by\n$$U(w,n)=w^{3/4}n^{1/4}\\qquad(w\\ge0,\\ n\\ge0)$$\nAssume that on this evening the student consumes 600 cl of wine (6 glasses) and 200 gr of mixed nuts. As became clear the next morning during the examination in Quantitative Methods, the amount of wine that was consumed was obviously too much. But on the other hand, the experience by itself also gives rise to a deeper understanding of the concepts of elasticity and marginal substitution ratio of mixed nuts for wine!\nAssume that the student had drunk 6% (a few sips) less of wine. By means of the elasticity of the utility function with respect to $w$ it can be deduced that",
+      "options": [
+        {
+          "id": "A",
+          "text": "the utility would have decreased by 0.25%."
+        },
+        {
+          "id": "B",
+          "text": "the utility would have decreased by 0.75%."
+        },
+        {
+          "id": "C",
+          "text": "the utility would have decreased by 1.5%."
+        },
+        {
+          "id": "D",
+          "text": "the utility would have decreased by 4.5%."
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "For a Cobb-Douglas function the partial elasticity w.r.t. $w$ is the exponent: $El_w U=\\tfrac34$. So $\\Delta U/U\\approx\\tfrac34\\cdot(-6\\%)=-4.5\\%$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q18",
+      "number": 18,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: partial derivatives & level curves",
+      "points": 1,
+      "stem": "On the usual Thursday evening party of the student association a student consumes mixed nuts and wine. Let $w$ be the amount of wine in 100 cl and $n$ the amount of mixed nuts in 100 gr, which are being consumed during the evening. The utility function of the student is of the Cobb-Douglas type and is given by\n$$U(w,n)=w^{3/4}n^{1/4}\\qquad(w\\ge0,\\ n\\ge0)$$\nAssume that on this evening the student consumes 600 cl of wine (6 glasses) and 200 gr of mixed nuts. As became clear the next morning during the examination in Quantitative Methods, the amount of wine that was consumed was obviously too much. But on the other hand, the experience by itself also gives rise to a deeper understanding of the concepts of elasticity and marginal substitution ratio of mixed nuts for wine!\nOn the evening prior to the reexamination the student has decided to drink less, but at the same time to keep his utility equal (based on $w=6$ and $n=2$). Halfway through the evening he finds that he is very well capable of calculating the marginal substitution ratio of mixed nuts for wine. Note: the **marginal rate of substitution** (**MRS**) is the rate at which a consumer can give up some amount of one good (wine) in exchange for another good (nuts) while maintaining the same level of utility. In formula format: $-U'_w/U'_n$",
+      "options": [
+        {
+          "id": "A",
+          "text": "This marginal substitution ratio equals 1/3."
+        },
+        {
+          "id": "B",
+          "text": "This marginal substitution ratio equals –1."
+        },
+        {
+          "id": "C",
+          "text": "This marginal substitution ratio equals 1."
+        },
+        {
+          "id": "D",
+          "text": "This marginal substitution ratio equals -1/3."
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$-\\dfrac{U'_w}{U'_n}=-\\dfrac{\\tfrac34w^{-1/4}n^{1/4}}{\\tfrac14w^{3/4}n^{-3/4}}=-\\dfrac{3n}{w}=-\\dfrac{3\\cdot2}{6}=-1$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q19",
+      "number": 19,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=3x^3+9x^2y+4y^3-48y.$$ The points $(0,2)$ and $(0,-2)$ are stationary points.\nHow many other stationary points does this function have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "2"
+        },
+        {
+          "id": "B",
+          "text": "0"
+        },
+        {
+          "id": "C",
+          "text": "4"
+        },
+        {
+          "id": "D",
+          "text": "Infinitely many"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$f_x=9x(x+2y)=0$ gives $x=0$ or $x=-2y$. With $x=-2y$: $f_y=9x^2+12y^2-48=48y^2-48=0\\Rightarrow y=\\pm1$. So $(-2,1)$ and $(2,-1)$: 2 other stationary points.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q20",
+      "number": 20,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=3x^3+9x^2y+4y^3-48y.$$ The points $(0,2)$ and $(0,-2)$ are stationary points.\nWhat is the status of the two stationary points $(0,2)$ and $(0,-2)$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$(0,2)$ is a maximum, $(0,-2)$ is a minimum"
+        },
+        {
+          "id": "B",
+          "text": "$(0,2)$ is a maximum, $(0,-2)$ is a maximum"
+        },
+        {
+          "id": "C",
+          "text": "$(0,2)$ is a minimum, $(0,-2)$ is a maximum"
+        },
+        {
+          "id": "D",
+          "text": "$(0,2)$ is a saddle-point, $(0,-2)$ is a saddle-point"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$f_{xx}=18x+18y$, $f_{yy}=24y$, $f_{xy}=18x$. At $(0,2)$: $f_{xx}=36>0$, $f_{xx}f_{yy}-f_{xy}^2=36\\cdot48>0$ → minimum. At $(0,-2)$: $f_{xx}=-36<0$ and the same positive determinant → maximum.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q21",
+      "number": 21,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Data & displays",
+      "points": 1,
+      "stem": "An advocacy group is investigating whether gender has an effect on job category in large investment firms. She surveyed a sample of firms with the results shown in the table.\nThe most appropriate display for these data is a …?",
+      "table": {
+        "header": [
+          "Job Category",
+          "Male",
+          "Female"
+        ],
+        "rows": [
+          [
+            "Clerical / Technical",
+            "85",
+            "215"
+          ],
+          [
+            "Professional Staff",
+            "720",
+            "480"
+          ],
+          [
+            "Executive / Managerial",
+            "400",
+            "100"
+          ]
+        ]
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "histogram"
+        },
+        {
+          "id": "B",
+          "text": "pie chart"
+        },
+        {
+          "id": "C",
+          "text": "boxplot"
+        },
+        {
+          "id": "D",
+          "text": "segmented bar chart"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "Two categorical variables (gender and job category) → compare the conditional distributions with a segmented (stacked) bar chart.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q22",
+      "number": 22,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Probability",
+      "points": 1,
+      "stem": "An advocacy group is investigating whether gender has an effect on job category in large investment firms. She surveyed a sample of firms with the results shown in the table.\nWhat is the probability that a randomly selected employee's job category is executive / managerial given that she is female?",
+      "table": {
+        "header": [
+          "Job Category",
+          "Male",
+          "Female"
+        ],
+        "rows": [
+          [
+            "Clerical / Technical",
+            "85",
+            "215"
+          ],
+          [
+            "Professional Staff",
+            "720",
+            "480"
+          ],
+          [
+            "Executive / Managerial",
+            "400",
+            "100"
+          ]
+        ]
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": ".13"
+        },
+        {
+          "id": "B",
+          "text": ".20"
+        },
+        {
+          "id": "C",
+          "text": ".05"
+        },
+        {
+          "id": "D",
+          "text": ".45"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$P(\\text{exec}\\mid\\text{female})=\\dfrac{100}{215+480+100}=\\dfrac{100}{795}\\approx0.13$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q23",
+      "number": 23,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Probability",
+      "points": 1,
+      "stem": "An advocacy group is investigating whether gender has an effect on job category in large investment firms. She surveyed a sample of firms with the results shown in the table.\nWhich of the following statements is true about gender and job category?",
+      "table": {
+        "header": [
+          "Job Category",
+          "Male",
+          "Female"
+        ],
+        "rows": [
+          [
+            "Clerical / Technical",
+            "85",
+            "215"
+          ],
+          [
+            "Professional Staff",
+            "720",
+            "480"
+          ],
+          [
+            "Executive / Managerial",
+            "400",
+            "100"
+          ]
+        ]
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "Gender and job category are independent."
+        },
+        {
+          "id": "B",
+          "text": "Gender and job category are not independent."
+        },
+        {
+          "id": "C",
+          "text": "Gender and job category are mutually exclusive."
+        },
+        {
+          "id": "D",
+          "text": "Gender and job category are disjoint."
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$P(\\text{exec}\\mid\\text{female})=0.13$ but $P(\\text{exec}\\mid\\text{male})=400/1205\\approx0.33$: the conditional distributions differ, so they are not independent. Variables (not events) cannot be \"disjoint\".",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q24",
+      "number": 24,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Describing distributions",
+      "points": 1,
+      "stem": "Prices per share of the 20 most actively traded stocks on the New York Stock Exchange in October, 2012. Summary statistics for these data are shown. The IQR for this set of dataset is?",
+      "table": {
+        "header": [
+          "Min",
+          "Q1",
+          "Median",
+          "Q3",
+          "Max",
+          "Mean",
+          "SD"
+        ],
+        "rows": [
+          [
+            "2.0",
+            "7.5",
+            "15.5",
+            "34.5",
+            "85.0",
+            "4.67",
+            "20.9"
+          ]
+        ]
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "13.5"
+        },
+        {
+          "id": "B",
+          "text": "27"
+        },
+        {
+          "id": "C",
+          "text": "69.5"
+        },
+        {
+          "id": "D",
+          "text": "83"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$IQR=Q3-Q1=34.5-7.5=27$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q25",
+      "number": 25,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Random variables & binomial",
+      "points": 1,
+      "stem": "IT staff for a large corporation has developed the following probability distribution for the number of calls requiring troubleshooting problems per day. Based on the distribution, the expected number of calls per day is?",
+      "table": {
+        "header": [
+          "Number of Calls",
+          "0",
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "rows": [
+          [
+            "Probability",
+            ".32",
+            ".35",
+            ".18",
+            ".10",
+            ".05"
+          ]
+        ]
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "1.00"
+        },
+        {
+          "id": "B",
+          "text": "1.21"
+        },
+        {
+          "id": "C",
+          "text": "1.31"
+        },
+        {
+          "id": "D",
+          "text": "1.56"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$E(X)=0(.32)+1(.35)+2(.18)+3(.10)+4(.05)=0.35+0.36+0.30+0.20=1.21$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q26",
+      "number": 26,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Probability",
+      "points": 1,
+      "stem": "In a blood testing procedure, blood samples from 5 people are combined into one mixture. The mixture will only test negative if all the individual samples are negative. If the probability that an individual sample tests positive is 0.12, what is the probability that the mixture will test positive?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0.472"
+        },
+        {
+          "id": "B",
+          "text": "0.528"
+        },
+        {
+          "id": "C",
+          "text": "0.0144"
+        },
+        {
+          "id": "D",
+          "text": "0.0000249"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$P(\\text{positive})=1-P(\\text{all 5 negative})=1-0.88^5=1-0.528=0.472$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q27",
+      "number": 27,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Normal model",
+      "points": 1,
+      "stem": "A researcher notes that the weight of a male Golden Retriever is approximately normally distributed with a mean of 70 lbs. and a standard deviation of 7.5 lbs.\nWhat percentage of these dogs weigh less than 65 lbs?",
+      "options": [
+        {
+          "id": "A",
+          "text": "75%"
+        },
+        {
+          "id": "B",
+          "text": "66.7%"
+        },
+        {
+          "id": "C",
+          "text": "33%"
+        },
+        {
+          "id": "D",
+          "text": "25%"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$z=\\dfrac{65-70}{7.5}=-0.67$ and $P(z<-0.67)\\approx0.25$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q28",
+      "number": 28,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Normal model",
+      "points": 1,
+      "stem": "A researcher notes that the weight of a male Golden Retriever is approximately normally distributed with a mean of 70 lbs. and a standard deviation of 7.5 lbs.\nApproximately how heavy would a male Golden Retriever be in order to be in the heaviest 5% of such dogs?",
+      "options": [
+        {
+          "id": "A",
+          "text": "68 lbs."
+        },
+        {
+          "id": "B",
+          "text": "84 lbs."
+        },
+        {
+          "id": "C",
+          "text": "75 lbs."
+        },
+        {
+          "id": "D",
+          "text": "82 lbs."
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "95th percentile: $z=1.645$, so $70+1.645\\cdot7.5\\approx82.3$ lbs.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q29",
+      "number": 29,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "A researcher is conducting a study on eating disorders. Using a list of recent participants in the online Weight Watchers program, she randomly selects a name from the alphabetized list. She then chooses every tenth person from that point on to include in her study. This sampling strategy is called:",
+      "options": [
+        {
+          "id": "A",
+          "text": "Systematic"
+        },
+        {
+          "id": "B",
+          "text": "Cluster"
+        },
+        {
+          "id": "C",
+          "text": "Random"
+        },
+        {
+          "id": "D",
+          "text": "Stratified"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "A random start followed by every $k$-th element of a list is systematic sampling.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q30",
+      "number": 30,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "A researcher is conducting a study on eating disorders. Using a list of recent participants in the online Weight Watchers program, she randomly selects a sample from the alphabetized list. This list represents the",
+      "options": [
+        {
+          "id": "A",
+          "text": "Sample"
+        },
+        {
+          "id": "B",
+          "text": "Population"
+        },
+        {
+          "id": "C",
+          "text": "Sampling frame"
+        },
+        {
+          "id": "D",
+          "text": "Statistic"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "The list from which the sample is actually drawn is the sampling frame.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q31",
+      "number": 31,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "To investigate length of battery life while accounting for the device the battery lives in, an experiment is run once for each combination of brand of AAA batteries and device (TV remote, hand-held game, flashlight and digital camera). The twelve runs are ordered randomly. The time (in minutes) that each battery lasts under continuous usage is recorded. Which of the following statements is true about this design?",
+      "options": [
+        {
+          "id": "A",
+          "text": "This is a completely randomized design in one factor."
+        },
+        {
+          "id": "B",
+          "text": "The devices serve as blocks to account for the variability between the lengths of time batteries last in different devices."
+        },
+        {
+          "id": "C",
+          "text": "This is an observational study."
+        },
+        {
+          "id": "D",
+          "text": "This is a retrospective study."
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "Brand is the treatment; the device is not of interest itself but accounts for variability, so devices act as blocks. Treatments are assigned by the researcher, so it is an experiment.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q32",
+      "number": 32,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "Which is TRUE about randomized experiments?\nI. Randomization reduces the effects of confounding variables.\nII. Random assignment of treatments allows results to be generalized to the larger population.\nIII. Blocking can be used to reduce the within-treatment variability.",
+      "options": [
+        {
+          "id": "A",
+          "text": "I only"
+        },
+        {
+          "id": "B",
+          "text": "II only"
+        },
+        {
+          "id": "C",
+          "text": "III only"
+        },
+        {
+          "id": "D",
+          "text": "I and III"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "I and III are true. II is false: generalising to a population requires random *sampling*; random *assignment* supports cause-and-effect conclusions.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q33",
+      "number": 33,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "In economic downturns, companies attempt to downsize their workforces by offering early retirement incentives to older employees. A survey of 723 companies found that 195 engage in such downsizing practices. The 99% confidence interval for the proportion of companies that downsize their workforces by offering early retirement incentives is",
+      "options": [
+        {
+          "id": "A",
+          "text": "0.19 to 0.35"
+        },
+        {
+          "id": "B",
+          "text": "0.65 to 0.81"
+        },
+        {
+          "id": "C",
+          "text": "0.19 to 0.47"
+        },
+        {
+          "id": "D",
+          "text": "0.23 to 0.31"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$\\hat p=195/723=0.270$, $SE=\\sqrt{0.270\\cdot0.730/723}=0.0165$, $z^*=2.576$: $0.270\\pm0.043=(0.227,\\,0.312)$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q34",
+      "number": 34,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "A human resources manager at a large company wants to estimate the proportion of employees that would be interested in reimbursement for college courses. If she wishes to be 95% confident that her estimate is within 5% of the true proportion, how many employees would need to be sampled?",
+      "options": [
+        {
+          "id": "A",
+          "text": "271"
+        },
+        {
+          "id": "B",
+          "text": "385"
+        },
+        {
+          "id": "C",
+          "text": "543"
+        },
+        {
+          "id": "D",
+          "text": "646"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$n=\\dfrac{1.96^2\\cdot0.5\\cdot0.5}{0.05^2}=384.16\\to385$ (round up).",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q35",
+      "number": 35,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling distributions",
+      "points": 1,
+      "stem": "A small business ships specialty homemade candies to anywhere in the world. Past records indicate that the weight of orders is normally distributed. Suppose a random sample of 16 orders is selected and each is weighed. The sample mean was found to be 110 grams with a standard deviation of 14 grams.\nThe standard error of the mean is?",
+      "options": [
+        {
+          "id": "A",
+          "text": "14 grams"
+        },
+        {
+          "id": "B",
+          "text": "0.875 grams"
+        },
+        {
+          "id": "C",
+          "text": "3.5 grams"
+        },
+        {
+          "id": "D",
+          "text": "27.5 grams"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$SE(\\bar y)=\\dfrac{s}{\\sqrt n}=\\dfrac{14}{\\sqrt{16}}=3.5$ grams.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q36",
+      "number": 36,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "A small business ships specialty homemade candies to anywhere in the world. Past records indicate that the weight of orders is normally distributed. Suppose a random sample of 16 orders is selected and each is weighed. The sample mean was found to be 110 grams with a standard deviation of 14 grams.\nThe 90% confidence interval for the true mean weight of orders, in grams, is?",
+      "options": [
+        {
+          "id": "A",
+          "text": "(103.86, 116.14)"
+        },
+        {
+          "id": "B",
+          "text": "(102.49, 117.51)"
+        },
+        {
+          "id": "C",
+          "text": "(99.50, 120.50)"
+        },
+        {
+          "id": "D",
+          "text": "(104.24, 115.76)"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$t^*_{15}=1.753$ for 90%: $110\\pm1.753\\cdot3.5=110\\pm6.14=(103.86,\\,116.14)$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q37",
+      "number": 37,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Hypothesis tests",
+      "points": 1,
+      "stem": "A P-value indicates?",
+      "options": [
+        {
+          "id": "A",
+          "text": "the probability that the null hypothesis is true."
+        },
+        {
+          "id": "B",
+          "text": "the probability that the alternative hypothesis is true."
+        },
+        {
+          "id": "C",
+          "text": "the probability of the observed statistic given that the null hypothesis is true."
+        },
+        {
+          "id": "D",
+          "text": "the probability of the observed statistic given that the alternative hypothesis is true."
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "A P-value is computed assuming $H_0$ is true: the probability of a statistic at least as extreme as the observed one, given $H_0$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q38",
+      "number": 38,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Hypothesis tests",
+      "points": 1,
+      "stem": "The weights of soy patties sold by Veggie Burgers Delight are normally distributed. A random sample of 15 patties yields a mean weight of 3.8 ounces with a sample standard deviation of 0.5 ounces. At the .05 level of significance, perform a hypothesis test to see if the true mean weight is less than 4 ounces. The correct calculated value of the test statistic is?",
+      "options": [
+        {
+          "id": "A",
+          "text": "-0.4"
+        },
+        {
+          "id": "B",
+          "text": "0.4"
+        },
+        {
+          "id": "C",
+          "text": "-1.55"
+        },
+        {
+          "id": "D",
+          "text": "1.55"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$t=\\dfrac{3.8-4}{0.5/\\sqrt{15}}=\\dfrac{-0.2}{0.129}\\approx-1.55$.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q39",
+      "number": 39,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Errors & power",
+      "points": 1,
+      "stem": "A contact lens wearer read that the producer of a new contact lens boasts that their lenses are cheaper than contact lenses from another popular company. The null hypothesis $H_0:\\mu_{old}-\\mu_{new}=0$ is tested against the alternative $H_A:\\mu_{old}-\\mu_{new}>0$. Which of the following would be a Type II error?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Deciding that the new lenses are cheaper, when in fact they really are."
+        },
+        {
+          "id": "B",
+          "text": "Deciding that the new lenses are cheaper, when in fact they are not."
+        },
+        {
+          "id": "C",
+          "text": "Deciding that the new lenses are not really cheaper, when in fact they are."
+        },
+        {
+          "id": "D",
+          "text": "Deciding that the new lenses are not really cheaper, when in fact they are not."
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "A Type II error is failing to reject a false $H_0$: concluding the new lenses are not cheaper although they actually are.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    },
+    {
+      "id": "q40",
+      "number": 40,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "Which of the following is not an assumption and/or condition required for constructing a confidence interval for the mean?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Success/Failure condition"
+        },
+        {
+          "id": "B",
+          "text": "Nearly Normal condition"
+        },
+        {
+          "id": "C",
+          "text": "Randomization condition"
+        },
+        {
+          "id": "D",
+          "text": "Independence assumption"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "The Success/Failure condition ($np\\ge10$, $nq\\ge10$) belongs to inference for proportions, not means.",
+      "answerSource": "ai",
+      "explanationSource": "ai"
+    }
+  ]
+}

@@ -1,0 +1,1091 @@
+{
+  "schemaVersion": 1,
+  "id": "qm1-2024-2025-first-sit",
+  "courseCode": "EBC1005/EBC1006/EBC1007",
+  "courseName": "Quantitative Methods 1",
+  "academicYear": "2024-2025",
+  "examType": "regular",
+  "title": "First sit",
+  "durationMinutes": 180,
+  "durationSource": "assumed",
+  "source": {
+    "file": "First_Sit_2024-2025_QM1_Exam_with_answers.docx.pdf",
+    "kind": "scanned TestVision result screenshots of one student (Studydrive upload), read by OCR/visual inspection"
+  },
+  "grading": {
+    "method": "linear",
+    "passGrade": 5.5,
+    "multiSelectScoring": "partial",
+    "guessingCorrection": false
+  },
+  "resources": [
+    {
+      "title": "Formulas: mathematics",
+      "src": "img/qm1-shared/formulas-mathematics.png"
+    },
+    {
+      "title": "Formulas: statistics",
+      "src": "img/qm1-shared/formulas-statistics.png"
+    },
+    {
+      "title": "Table Z (negative z)",
+      "src": "img/qm1-shared/table-z-negative.png"
+    },
+    {
+      "title": "Table Z (positive z)",
+      "src": "img/qm1-shared/table-z-positive.png"
+    },
+    {
+      "title": "Table T",
+      "src": "img/qm1-shared/table-t.png"
+    }
+  ],
+  "notes": [
+    "Source is a student's TestVision result view. Where TestVision says 'Your answer is correct', the selected option is taken as the official answer.",
+    "Where the screenshot says 'Your answer is incorrect', the correct option is not visible; those answers were solved by AI (each one agrees with the option the uploader marked).",
+    "TestVision shuffles options per student, so the option order may differ from your own exam.",
+    "The duration is not stated in the source; 180 minutes is assumed. Edit durationMinutes in the JSON to change it."
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "number": 1,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Exponential & logistic growth",
+      "points": 1,
+      "stem": "The sales of a certain product as a function of time can be described with a logistic growth function as follows: $$f(t)=\\frac{c}{1+e^{-3t}}$$ At $t=0$ the process has a rate of change of 3. What is the value of $c$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "2"
+        },
+        {
+          "id": "B",
+          "text": "1"
+        },
+        {
+          "id": "C",
+          "text": "4"
+        },
+        {
+          "id": "D",
+          "text": "3"
+        },
+        {
+          "id": "E",
+          "text": "0"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$f'(t)=\\dfrac{3c\\,e^{-3t}}{(1+e^{-3t})^2}$, so $f'(0)=\\dfrac{3c}{4}=3\\Rightarrow c=4$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q2",
+      "number": 2,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\ln\\left(x^2+1\\right)$$ How many extremes does $f(x)$ have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0"
+        },
+        {
+          "id": "B",
+          "text": "3"
+        },
+        {
+          "id": "C",
+          "text": "4"
+        },
+        {
+          "id": "D",
+          "text": "2"
+        },
+        {
+          "id": "E",
+          "text": "1"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "$f'(x)=\\dfrac{2x}{x^2+1}$ is zero only at $x=0$ and changes sign there (− to +): one extreme (a minimum).",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q3",
+      "number": 3,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=4(y-1)^2+4x^2-(y-1)^2x^2$$ The point $(0,1)$ is a stationary point of $f(x,y)$.\nWhat is the status of the stationary point $(0,1)$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The status of $(0,1)$ cannot be determined; it is either a minimum or a saddle-point"
+        },
+        {
+          "id": "B",
+          "text": "$(0,1)$ is a saddle-point"
+        },
+        {
+          "id": "C",
+          "text": "The status of $(0,1)$ cannot be determined; it is either a maximum or a saddle-point"
+        },
+        {
+          "id": "D",
+          "text": "$(0,1)$ is a minimum"
+        },
+        {
+          "id": "E",
+          "text": "$(0,1)$ is a maximum"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$f_{xx}=8-2(y-1)^2=8$, $f_{yy}=8-2x^2=8$, $f_{xy}=-4x(y-1)=0$ at $(0,1)$. $f_{xx}f_{yy}-f_{xy}^2=64>0$ with $f_{xx}>0$ → minimum.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q4",
+      "number": 4,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=4(y-1)^2+4x^2-(y-1)^2x^2$$ The point $(0,1)$ is a stationary point of $f(x,y)$.\nHow many other stationary points does this function have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "3"
+        },
+        {
+          "id": "B",
+          "text": "2"
+        },
+        {
+          "id": "C",
+          "text": "1"
+        },
+        {
+          "id": "D",
+          "text": "4 or more"
+        },
+        {
+          "id": "E",
+          "text": "0"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$f_x=2x\\left(4-(y-1)^2\\right)$ and $f_y=2(y-1)(4-x^2)$. Next to $(0,1)$ we need $(y-1)^2=4$ and $x^2=4$: $(2,3),(2,-1),(-2,3),(-2,-1)$. So there are 4 other stationary points.",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked. The same question in the 2021-22 and 2023 exams (official keys) has answer '4 or more' too."
+    },
+    {
+      "id": "q5",
+      "number": 5,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Functions & domains",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\ln\\left(x^2+1\\right)$$ The domain of $f(x)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$(1,\\infty)$"
+        },
+        {
+          "id": "B",
+          "text": "$(-\\infty,1)$"
+        },
+        {
+          "id": "C",
+          "text": "$(-\\infty,0]\\cup(1,\\infty)$"
+        },
+        {
+          "id": "D",
+          "text": "$[1,\\infty)$"
+        },
+        {
+          "id": "E",
+          "text": "$(-\\infty,\\infty)$"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "$x^2+1>0$ for every real $x$, so the logarithm is defined everywhere.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q6",
+      "number": 6,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "The price in euros a firm obtains for a commodity varies with demand $Q$ according to the formula $P(Q)=50-\\sqrt Q$. Total cost consists of fixed cost 100 euros and variable cost of 20 euros per unit of production. The maximum profit in euros of the firm is",
+      "options": [
+        {
+          "id": "A",
+          "text": "above 8000"
+        },
+        {
+          "id": "B",
+          "text": "below 100"
+        },
+        {
+          "id": "C",
+          "text": "between 1000 and 2000"
+        },
+        {
+          "id": "D",
+          "text": "between 4000 and 8000"
+        },
+        {
+          "id": "E",
+          "text": "between 2000 and 4000"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "$\\pi(Q)=(50-\\sqrt Q)Q-100-20Q=30Q-Q^{3/2}-100$. $\\pi'(Q)=30-\\tfrac32\\sqrt Q=0\\Rightarrow\\sqrt Q=20\\Rightarrow Q=400$.\n$\\pi(400)=12000-8000-100=3900$, which is between 2000 and 4000.",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+    },
+    {
+      "id": "q7",
+      "number": 7,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Derivatives",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\ln\\left(x^2+1\\right)$$ The derivative $f'(x)$ of $f(x)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$f'(x)=\\dfrac{\\ln\\left(x^2+1\\right)}{\\left(x^2+1\\right)^2}$"
+        },
+        {
+          "id": "B",
+          "text": "$f'(x)=\\dfrac{2x}{x^2+1}$"
+        },
+        {
+          "id": "C",
+          "text": "$f'(x)=\\dfrac{2\\ln\\left(x^2+1\\right)}{2\\left(x^2+1\\right)^2}$"
+        },
+        {
+          "id": "D",
+          "text": "$f'(x)=\\dfrac{2x\\cdot\\ln\\left(x^2+1\\right)}{\\left(x^2+1\\right)^2}$"
+        },
+        {
+          "id": "E",
+          "text": "$f'(x)=\\dfrac{2x}{\\left(x^2+1\\right)^2}$"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "Chain rule: $\\dfrac{d}{dx}\\ln(u)=\\dfrac{u'}{u}$ with $u=x^2+1$, $u'=2x$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q8",
+      "number": 8,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "What is the partial elasticity of the function $f(x,y)=4x^2-x^2y^2$ with respect to $x$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$2x$"
+        },
+        {
+          "id": "B",
+          "text": "$4$"
+        },
+        {
+          "id": "C",
+          "text": "$2$"
+        },
+        {
+          "id": "D",
+          "text": "$4y$"
+        },
+        {
+          "id": "E",
+          "text": "$2xy$"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$f(x,y)=x^2(4-y^2)$ is a power function of $x$ (with $y$ fixed), so $El_x f=2$. Directly: $\\dfrac{x\\,f_x}{f}=\\dfrac{x\\cdot2x(4-y^2)}{x^2(4-y^2)}=2$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q9",
+      "number": 9,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the function $f(x)$ for which the **first derivative** is given by $f'(x)=\\left(x^2-1\\right)^2$. How many inflection points does $f(x)$ have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "0"
+        },
+        {
+          "id": "B",
+          "text": "2"
+        },
+        {
+          "id": "C",
+          "text": "3"
+        },
+        {
+          "id": "D",
+          "text": "1"
+        },
+        {
+          "id": "E",
+          "text": "4"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$f''(x)=2(x^2-1)\\cdot2x=4x(x-1)(x+1)$. Each factor has a simple zero, so $f''$ changes sign at $x=-1$, $x=0$ and $x=1$: 3 inflection points.",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+    },
+    {
+      "id": "q10",
+      "number": 10,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "Let the demand $D$ for olives as a function of price be $$d(p)=\\frac{8}{p\\sqrt p}.$$What is the elasticity of the demand function $d(p)$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$E_d(p)=-\\dfrac32\\cdot\\dfrac{\\sqrt p}{40-\\frac32\\sqrt p}$"
+        },
+        {
+          "id": "B",
+          "text": "$E_d(p)=\\dfrac32$"
+        },
+        {
+          "id": "C",
+          "text": "$E_d(p)=-\\dfrac32\\cdot\\dfrac{1}{\\sqrt p}$"
+        },
+        {
+          "id": "D",
+          "text": "$E_d(p)=-\\dfrac32$"
+        },
+        {
+          "id": "E",
+          "text": "$E_d(p)=-\\dfrac34\\cdot\\dfrac{p\\sqrt p}{40-\\frac32\\sqrt p}$"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$d(p)=8p^{-3/2}$ is a power function, so its elasticity is the exponent: $E_d(p)=-\\tfrac32$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q11",
+      "number": 11,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "Let the demand $D$ for olives as a function of price be $$d(p)=\\frac{8}{p\\sqrt p}.$$ Let the supply $S$ as a function of price be $s(p)=p\\sqrt p-7$. At which price $p$ do we have a market equilibrium, i.e., what is the price $p$ where demand and supply are equal?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$p=2\\sqrt2$"
+        },
+        {
+          "id": "B",
+          "text": "$p=\\sqrt2$"
+        },
+        {
+          "id": "C",
+          "text": "$p=8$"
+        },
+        {
+          "id": "D",
+          "text": "$p=\\sqrt8$"
+        },
+        {
+          "id": "E",
+          "text": "$p=4$"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "Let $u=p\\sqrt p$. Then $\\dfrac8u=u-7\\Rightarrow u^2-7u-8=0\\Rightarrow(u-8)(u+1)=0\\Rightarrow u=8$ (since $u>0$). $p^{3/2}=8\\Rightarrow p=4$.",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+    },
+    {
+      "id": "q12",
+      "number": 12,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Inverse functions",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\ln\\left(x^2+1\\right)$$ Consider $f(x)$ for $x>0$. Its inverse $f^{-1}(y)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$f^{-1}(y)=\\sqrt{e^y-1}$"
+        },
+        {
+          "id": "B",
+          "text": "$f^{-1}(y)=e^{\\sqrt{1-y^2}}$"
+        },
+        {
+          "id": "C",
+          "text": "$f^{-1}(y)=\\sqrt{1-e^y}$"
+        },
+        {
+          "id": "D",
+          "text": "$f^{-1}(y)=e^{\\sqrt{y^2-1}}$"
+        },
+        {
+          "id": "E",
+          "text": "$f^{-1}(y)=\\sqrt{1-y^2}$"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "$y=\\ln(x^2+1)\\Rightarrow e^y=x^2+1\\Rightarrow x=\\sqrt{e^y-1}$ (positive root because $x>0$).",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q13",
+      "number": 13,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: partial derivatives & level curves",
+      "points": 1,
+      "stem": "Consider the following function of two variables: $f(x,y)=\\sqrt{x-\\ln(y)}$. The level curves $f(x,y)=a\\ (a\\ge0)$ all have the same shape, as a function of $x$. Which of the following functions describe this shape?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Quadratic functions"
+        },
+        {
+          "id": "B",
+          "text": "Square-roots"
+        },
+        {
+          "id": "C",
+          "text": "Logarithms"
+        },
+        {
+          "id": "D",
+          "text": "Exponential functions"
+        },
+        {
+          "id": "E",
+          "text": "Straight lines"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$\\sqrt{x-\\ln y}=a\\Rightarrow x-\\ln y=a^2\\Rightarrow\\ln y=x-a^2\\Rightarrow y=e^{x-a^2}$: exponential functions of $x$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q14",
+      "number": 14,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the following function: $$f(x)=\\frac{1}{x+1}$$ Where is this function convex?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$(-\\infty,-1)\\cup(1,\\infty)$"
+        },
+        {
+          "id": "B",
+          "text": "$(-\\infty,-1)\\cup(-1,\\infty)$"
+        },
+        {
+          "id": "C",
+          "text": "$(-\\infty,\\infty)$"
+        },
+        {
+          "id": "D",
+          "text": "nowhere"
+        },
+        {
+          "id": "E",
+          "text": "$(-1,\\infty)$"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "$f''(x)=\\dfrac{2}{(x+1)^3}>0$ exactly when $x>-1$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q15",
+      "number": 15,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Normal model",
+      "points": 1,
+      "stem": "The mean daily demand for bread at a popular bakery is 2,400 loaves, with a standard deviation of 320 loaves. Assume that daily demand is normally distributed. Then, how many loaves will the bakery sell on their worst 10% of days?",
+      "options": [
+        {
+          "id": "A",
+          "text": "About 1600 loaves or less"
+        },
+        {
+          "id": "B",
+          "text": "About 1990 loaves or less"
+        },
+        {
+          "id": "C",
+          "text": "About 1760 loafs or less"
+        },
+        {
+          "id": "D",
+          "text": "About 1820 loaves or less"
+        },
+        {
+          "id": "E",
+          "text": "About 1940 loaves or less"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "10th percentile: $z=-1.28$, so $2400-1.28\\cdot320\\approx1990$ loaves.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q16",
+      "number": 16,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Probability",
+      "points": 1,
+      "stem": "About 30% of human twins are identical, and the rest are fraternal. Identical twins are necessarily the same sex – half are males and the other half are females. One quarter of fraternal twins are both male, one quarter both female, and one half are mixes: one male, one female. You have just become a parent of twins and are told they are both girls. Given this information, what is the probability that they are identical?\n(Tip: make a contingency table.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "25%"
+        },
+        {
+          "id": "B",
+          "text": "46%"
+        },
+        {
+          "id": "C",
+          "text": "50%"
+        },
+        {
+          "id": "D",
+          "text": "30%"
+        },
+        {
+          "id": "E",
+          "text": "15%"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$P(\\text{identical and girls})=0.30\\cdot0.5=0.15$; $P(\\text{fraternal and girls})=0.70\\cdot0.25=0.175$. $P(\\text{identical}\\mid\\text{girls})=\\dfrac{0.15}{0.15+0.175}\\approx0.46$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q17",
+      "number": 17,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Errors & power",
+      "points": 1,
+      "stem": "A medical researcher is testing a new drug to determine if it is more effective than the standard treatment for a certain disease. The researcher uses a hypothesis testing framework to evaluate the effectiveness of the new drug. If the new drug is found to be more effective, it will be approved for widespread use.\nWhat is a type II error in this context? (Hint: think about the null and alternative hypothesis.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "The researcher concludes that the new drug is more effective than the standard treatment, when in reality, it's the other way around"
+        },
+        {
+          "id": "B",
+          "text": "The researcher concludes that the new drug is not more effective than the standard treatment, when in reality, the new drug is more effective"
+        },
+        {
+          "id": "C",
+          "text": "The researcher concludes that the new drug is more effective than the standard treatment, when in reality, the new drug is not more effective"
+        },
+        {
+          "id": "D",
+          "text": "The researcher concludes that the new drug is not effective at all, when in reality, it is effective"
+        },
+        {
+          "id": "E",
+          "text": "The researcher concludes that the standard treatment is not effective at all, when in reality, it is effective"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$H_0$: the new drug is not more effective; $H_A$: it is more effective. A Type II error is failing to reject a false $H_0$: concluding \"not more effective\" when it actually is. (Option C is the Type I error.)",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+    },
+    {
+      "id": "q18",
+      "number": 18,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Hypothesis tests",
+      "points": 1,
+      "stem": "Around the turn of the century, public support for cloning humans was around 6%. A researcher believes that today, in 2024, a greater share of the population may approve of attempts to clone a human. She randomly samples 300 European citizens and asks whether they approve or not. The null hypothesis she tests is $H_0: p=0.06$, against the alternative hypothesis $H_A: p>0.06$.\nThe approval rating in her sample is 8%, which results into a p-value of 0.072. How should the researcher interpret this p-value?",
+      "options": [
+        {
+          "id": "A",
+          "text": "If the proportion of Europeans who approve of attempts to clone a human is still 6%, she stood a 7.2% chance of obtaining a random sample of 300 Europeans in which at least 8% approved"
+        },
+        {
+          "id": "B",
+          "text": "There is a 7.2% chance that the proportion of Europeans who approve of attempts to clone a human is larger than 6%"
+        },
+        {
+          "id": "C",
+          "text": "There is a 7.2% chance that the proportion of Europeans who approve of attempts to clone a human is still 6%"
+        },
+        {
+          "id": "D",
+          "text": "The probability that at least 8% of the Europeans in her sample would approve of attempts to clone a human was 7.2%"
+        },
+        {
+          "id": "E",
+          "text": "Given the fact that 8% of the Europeans in her sample approve of attempts to clone a human, there is a 7.2% chance that only 6% of the population approves"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "A p-value is a probability about the *data* computed under $H_0$: if $p=0.06$, a sample result of 8% or more would occur 7.2% of the time. It is not the probability that $H_0$ (or $H_A$) is true.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q19",
+      "number": 19,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Data & displays",
+      "points": 1,
+      "stem": "The theme park of Wonkyworld conducts a study on the popularity of its main mascots. Children who visit the park are asked to fill out this short survey:\nWhat types of variables are these?",
+      "table": {
+        "header": [
+          "Question",
+          "Answer options"
+        ],
+        "rows": [
+          [
+            "What do you think about the Lecherous Lion? (choose 1 answer)",
+            "o Funny   o Scary   o Boring   o Cringe"
+          ],
+          [
+            "What do you think about the Wonkywitch? (choose 1 answer)",
+            "o Funny   o Scary   o Boring   o Cringe"
+          ],
+          [
+            "How old are you?",
+            "o 2-5 years   o 6-9 years   o 10-13 years"
+          ]
+        ]
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "The opinions are nominal variables, and the child's age has been measured as an ordinal variable"
+        },
+        {
+          "id": "B",
+          "text": "The opinions are ordinal variables, and the child's age in years is a quantitative variable"
+        },
+        {
+          "id": "C",
+          "text": "The opinions are ordinal variables, and the child's age has been measured as an ordinal variable as well"
+        },
+        {
+          "id": "D",
+          "text": "The opinions are nominal variables, and the child's age in years has been measured as a nominal variable as well"
+        },
+        {
+          "id": "E",
+          "text": "The opinions are nominal variables, and the child's age in years is a quantitative variable"
+        }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Funny / Scary / Boring / Cringe have no natural order → nominal. Age was asked in ordered classes (2-5, 6-9, 10-13 years) → ordinal, not quantitative.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q20",
+      "number": 20,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "In a 2022 poll, 55% of U.S. adult TikTok users reported getting at least some news from TikTok. The standard error for this estimate was 2.5%, and a normal distribution can be used to model the sample proportion.\nWhat is the 99% confidence interval for the proportion of U.S. adult TikTok users who get some news from TikTok?",
+      "options": [
+        {
+          "id": "A",
+          "text": "[0.501, 0.599]"
+        },
+        {
+          "id": "B",
+          "text": "[0.450, 0.650]"
+        },
+        {
+          "id": "C",
+          "text": "[0.480, 0.620]"
+        },
+        {
+          "id": "D",
+          "text": "[0.486, 0.614]"
+        },
+        {
+          "id": "E",
+          "text": "[0.525, 0.575]"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$z^*=2.576$ for 99%: $0.55\\pm2.576\\cdot0.025=0.55\\pm0.064=[0.486,\\,0.614]$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q21",
+      "number": 21,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Describing distributions",
+      "points": 1,
+      "stem": "Match each histogram (a), (b), and (c) to the corresponding boxplot (1), (2), and (3). Consider the distribution shape and the presence of outliers when making your selections.",
+      "images": [
+        {
+          "src": "img/qm1-2024-2025/histograms-boxplots.png",
+          "alt": "Histograms (a), (b), (c) and boxplots (1), (2), (3)"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "a. Histogram (a) matches with Boxplot (3)\nb. Histogram (b) matches with Boxplot (1)\nc. Histogram (c) matches with Boxplot (2)"
+        },
+        {
+          "id": "B",
+          "text": "a. Histogram (a) matches with Boxplot (3)\nb. Histogram (b) matches with Boxplot (2)\nc. Histogram (c) matches with Boxplot (1)"
+        },
+        {
+          "id": "C",
+          "text": "a. Histogram (a) matches with Boxplot (1)\nb. Histogram (b) matches with Boxplot (2)\nc. Histogram (c) matches with Boxplot (3)"
+        },
+        {
+          "id": "D",
+          "text": "a. Histogram (a) matches with Boxplot (2)\nb. Histogram (b) matches with Boxplot (3)\nc. Histogram (c) matches with Boxplot (1)"
+        },
+        {
+          "id": "E",
+          "text": "a. Histogram (a) matches with Boxplot (2)\nb. Histogram (b) matches with Boxplot (1)\nc. Histogram (c) matches with Boxplot (3)"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "Use the scales: (a) is symmetric around 60 with values 50-70 → boxplot (2) (axis 55-70). (b) is roughly uniform on 0-100 → boxplot (3) (long whiskers, wide box). (c) is right-skewed on 0-6 → boxplot (1) with many high outliers.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q22",
+      "number": 22,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Hypothesis tests",
+      "points": 1,
+      "stem": "For quality control purposes, a consumer organisation inspects 900 ceramic tiles to determine the proportion of defective tiles (e.g. cracked, uneven finish, etc.). Assume that this is a random sample of tiles produced by an Italian company. The consumer organisation suspects that more than 2% of the tile population may be defective, so they test the null hypothesis $H_0: p=0.02$ against the alternative hypothesis $H_A: p>0.02$. They find 45 defective tiles in the sample.\nWhat would be the correct way to calculate the z-value of the significance test?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$z=\\dfrac{0.02-0.05}{\\sqrt{\\dfrac{0.02\\cdot0.98}{900}}}$"
+        },
+        {
+          "id": "B",
+          "text": "$z=\\dfrac{45-18}{\\sqrt{900\\cdot0.05\\cdot0.95}}$"
+        },
+        {
+          "id": "C",
+          "text": "$z=\\dfrac{0.05-0.02}{\\sqrt{\\dfrac{0.05\\cdot0.95}{900}}}$"
+        },
+        {
+          "id": "D",
+          "text": "$z=\\dfrac{0.02-0.05}{\\sqrt{\\dfrac{0.05\\cdot0.95}{900}}}$"
+        },
+        {
+          "id": "E",
+          "text": "$z=\\dfrac{0.05-0.02}{\\sqrt{\\dfrac{0.02\\cdot0.98}{900}}}$"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "$\\hat p=45/900=0.05$. $z=\\dfrac{\\hat p-p_0}{\\sqrt{p_0q_0/n}}$ uses the null value $p_0=0.02$ in the standard deviation.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q23",
+      "number": 23,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "A city council has requested a household survey be conducted in a suburban area of their city. The area is divided into many distinct and unique neighborhoods. Each sampling method described below corresponds to a specific sampling technique. Match the appropriate sampling method to its description:\n(A) The city is divided into 20 neighborhoods, and 10 households are sampled from each neighborhood.\n(B) The city is divided into 20 neighborhoods, and 3 neighborhoods are randomly selected. All households in those 3 neighborhoods are then sampled.\n(C) The city is divided into 20 neighborhoods, and 8 neighborhoods are randomly selected. Then, 50 households are randomly sampled from those 8 neighborhoods.\n(D) The 200 households closest to the city council offices are sampled.",
+      "options": [
+        {
+          "id": "A",
+          "text": "A) Cluster Sampling\nB) Stratified Sampling\nC) Multi-Stage Sampling\nD) Convenience Sampling"
+        },
+        {
+          "id": "B",
+          "text": "A) Stratified Sampling\nB) Cluster Sampling\nC) Multi-Stage Sampling\nD) Convenience Sampling"
+        },
+        {
+          "id": "C",
+          "text": "A) Multi-Stage Sampling\nB) Convenience Sampling\nC) Stratified Sampling\nD) Cluster Sampling"
+        },
+        {
+          "id": "D",
+          "text": "A) Convenience Sampling\nB) Stratified Sampling\nC) Cluster Sampling\nD) Multi-Stage Sampling"
+        },
+        {
+          "id": "E",
+          "text": "A) Cluster Sampling\nB) Multi-Stage Sampling\nC) Convenience Sampling\nD) Stratified Sampling"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "(A) a sample from *every* group → stratified. (B) all units in a few randomly chosen groups → cluster. (C) random groups, then random units within them → multi-stage. (D) the easiest-to-reach units → convenience.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q24",
+      "number": 24,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Random variables & binomial",
+      "points": 1,
+      "stem": "Sports club Basic-Ripped offers a discount to its members for renewing their subscription. It is expected that 20% of the members will accept it. If Basic-Ripped offers the discount to 80 independent members, what is the (approximate) probability that at least 20 of them will renew their subscription with the discount? (Hint: what probability model could you use to speed up the calculation?)",
+      "options": [
+        {
+          "id": "A",
+          "text": "0.250"
+        },
+        {
+          "id": "B",
+          "text": "0.131"
+        },
+        {
+          "id": "C",
+          "text": "0.057"
+        },
+        {
+          "id": "D",
+          "text": "0.050"
+        },
+        {
+          "id": "E",
+          "text": "0.869"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "Binomial with $n=80$, $p=0.2$, approximated by a Normal model: $\\mu=np=16$, $\\sigma=\\sqrt{npq}=\\sqrt{12.8}=3.58$. $z=\\dfrac{20-16}{3.58}=1.12$, $P(z>1.12)\\approx0.131$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q25",
+      "number": 25,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Random variables & binomial",
+      "points": 1,
+      "stem": "According to Boston Children's Hospital, 90% of Americans have had chickenpox by the time they reach adulthood. Suppose we randomly sample 10 independent American adults.\nWhat is the probability that at most 2 out of these 10 adults have **not** had chickenpox? (Hint: what probability model could you use?)",
+      "options": [
+        {
+          "id": "A",
+          "text": "10.6%"
+        },
+        {
+          "id": "B",
+          "text": "26.4%"
+        },
+        {
+          "id": "C",
+          "text": "7.0%"
+        },
+        {
+          "id": "D",
+          "text": "93.0%"
+        },
+        {
+          "id": "E",
+          "text": "73.6%"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$X$ = number who have *not* had chickenpox $\\sim\\text{Bin}(10,\\,0.1)$. $P(X\\le2)=0.9^{10}+10(0.1)(0.9)^9+45(0.1)^2(0.9)^8=0.349+0.387+0.194=0.930$.",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+    },
+    {
+      "id": "q26",
+      "number": 26,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Describing distributions",
+      "points": 1,
+      "stem": "The infant mortality rate is defined as the number of infant deaths per 1,000 live births. This rate is often used as an indicator of the level of health in a country.\nThe relative frequency histogram below shows the distribution of estimated infant death rates for 224 countries for which such data were available in 2014.\nEstimate $Q_3$ (the 75th percentile) given the histogram.",
+      "images": [
+        {
+          "src": "img/qm1-2024-2025/infant-mortality-histogram.png",
+          "alt": "Relative frequency histogram of infant mortality rates"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "Between 10-20"
+        },
+        {
+          "id": "B",
+          "text": "Between 30-40"
+        },
+        {
+          "id": "C",
+          "text": "Between 50-60"
+        },
+        {
+          "id": "D",
+          "text": "Between 20-30"
+        },
+        {
+          "id": "E",
+          "text": "Between 40-50"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "Cumulative fractions: below 10: 0.38; below 20: 0.60; below 30: 0.71; below 40: 0.77. The 0.75 point is reached in the 30-40 class.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q27",
+      "number": 27,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "A health study in 2023 looked into how many Dutch citizens of 18 years and older are obese. The study yielded the following 95% confidence interval for the population proportion: $[0.48,\\ 0.53]$. How could the researchers have obtained a narrower interval?",
+      "options": [
+        {
+          "id": "A",
+          "text": "By raising the confidence level (e.g. to 99%), and this would decrease the risk that the true value of the population proportion lay outside the interval"
+        },
+        {
+          "id": "B",
+          "text": "By raising the confidence level (e.g. to 99%), but this would increase the risk that the true value of the population proportion lay outside the interval"
+        },
+        {
+          "id": "C",
+          "text": "By reducing the confidence level (e.g. to 90%). We cannot predict whether this would affect the risk that the true value of the population proportion lay outside the interval, because that risk also depends on the sample size, which is not given"
+        },
+        {
+          "id": "D",
+          "text": "By reducing the confidence level (e.g. to 90%), but this would increase the risk that the true value of the population proportion lay outside the interval"
+        },
+        {
+          "id": "E",
+          "text": "By reducing the confidence level (e.g. to 90%), and this would decrease the risk that the true value of the population proportion lay outside the interval"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "A lower confidence level uses a smaller $z^*$, so the margin of error shrinks, but the method then misses the true proportion more often (10% instead of 5%).",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q28",
+      "number": 28,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "In a study of three nationally representative largescale data sets from Ireland, the United States, and the United Kingdom (n = 17,247), teenagers between the ages of 12 to 15 were asked to keep a diary of their screen time and answer questions about how they felt or acted. The answers to these questions were then used to compute a psychological well-being score. Additional data were collected and included in the analysis, such as each child's sex and age, and on the mother's education, ethnicity, psychological distress, and employment. The study concluded that there is little clear-cut evidence that screen time decreases adolescent well-being.\nIdentify the explanatory variable(s) in the study.",
+      "options": [
+        {
+          "id": "A",
+          "text": "The number of teenagers who participated in the study"
+        },
+        {
+          "id": "B",
+          "text": "The countries in which the study was conducted"
+        },
+        {
+          "id": "C",
+          "text": "Adolescent well-being score"
+        },
+        {
+          "id": "D",
+          "text": "The number of national data sets"
+        },
+        {
+          "id": "E",
+          "text": "Teenager's screen time, sex, age, mother's education, ethnicity, psychological distress, and employment"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "The response is the well-being score. The variables used to explain it are screen time plus the additional variables included in the analysis (sex, age, mother's education, ethnicity, psychological distress, employment). The number of participants or data sets and the countries are not explanatory variables.",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked. Verify with your course materials: the source labels this option incorrect, and no other option fits."
+    }
+  ]
+}

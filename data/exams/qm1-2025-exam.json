@@ -1,0 +1,1037 @@
+{
+  "schemaVersion": 1,
+  "id": "qm1-2025-exam",
+  "courseCode": "EBC1005/EBC1006/EBC1007",
+  "courseName": "Quantitative Methods 1",
+  "academicYear": "2025",
+  "examType": "regular",
+  "examTypeAssumed": true,
+  "title": "Exam 2025 (solutions file)",
+  "durationMinutes": 180,
+  "durationSource": "assumed",
+  "source": {
+    "file": "preview_2196210_QM1_exam__solutions_2025.pdf.pdf",
+    "kind": "scanned TestVision review screenshots with official feedback pop-ups (Studydrive preview), read by OCR/visual inspection"
+  },
+  "grading": {
+    "method": "linear",
+    "passGrade": 5.5,
+    "multiSelectScoring": "partial",
+    "guessingCorrection": false
+  },
+  "resources": [
+    {
+      "title": "Formulas: mathematics",
+      "src": "img/qm1-shared/formulas-mathematics.png"
+    },
+    {
+      "title": "Formulas: statistics",
+      "src": "img/qm1-shared/formulas-statistics.png"
+    },
+    {
+      "title": "Table Z (negative z)",
+      "src": "img/qm1-shared/table-z-negative.png"
+    },
+    {
+      "title": "Table Z (positive z)",
+      "src": "img/qm1-shared/table-z-positive.png"
+    },
+    {
+      "title": "Table T",
+      "src": "img/qm1-shared/table-t.png"
+    }
+  ],
+  "notes": [
+    "Answers and explanations come from the official TestVision feedback shown in the screenshots, unless marked AI-solved.",
+    "The file does not say which sitting this is (first sit or resit) or the academic year; it is labelled 2025 and assumed to be a regular sitting.",
+    "Some screenshot parts were hidden behind feedback pop-ups; see EXTRACTION_REPORT.md for what was reconstructed.",
+    "The duration is not stated in the source; 180 minutes is assumed. Edit durationMinutes in the JSON to change it."
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "number": 1,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Functions & domains",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\ln\\left(x^2-1\\right)$$ The domain of $f(x)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$(0,\\infty)$"
+        },
+        {
+          "id": "B",
+          "text": "$(-1,1)$"
+        },
+        {
+          "id": "C",
+          "text": "$(1,\\infty)$"
+        },
+        {
+          "id": "D",
+          "text": "$[1,\\infty)$"
+        },
+        {
+          "id": "E",
+          "text": "$(-\\infty,-1)\\cup(1,\\infty)$"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "The logarithm needs $x^2-1>0$, i.e. $x<-1$ or $x>1$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q2",
+      "number": 2,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=4(y-1)^2+4x^2-(y-1)^2x^2$$ The point $(3,2)$ is a stationary point of $f(x,y)$.\nWhat is the status of the stationary point $(3,2)$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$(3,2)$ is a minimum"
+        },
+        {
+          "id": "B",
+          "text": "The status of $(3,2)$ cannot be determined; it is either a minimum or a saddle-point"
+        },
+        {
+          "id": "C",
+          "text": "$(3,2)$ is a saddle-point"
+        },
+        {
+          "id": "D",
+          "text": "The status of $(3,2)$ cannot be determined; it is either a maximum or a saddle-point"
+        },
+        {
+          "id": "E",
+          "text": "$(3,2)$ is a maximum"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "$f''_{xx}=\\left(4-(y-1)^2\\right)2$, $f''_{yy}=(4-x^2)2$, $f''_{xy}=-2x\\cdot2(y-1)$.\nAt the stationary point $x=3$, $y=2$ we have $f''_{xx}=6$, $f''_{yy}=-10$ and $f''_{xy}=-12$. As such, the criterion function at this point is $C(x,y)=6\\cdot(-10)-(-12)^2=-60-144=-204<0$, implying that the point is a saddle point.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "Source issue: $(3,2)$ is not actually a stationary point of this function (the gradient there is $(18,-10)$); the stationary points are $(0,1)$ and $(\\pm2,3)$, $(\\pm2,-1)$. The intended point was probably $(2,3)$, which is also a saddle point. The official answer 'saddle-point' is kept."
+    },
+    {
+      "id": "q3",
+      "number": 3,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: partial derivatives & level curves",
+      "points": 1,
+      "stem": "Consider the following function of two variables: $f(x,y)=\\sqrt{\\ln(1+2y+3x)}$. The level curves $f(x,y)=a\\ (a\\ge0)$ have a shape, as a function of $x$, which is described as:",
+      "options": [
+        {
+          "id": "A",
+          "text": "A circle"
+        },
+        {
+          "id": "B",
+          "text": "A straight line"
+        },
+        {
+          "id": "C",
+          "text": "A square-root function"
+        },
+        {
+          "id": "D",
+          "text": "An exponential function"
+        },
+        {
+          "id": "E",
+          "text": "A logarithmic function"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$a=\\sqrt{\\ln(1+2y+3x)}\\Leftrightarrow a^2=\\ln(1+2y+3x)\\Leftrightarrow e^{a^2}=1+2y+3x$, which is the equation of a straight line, as it is linear in both $x$ and $y$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q4",
+      "number": 4,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Derivatives",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\frac{1+\\ln\\left(x^5\\right)}{x}$$ The derivative $f'(x)$ of $f(x)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$f'(x)=\\dfrac{5\\ln(x)}{x^2}-\\dfrac{4}{x^2}$"
+        },
+        {
+          "id": "B",
+          "text": "$f'(x)=\\dfrac{4-\\ln\\left(x^5\\right)}{x^2}$"
+        },
+        {
+          "id": "C",
+          "text": "$f'(x)=\\dfrac{4x-1-5\\ln(x)}{x}$"
+        },
+        {
+          "id": "D",
+          "text": "$f'(x)=\\dfrac{4x-1-\\ln\\left(x^5\\right)}{x^2}$"
+        },
+        {
+          "id": "E",
+          "text": "$f'(x)=\\dfrac{4-5\\ln(x)}{x}$"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "Since $f(x)=\\dfrac{1+\\ln(x^5)}{x}$, the quotient rule gives\n$$f'(x)=\\frac{\\frac{5x^4}{x^5}\\cdot x-\\left(1+\\ln(x^5)\\right)}{x^2}=\\frac{5-1-\\ln(x^5)}{x^2}=\\frac{4-\\ln(x^5)}{x^2}$$",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q5",
+      "number": 5,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "What is the partial elasticity of the function $f(x,y)=2x^3-x^3y^2$ with respect to $x$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$2x$"
+        },
+        {
+          "id": "B",
+          "text": "$2$"
+        },
+        {
+          "id": "C",
+          "text": "$2xy$"
+        },
+        {
+          "id": "D",
+          "text": "$3$"
+        },
+        {
+          "id": "E",
+          "text": "$\\dfrac{\\left(6x^3-3x^3y^2\\right)\\left(2x^3-x^3y^2\\right)}{x}$"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "The function is a power function of $x$ when $y$ is constant. Elasticity is equal to the power, i.e., 3.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q6",
+      "number": 6,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Inverse functions",
+      "points": 1,
+      "stem": "Consider the sigmoid function $$f(x)=\\frac{1}{1+e^{-x}}$$ This function is frequently used in Neural Networks.\nConsider $f(x)$ for $x>0$. Its inverse $f^{-1}(y)$ is",
+      "options": [
+        {
+          "id": "A",
+          "text": "$f^{-1}(y)=-\\ln\\left(\\dfrac{1-y}{y}\\right)$"
+        },
+        {
+          "id": "B",
+          "text": "$f^{-1}(y)=\\ln\\left(\\dfrac{1-y}{y}\\right)$"
+        },
+        {
+          "id": "C",
+          "text": "$f^{-1}(y)=\\ln\\left(\\dfrac{y}{1-y}\\right)$"
+        },
+        {
+          "id": "D",
+          "text": "$f^{-1}(y)=\\ln(1-y)-\\ln(y)$"
+        },
+        {
+          "id": "E",
+          "text": "$f^{-1}(y)=\\ln\\left(\\dfrac{y}{y-1}\\right)$"
+        }
+      ],
+      "correctAnswer": "C",
+      "alsoAccepted": [
+        "A"
+      ],
+      "explanation": "$$y=\\frac{1}{1+e^{-x}}\\to1+e^{-x}=\\frac1y\\to e^{-x}=\\frac1y-1=\\frac{1-y}{y}\\to-x=\\ln\\left(\\frac{1-y}{y}\\right)\\to x=-\\ln\\left(\\frac{1-y}{y}\\right)\\to x=\\ln\\left(\\frac{y}{1-y}\\right)$$",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "Options A and C are mathematically identical ($-\\ln\\frac{1-y}{y}=\\ln\\frac{y}{1-y}$); the official feedback derives both forms, so both are accepted here."
+    },
+    {
+      "id": "q7",
+      "number": 7,
+      "section": "Mathematics",
+      "type": "numeric",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the function $$f(x)=\\ln\\left(x^5+1\\right)$$ How many stationary points does $f(x)$ have?",
+      "instruction": "Instruction: fill in the value. Use a maximum of 2 decimal places, depending on how many you need. To separate decimals, use a dot and not a comma (example: 0.51 instead of 0,51)!",
+      "correctAnswer": 1,
+      "tolerance": 0,
+      "explanation": "Since $f(x)=\\ln(x^5+1)$, we have that $f'(x)=\\dfrac{5x^4}{x^5+1}$. Therefore $f'(x)=0\\Leftrightarrow5x^4=0\\Leftrightarrow x=0$: one stationary point.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q8",
+      "number": 8,
+      "section": "Mathematics",
+      "type": "numeric",
+      "topic": "Economic applications",
+      "points": 1,
+      "stem": "The market for luxury goods has gone crazy, the higher the price for a luxury good the higher are both demand and supply. Formally, demand $d$ and supply $s$ as functions of price are given by $d(p)=1+\\ln(p)$ and $s(p)=e^{p-1}$.\nAt which price $p$ do we have a market equilibrium, i.e., what is the price $p$ where demand and supply are equal?",
+      "instruction": "Instruction: fill in the value. Use a maximum of 2 decimal places, depending on how many you need. To separate decimals, use a dot and not a comma (example: 0.51 instead of 0,51)!",
+      "correctAnswer": 1,
+      "tolerance": 0.005,
+      "explanation": "$d(p)=s(p)\\Leftrightarrow1+\\ln(p)=e^{p-1}$. Now, observe that for $p=1$, we have $1+\\ln(1)=e^0\\Leftrightarrow1=1$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q9",
+      "number": 9,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Elasticity",
+      "points": 1,
+      "stem": "Academics are eager to study the crazy market for luxury goods with its unusual demand function $d(p)=1+\\ln(p)$.\nWhat is the elasticity of this demand function $d(p)$?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$El_d(p)=\\dfrac1p$"
+        },
+        {
+          "id": "B",
+          "text": "$El_d(p)=\\dfrac{p^2}{d(p)}$"
+        },
+        {
+          "id": "C",
+          "text": "$El_d(p)=\\dfrac{1}{d(p)}$"
+        },
+        {
+          "id": "D",
+          "text": "$El_d(p)=\\dfrac{1}{\\ln(1+p)}$"
+        },
+        {
+          "id": "E",
+          "text": "$El_d(p)=\\dfrac{p^2}{1+\\ln(p)}$"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "Since $d(p)=1+\\ln(p)$, we have $d'(p)=\\dfrac1p$ and, thus, $$El_d(p)=d'(p)\\cdot\\frac{p}{d(p)}=\\frac1p\\cdot\\frac{p}{d(p)}=\\frac{1}{d(p)}$$",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q10",
+      "number": 10,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider the function $f(x)$ for which the **first derivative** is given by $f'(x)=\\left(x^2+1\\right)^2$. How many real-valued inflection points does $f(x)$ have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "2"
+        },
+        {
+          "id": "B",
+          "text": "3"
+        },
+        {
+          "id": "C",
+          "text": "0"
+        },
+        {
+          "id": "D",
+          "text": "4"
+        },
+        {
+          "id": "E",
+          "text": "1"
+        }
+      ],
+      "correctAnswer": "E",
+      "explanation": "We need the real-valued zeroes of $f''(x)=2\\left(x^2+1\\right)2x$. Since $(x^2+1)$ is not equal to zero for any real-valued $x$, the only real-valued zero is $x=0$ (note that $f''(x)$ clearly changes its sign at $x=0$).",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q11",
+      "number": 11,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Exponential & logistic growth",
+      "points": 1,
+      "stem": "At the first lecture of QM1 in week 1, there were 880 students in the lecture hall. At the last lecture, in week 7, this number had gone down to 88. Suppose that the number of students attending the lecture every week decreases exponentially. In which week does the number of students attending the lecture drop below 440 for the first time?\nRound, if necessary, to the nearest integer number of weeks.",
+      "options": [
+        {
+          "id": "A",
+          "text": "week 4"
+        },
+        {
+          "id": "B",
+          "text": "week 3"
+        },
+        {
+          "id": "C",
+          "text": "week 5"
+        },
+        {
+          "id": "D",
+          "text": "week 6"
+        },
+        {
+          "id": "E",
+          "text": "week 2"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "We can model the described process via $f(x)=880\\cdot a^{x-1}$, where $x$ counts the weeks. That is, in week 1, $f(1)=880$. In week 7, $f(7)=88$. As such\n$$88=880\\cdot a^6\\Leftrightarrow\\frac1{10}=a^6\\Leftrightarrow a=\\sqrt[6]{\\frac1{10}}\\approx0.6813$$\nThen $440>880(0.6813)^{x-1}\\Leftrightarrow\\frac12>(0.6813)^{x-1}\\Leftrightarrow x-1>\\dfrac{\\ln(0.5)}{\\ln(0.6813)}=1.8\\Leftrightarrow x>2.8$.\nHence, rounding to the nearest integer, we have $x=3$. In other words, week 3.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q12",
+      "number": 12,
+      "section": "Mathematics",
+      "type": "numeric",
+      "topic": "Exponential & logistic growth",
+      "points": 1,
+      "stem": "The sales of a certain product as a function of time can be described by the following variation on a logistic growth function: $$f(t)=\\frac{c}{2+e^{-3t}}$$ At $t=0$ the process has a rate of change of 3. What is the corresponding value of $c$?",
+      "instruction": "Instruction: fill in the value. Use a maximum of 2 decimal places, depending on how many you need. To separate decimals, use a dot and not a comma (example: 0.51 instead of 0,51)!",
+      "correctAnswer": 9,
+      "tolerance": 0.005,
+      "explanation": "$$f'(t)=\\frac{3e^{-3t}c}{\\left(2+e^{-3t}\\right)^2},\\qquad f'(0)=\\frac{3c}{\\left(2+e^0\\right)^2}=\\frac39c=\\frac13c$$ Hence, $f'(0)=3\\Leftrightarrow c=9$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q13",
+      "number": 13,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Two variables: stationary points",
+      "points": 1,
+      "stem": "Consider the function $$f(x,y)=9(x-1)^2+9y^2-(x-1)^2y^2$$ How many stationary points does this function have?",
+      "options": [
+        {
+          "id": "A",
+          "text": "9"
+        },
+        {
+          "id": "B",
+          "text": "0"
+        },
+        {
+          "id": "C",
+          "text": "3"
+        },
+        {
+          "id": "D",
+          "text": "5"
+        },
+        {
+          "id": "E",
+          "text": "7"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "$f'_x=0\\Leftrightarrow18(x-1)=2(x-1)y^2$ gives $x=1$ or $y=\\pm3$;\n$f'_y=0\\Leftrightarrow18y=2(x-1)^2y$ gives $y=0$ or $x=4$ or $x=-2$.\nOverall, the candidate list is: $(x,y)=(1,0),(4,3),(4,-3),(-2,3),(-2,-3)$: 5 stationary points.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q14",
+      "number": 14,
+      "section": "Mathematics",
+      "type": "single-choice",
+      "topic": "Monotonicity, convexity & extremes",
+      "points": 1,
+      "stem": "Consider a differentiable function $f(x)$ which is positive for every $x$. Suppose that the derivative of $f$ is strictly negative for $x<-1$ and strictly positive for $x>-1$. What do you know about the function $$g(x)=\\frac{2}{f(x)}\\ ?$$",
+      "options": [
+        {
+          "id": "A",
+          "text": "$g(x)$ has an inflection point"
+        },
+        {
+          "id": "B",
+          "text": "$g(x)$ has a maximum"
+        },
+        {
+          "id": "C",
+          "text": "$g(x)$ is concave"
+        },
+        {
+          "id": "D",
+          "text": "$g(x)$ is convex"
+        },
+        {
+          "id": "E",
+          "text": "$g(x)$ has a minimum"
+        }
+      ],
+      "correctAnswer": "B",
+      "explanation": "$g'(x)=-2\\dfrac{f'(x)}{f(x)^2}$. So, the derivative of $g(x)$ is positive for $x<-1$ and negative for $x>-1$. Thus, it has a maximum at $x=-1$.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q15",
+      "number": 15,
+      "section": "Statistics",
+      "type": "matching",
+      "topic": "Data & displays",
+      "points": 1,
+      "stem": "Due to the increasingly stressful demands of teddy bear society, more and more citizens have developed sleep problems. The worst cases are those that struggle to go in hibernation during winter. In December, 60 insomniac teddy bears come to Buttercup General Practice for a doctor's appointment. 28 of them are prescribed herbal tea; 21 of them are prescribed regular off-the-counter sleep pills; and 11 of them are prescribed extra strong sleep pills that ought to knock you out for two months.\nIdentify the **observational unit**, the **variable**, and the **variable type**.",
+      "instruction": "Instruction: in TestVision you drag the three terms onto the matching boxes (several boxes stay empty). Here, pick the matching box for each term.",
+      "images": [
+        {
+          "src": "img/qm1-2025/teddy-bear.png",
+          "alt": "Illustration of a sleepy teddy bear (illustration by Chelsy Penders, 2025)"
+        }
+      ],
+      "prompts": [
+        {
+          "id": "unit",
+          "text": "Observational unit"
+        },
+        {
+          "id": "variable",
+          "text": "Variable"
+        },
+        {
+          "id": "type",
+          "text": "Variable type"
+        }
+      ],
+      "choices": [
+        {
+          "id": "bear",
+          "text": "A teddy bear"
+        },
+        {
+          "id": "regular",
+          "text": "Regular sleep pills"
+        },
+        {
+          "id": "nominal",
+          "text": "Nominal"
+        },
+        {
+          "id": "quant",
+          "text": "Quantitative"
+        },
+        {
+          "id": "extra",
+          "text": "Extra strong sleep pills"
+        },
+        {
+          "id": "tea",
+          "text": "Herbal tea"
+        },
+        {
+          "id": "prescription",
+          "text": "Prescription"
+        },
+        {
+          "id": "ordinal",
+          "text": "Ordinal"
+        }
+      ],
+      "correctAnswer": {
+        "unit": "bear",
+        "variable": "prescription",
+        "type": "ordinal"
+      },
+      "explanation": "Each teddy bear is one case (observational unit). What is recorded for every bear is its prescription (herbal tea / regular pills / extra strong pills): that is the variable; the three treatments are its categories, not variables. The categories have a natural order of strength (herbal tea < regular sleep pills < extra strong sleep pills), so the variable is categorical and ordinal.",
+      "answerSource": "ai",
+      "explanationSource": "ai",
+      "sourceNote": "No official answer was visible for this question. 'Ordinal' is debatable: if your course treats prescription type as unordered, the answer would be 'Nominal'."
+    },
+    {
+      "id": "q16",
+      "number": 16,
+      "section": "Statistics",
+      "type": "numeric",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "Fitness club Basic-Ripped realises that its free protein shakes are so disgusting, its members hardly drink it. This slows their muscle gain over time. As an alternative, Basic-Ripped considers offering free protein pancakes that members can take on the go. Management hopes that the average member will eat more than 3 pancakes per week. After the first month, they conduct a survey among $n$ = 185 members.\nThe sample mean turns out to be 3.4 pancakes, and the standard deviation is 1.1. Construct a **95% confidence interval for the population mean**.",
+      "instruction": "Instruction: after rounding the degrees of freedom down to the nearest value in the t-table, fill in the critical t-value. Next, fill in the lower and upper bound of the confidence interval (2 decimals). To separate decimals, use a dot and not a comma.",
+      "fields": [
+        {
+          "id": "t",
+          "label": "Critical t-value:",
+          "answer": 1.973,
+          "tolerance": 0.006
+        },
+        {
+          "id": "lower",
+          "label": "Lower bound of the confidence interval:",
+          "answer": 3.24,
+          "tolerance": 0.006
+        },
+        {
+          "id": "upper",
+          "label": "Upper bound of the confidence interval:",
+          "answer": 3.56,
+          "tolerance": 0.006
+        }
+      ],
+      "explanation": "The degrees of freedom are $n-1=184$. Let's round this down to 180. According to the t-table, the critical t-value is then **1.973**.\nThe confidence interval is $$\\bar y\\pm t^*\\frac{s}{\\sqrt n}=3.4\\pm1.973\\cdot\\frac{1.1}{\\sqrt{185}}=3.4\\pm0.160=[3.24,\\ 3.56]$$",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "Part of the instruction text was hidden behind a pop-up in the source and has been reconstructed. Each of the three fields is worth 1/3 of the point."
+    },
+    {
+      "id": "q17",
+      "number": 17,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Hypothesis tests",
+      "points": 1,
+      "stem": "Fitness club Basic-Ripped realises that its free protein shakes are so disgusting, its members hardly drink it. This slows their muscle gain over time. As an alternative, Basic-Ripped considers offering free protein pancakes that members can take on the go. Management hopes that the average member will eat more than 3 pancakes per week. After the first month, they conduct a survey among $n$ = 185 members.\nWhat are the null and alternative hypothesis?",
+      "options": [
+        {
+          "id": "A",
+          "text": "$H_0:\\bar y=3$\n$H_A:\\bar y>3$\n(Note: $\\bar y$ stands for the sample mean)"
+        },
+        {
+          "id": "B",
+          "text": "$H_0:\\bar y>3$\n$H_A:\\bar y=3$\n(Note: $\\bar y$ stands for the sample mean)"
+        },
+        {
+          "id": "C",
+          "text": "$H_0:\\mu>3$\n$H_A:\\mu=3$\n(Note: $\\mu$ stands for the population mean)"
+        },
+        {
+          "id": "D",
+          "text": "$H_0:\\mu=3$\n$H_A:\\mu>3$\n(Note: $\\mu$ stands for the population mean)"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "Hypotheses are always about the population parameter ($\\mu$), never about the sample mean. The equality belongs in $H_0$, and management's hope (\"more than 3\") is the alternative: $H_0:\\mu=3$, $H_A:\\mu>3$.",
+      "answerSource": "official",
+      "explanationSource": "ai",
+      "sourceNote": "Official: TestVision confirmed this option as correct in the source. Explanation written by AI."
+    },
+    {
+      "id": "q18",
+      "number": 18,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Describing distributions",
+      "points": 1,
+      "stem": "To summarise the spread in this distribution, researcher Andersen would like to use the standard deviation. Does that look like a good idea?",
+      "images": [
+        {
+          "src": "img/qm1-2025/satisfaction-histogram.png",
+          "alt": "Histogram of SATISFACTION scores with a far outlier near 95"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "No, the standard deviation will likely be too small (it makes the overall spread look smaller than it actually is)"
+        },
+        {
+          "id": "B",
+          "text": "No, the interquartile range is always a better choice regardless of the shape of the distribution"
+        },
+        {
+          "id": "C",
+          "text": "Yes, the standard deviation should be just right in this case"
+        },
+        {
+          "id": "D",
+          "text": "No, the standard deviation will likely be too large (it makes the overall spread look larger than it actually is)"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "This distribution contains a far outlier. As lecture 2 has demonstrated, outliers may inflate the standard deviation.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "In the source screenshot a feedback pop-up covers the top-right part of the histogram; that area is masked in the image."
+    },
+    {
+      "id": "q19",
+      "number": 19,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "In Ancient Greece, the famous inventor Daedalus has created wax wings and wants to test their effectiveness. In a sample of $n$ = 60 volunteers who take a test flight, 18 suffer fatal injuries. This yields the following 95% confidence interval for the population proportion of fatal flights: [0.184, 0.416]. How should Daedalus interpret this interval?",
+      "options": [
+        {
+          "id": "A",
+          "text": "For 95% of all potential Greek volunteers, the risk that they will suffer a fatal crash when flying with these wings varies between 18.4% and 41.6%"
+        },
+        {
+          "id": "B",
+          "text": "He can be 95% confident that his sample proportion lies between 0.184 and 0.416"
+        },
+        {
+          "id": "C",
+          "text": "He can be 95% confident that between 18.4% and 41.6% of all Greek volunteers who may fly with these wings one day (i.e., the population) are going to get fatally injured"
+        },
+        {
+          "id": "D",
+          "text": "In 95% of all samples, the proportion of Greek volunteers who suffer a fatal crash will be between 0.184 and 0.416"
+        }
+      ],
+      "correctAnswer": "C",
+      "explanation": "Confidence intervals say nothing about individual participants. Neither do they say anything about possible sample proportions. Daedalus knows for certain that his sample proportion is 18/60 = 0.30, so it lies within the confidence interval by definition: you always put the interval *around* your sample estimate.\nThis leaves one correct answer. And indeed: confidence intervals tell you between what values a population parameter may lie. Daedalus observed that 30% of his sample suffered fatal injuries; in the population of potential wing users, this percentage lies between 18.4% and 41.6%. He can say this with 95% confidence, at least.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q20",
+      "number": 20,
+      "section": "Statistics",
+      "type": "multi-select",
+      "topic": "Describing distributions",
+      "points": 1,
+      "stem": "In the week 2 lecture, we looked at a study on body satisfaction among mermaids. Below is a grouped box plot of the respondents with an age under 25. The vertical axis shows their satisfaction score (the higher, the better), and the horizontal axis divides the respondents according to their housing situation. Some still live with their parents, some rent an oyster, and only a small group own a personal underwater cave.\nResearcher Andersen suspected that a person's housing situation may impact their general self-esteem (if they want to live on their own, but they can't afford it). What can we **certainly** infer from the box plots?",
+      "instruction": "Instruction: choose every correct option from the list below.",
+      "images": [
+        {
+          "src": "img/qm1-2025/mermaid-boxplots.png",
+          "alt": "Grouped box plots of satisfaction by housing situation"
+        }
+      ],
+      "options": [
+        {
+          "id": "A",
+          "text": "The group that rents an oyster has the largest interquartile range"
+        },
+        {
+          "id": "B",
+          "text": "The group that owns a cave has the highest mean"
+        },
+        {
+          "id": "C",
+          "text": "The group that owns a cave has the highest median"
+        },
+        {
+          "id": "D",
+          "text": "The group that owns a cave has the highest mode"
+        },
+        {
+          "id": "E",
+          "text": "The group that rents an oyster has the largest standard deviation"
+        }
+      ],
+      "correctAnswer": [
+        "A",
+        "C"
+      ],
+      "explanation": "Box plots display medians (the horizontal bar through the box) and interquartile ranges (the vertical width of the box). The mean and the mode may be similar to the median, but you can't know that for sure - it depends on the exact distribution. Likewise, the group with the largest IQR may also have the largest standard deviation, but you can't know that for sure, either. For example, the outlier in the group that lives with their parents may inflate the standard deviation of that group.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "The answer options were partly covered by a feedback pop-up in the source; more options may have existed."
+    },
+    {
+      "id": "q21",
+      "number": 21,
+      "section": "Statistics",
+      "type": "single-choice",
+      "topic": "Probability",
+      "points": 1,
+      "stem": "The contingency table below displays data on $n$ = 140 flights with a hang glider conducted by members of the Pilotwings 46 Association.\nConsider the events 'tandem flight' and 'beginner pilot', if we pick one flight at random from this table. These events are...",
+      "table": {
+        "header": [
+          "Type of flight",
+          "beginner",
+          "intermediate",
+          "advanced",
+          "Total"
+        ],
+        "rows": [
+          [
+            "solo",
+            "4",
+            "44",
+            "43",
+            "91"
+          ],
+          [
+            "tandem",
+            "21",
+            "20",
+            "8",
+            "49"
+          ],
+          [
+            "Total",
+            "25",
+            "64",
+            "51",
+            "140"
+          ]
+        ],
+        "caption": "Columns: pilot experience level"
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "Not disjoint but independent"
+        },
+        {
+          "id": "B",
+          "text": "Disjoint and independent"
+        },
+        {
+          "id": "C",
+          "text": "Disjoint but not independent"
+        },
+        {
+          "id": "D",
+          "text": "Not disjoint and not independent"
+        }
+      ],
+      "correctAnswer": "D",
+      "explanation": "When two events are **independent**, the occurrence of one event does not impact the probability of the other event: $P(B)=P(B\\mid A)$. Let's test this:\n$P(\\text{tandem flight})=\\dfrac{49}{140}=0.35$ but $P(\\text{tandem flight}\\mid\\text{beginner pilot})=\\dfrac{21}{25}=0.84$. Unequal results, so the events are not independent.\nTesting this the other way around works as well: $P(\\text{beginner pilot})=\\dfrac{25}{140}=0.179$ but $P(\\text{beginner pilot}\\mid\\text{tandem flight})=\\dfrac{21}{49}=0.429$.\nWhen two events are **disjoint** (an extreme case of negative dependence), they cannot occur simultaneously: $P(A\\text{ and }B)=0$. Let's test this as well: $P(\\text{tandem flight and beginner pilot})=\\dfrac{21}{140}>0$. So the events are not disjoint.",
+      "answerSource": "official",
+      "explanationSource": "official"
+    },
+    {
+      "id": "q22",
+      "number": 22,
+      "section": "Statistics",
+      "type": "matching",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "In Ancient Greece, the famous inventor Daedalus has created wax wings and wants to test their effectiveness. He asks a sample of volunteers to jump off a cliff. Half of them strap on the prototype wings, and half of them don't; every volunteer gets randomly assigned to one of these two groups. Some participants land on solid ground, while others land in a body of water; Daedalus cannot control this. For every participant, he records whether they suffer fatal injuries upon landing or not.\nFill in the blanks:",
+      "prompts": [
+        {
+          "id": "study",
+          "text": "This is …",
+          "choiceIds": [
+            "experiment",
+            "observational"
+          ]
+        },
+        {
+          "id": "fatal",
+          "text": "Fatal injuries (yes or no) are …",
+          "choiceIds": [
+            "response",
+            "treatment",
+            "blocking"
+          ]
+        },
+        {
+          "id": "equip",
+          "text": "The equipment (wings or no wings) is …",
+          "choiceIds": [
+            "response",
+            "treatment",
+            "blocking"
+          ]
+        },
+        {
+          "id": "landing",
+          "text": "And the landing spot (ground or water) is …",
+          "choiceIds": [
+            "response",
+            "treatment",
+            "blocking"
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "experiment",
+          "text": "an experiment"
+        },
+        {
+          "id": "observational",
+          "text": "an observational study"
+        },
+        {
+          "id": "response",
+          "text": "the dependent a.k.a. response variable"
+        },
+        {
+          "id": "treatment",
+          "text": "a treatment factor"
+        },
+        {
+          "id": "blocking",
+          "text": "a blocking factor"
+        }
+      ],
+      "correctAnswer": {
+        "study": "experiment",
+        "fatal": "response",
+        "equip": "treatment",
+        "landing": "blocking"
+      },
+      "explanation": "As Daedalus doesn't just observe his participants but plays an active role in setting up their experience, this is an experiment. Fatal injuries are the dependent variable because they may depend on the equipment and the landing spot (the two independent variables). Treatment factors are independent variables that the researcher controls: Daedalus assigned participants to the winged or the wingless group based on random allocation. Blocking factors are independent variables that the researcher has no control over.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "The drop-down lists were not visible in the source; the choices here were reconstructed from the correct answers and the feedback."
+    },
+    {
+      "id": "q23",
+      "number": 23,
+      "section": "Statistics",
+      "type": "numeric",
+      "topic": "Random variables & binomial",
+      "points": 1,
+      "stem": "An ecologist is counting worms in forest soil samples. Each worm has a 70% chance of being active at night. If she randomly checks 12 independent worms, what is the probability that **10 or more** are active during her nighttime survey?",
+      "instruction": "Instruction: fill in the value. To separate decimals, use a dot and not a comma (example: 0.501 instead of 0,501)!",
+      "correctAnswer": 0.253,
+      "tolerance": 0.002,
+      "explanation": "You may have recognised this problem from one of the midterm quizzes. It requires the **binomial model**. The binomial formula is $P(X=k)=\\binom nk p^kq^{n-k}$.\nWith $n=12$, $p=0.70$ and $q=0.30$, we're looking at the probability of at least $k=10$ successes. That's the probabilities of 10, 11, and 12 successes added up:\n$P(X=10)=\\binom{12}{10}\\cdot0.70^{10}\\cdot0.30^2=0.168$, $P(X=11)=\\binom{12}{11}\\cdot0.70^{11}\\cdot0.30^1=0.071$, $P(X=12)=\\binom{12}{12}\\cdot0.70^{12}\\cdot0.30^0=0.014$.\nSum these, and you get **0.253**.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "The instruction text was partly hidden in the source and has been reconstructed."
+    },
+    {
+      "id": "q24",
+      "number": 24,
+      "section": "Statistics",
+      "type": "numeric",
+      "topic": "Normal model",
+      "points": 1,
+      "stem": "The sandals worn by Roman legionnaires last a certain number of kilometres before the soles split. For a new leather batch, the distance to failure is normally distributed with a mean of 520 kilometres (km) and a standard deviation of 80 km. The marching plan for the upcoming military campaign totals 570 km.\nWhat is the probability that a randomly issued pair of sandals survives the whole campaign?",
+      "instruction": "Instruction: fill in the value. To separate decimals, use a dot and not a comma (example: 0.501 instead of 0,501)!",
+      "correctAnswer": 0.2643,
+      "tolerance": 0.0035,
+      "explanation": "Use the z-formula: $z=\\dfrac{y-\\mu}{\\sigma}=\\dfrac{570-520}{80}=0.63$.\nNext, look up the *right-sided* probability in the table (use the complement rule, because you want the probability that the distance will be *above* 570 km). This is $P(z>0.63)=1-0.7357=0.2643$.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "Accepted range 0.261-0.268: the source accepted 0.266 (exact z = 0.625 gives 0.2660)."
+    },
+    {
+      "id": "q25",
+      "number": 25,
+      "section": "Statistics",
+      "type": "matching",
+      "topic": "Sampling & study design",
+      "points": 1,
+      "stem": "An action committee of circus performers wants to conduct a survey on job satisfaction among their peers across Western Europe. Below are three scenarios for selecting respondents. Match each one to the correct sampling method.",
+      "instruction": "Instruction: in TestVision you drag each sampling method onto the correct scenario. Only one sampling method fits each scenario.",
+      "prompts": [
+        {
+          "id": "s1",
+          "text": "The committee visits 10 random circuses in Western Europe and surveys every performer there."
+        },
+        {
+          "id": "s2",
+          "text": "The committee creates a list of different circus performers - acrobats, clowns, fire-breathers, jugglers, and magicians - and makes sure to draw a sample from each group across Western Europe."
+        },
+        {
+          "id": "s3",
+          "text": "The committee visits 10 random circuses in Western Europe and surveys a random sample of performers at every circus."
+        }
+      ],
+      "choices": [
+        {
+          "id": "cluster",
+          "text": "Cluster sampling"
+        },
+        {
+          "id": "stratified",
+          "text": "Stratified sampling"
+        },
+        {
+          "id": "multistage",
+          "text": "Multi-stage sampling"
+        }
+      ],
+      "correctAnswer": {
+        "s1": "cluster",
+        "s2": "stratified",
+        "s3": "multistage"
+      },
+      "explanation": "**Stratified sampling**: you identify existing subgroups in the population (different strata) and draw a sample from each subgroup.\n**Cluster sampling**: you identify existing clusters in the population (often with distinct geographical locations). You then include *all* members of the chosen clusters in your sample.\n**Multi-stage sampling**: a combination of multiple sampling methods, one after the other. Most common version: you sample some clusters, and then take a random sample of individuals from within every cluster.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "The pool of draggable methods was partly hidden in the source; only the three methods that were visible are offered here."
+    },
+    {
+      "id": "q26",
+      "number": 26,
+      "section": "Statistics",
+      "type": "numeric",
+      "topic": "Normal model",
+      "points": 1,
+      "stem": "The sandals worn by Roman legionnaires last a certain number of kilometres before the soles split. For a new leather batch, the distance to failure is normally distributed with a mean of 520 kilometres (km) and a standard deviation of 80 km.\nHow long do the *best 10%* of sandals survive?",
+      "instruction": "Instruction: fill in the value, rounded to the nearest whole number (no decimals needed).",
+      "correctAnswer": 623,
+      "tolerance": 0,
+      "acceptRange": [
+        622,
+        623
+      ],
+      "prefix": "At least",
+      "suffix": "km",
+      "explanation": "For this question, you need to use the z-table in reverse. The top 10% corresponds to a right-sided probability of 0.10, so the left-sided probability is 0.90. The z-value is then approximately 1.282.\nNow put everything we know into the z-formula: $z=\\dfrac{y-\\mu}{\\sigma}$ gives $1.282=\\dfrac{y-520}{80}$.\nNow solve for $y$: $1.282\\cdot80=y-520\\to y=1.282\\cdot80+520=622.56$, i.e. at least 623 km.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "The official feedback computes 622.56. In the source an answer of 623 was labelled incorrect, so 622 may have been the keyed answer; both 622 and 623 are accepted here."
+    },
+    {
+      "id": "q27",
+      "number": 27,
+      "section": "Statistics",
+      "type": "numeric",
+      "topic": "Confidence intervals",
+      "points": 1,
+      "stem": "In Ancient Greece, the famous inventor Daedalus has created wax wings and wants to test their effectiveness. He intends to sample volunteers who take a test flight and see how many of them suffer fatal injuries. He will then estimate the population proportion of fatal flights ($p$) by making a 95% confidence interval.\nDaedalus wants an interval with a margin of error no greater than 0.10. How many volunteers ($n$) will he need to sample for this? Assume that $p$ equals 0.50 (the worst-case scenario for the margin of error).",
+      "instruction": "Instruction: fill in the minimum number of volunteers (a whole number).",
+      "correctAnswer": 97,
+      "tolerance": 0,
+      "acceptRange": [
+        96,
+        97
+      ],
+      "explanation": "The margin of error of a one-proportion interval is $ME=z^*\\sqrt{\\dfrac{p(1-p)}{n}}$. For a 95% interval, $z^*=1.960$. Fill in this value, as well as $p=0.50$ and $ME=0.10$, and solve the equation for $n$:\n$$n=p(1-p)\\left(\\frac{z^*}{ME}\\right)^2=0.50\\cdot0.50\\cdot\\left(\\frac{1.960}{0.10}\\right)^2=96.04\\to97$$ The best answer is to round up the outcome (97), but 96 is counted as correct as well.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "The instruction text was partly hidden in the source and has been reconstructed."
+    },
+    {
+      "id": "q28",
+      "number": 28,
+      "section": "Statistics",
+      "type": "multi-select",
+      "topic": "Errors & power",
+      "points": 1,
+      "stem": "Fitness club Basic-Ripped realises that its free protein shakes are so disgusting, its members hardly drink it. This slows their muscle gain over time. As an alternative, Basic-Ripped considers offering free protein pancakes that members can take on the go. Management hopes that the average member will eat more than 3 pancakes per week. After the first month, they conduct a survey among $n$ = 185 members.\nSuppose that the true population mean is 3.3 pancakes per week. How could management increase the *power* of their statistical analysis?",
+      "instruction": "Instruction: choose every correct option from the list below.",
+      "options": [
+        {
+          "id": "A",
+          "text": "By further improving their pancake recipe, such that the population mean rises even further above 3"
+        },
+        {
+          "id": "B",
+          "text": "By surveying even more members"
+        },
+        {
+          "id": "C",
+          "text": "By choosing a smaller significance level (say, not 0.05 but 0.01)"
+        }
+      ],
+      "correctAnswer": [
+        "A",
+        "B"
+      ],
+      "explanation": "You will have more power when the sample size is larger, but also when the true population mean deviates more from what the null hypothesis says. Choosing a smaller significance level will *cost* power: you make it harder to get significant results. See the overview on one of the final lecture slides for week 7.",
+      "answerSource": "official",
+      "explanationSource": "official",
+      "sourceNote": "The option list was partly covered by a feedback pop-up in the source; more options may have existed."
+    }
+  ]
+}
