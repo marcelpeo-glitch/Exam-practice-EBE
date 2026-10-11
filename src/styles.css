@@ -72,6 +72,12 @@ table.list td.num, table.list th.num { text-align: right; font-variant-numeric: 
 table.list tr.clickable { cursor: pointer; }
 table.list tr.clickable:hover td { background: #f5f9fc; }
 .table-wrap { overflow-x: auto; }
+/* On narrow windows the exam table scrolls sideways; keep its Start button in view. */
+@media (max-width: 760px) {
+  table[data-testid='exam-table'] th:last-child,
+  table[data-testid='exam-table'] td:last-child { position: sticky; right: 0; background: var(--panel); box-shadow: -8px 0 8px -8px rgba(0, 0, 0, .3); }
+  table[data-testid='exam-table'] th:last-child { background: #f7f8f9; }
+}
 
 .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid transparent; white-space: nowrap; }
 .pill.official { background: var(--ok-tint); color: var(--ok); border-color: #b9dcc2; }

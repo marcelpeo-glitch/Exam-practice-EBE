@@ -2,6 +2,11 @@
 // 1. Back/Forward (or Resume) during an exam must not reset answers, flags or the timer.
 // 2. Calculator: after "=", an operator continues from Ans and a digit starts fresh (dev mode = React StrictMode).
 // 3. After hand-in, the Back button must not get stuck on a redirect.
+// 4. Discard / Clear use in-page confirmations; the exam screen fits a phone.
+// 5. Back to the confirm page of a started exam offers Resume instead of silently restarting it.
+// 6. A second tab taking over the exam stops the first tab from saving (no overwriting, no resurrecting).
+// 7. Tab stays inside open dialogs. 8. The Start button stays reachable in a half-width window.
+// 9. Start-page notes contain no developer instructions. 10. A browser that blocks localStorage still runs an exam.
 // Run with the dev server on :5173:  node tests/e2e/regressions.mjs
 // Needs Playwright with Chromium (set PLAYWRIGHT_MODULE to its path if it is installed globally).
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ?? 'playwright');
@@ -15,7 +20,8 @@ const check = (cond, msg) => {
 };
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1366, height: 860 } });
+const context = await browser.newContext({ viewport: { width: 1366, height: 860 } });
+const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('dialog', (d) => d.accept());
@@ -122,6 +128,108 @@ await page.getByTestId('start-exam').click();
 await page.getByTestId('tile-23').click();
 const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
 check(sw <= iw, `exam screen fits a 400 px phone without sideways scrolling (${sw} <= ${iw})`);
+
+// ---- 5. Back to the confirm page offers Resume (and never silently restarts the same exam)
+await page.setViewportSize({ width: 1366, height: 860 });
+await page.getByTestId('option-A').click(); // answer Q23 of the 2023 exam
+await page.goBack();
+await page.getByTestId('confirm-screen').waitFor();
+check((await page.getByTestId('resume-here').count()) === 1, 'Back to the confirm page of a started exam offers "Resume exam"');
+check(!(await page.getByTestId('confirm-screen').innerText()).includes('another exam in progress'), 'it does not call the same exam "another exam"');
+check((await page.getByTestId('start-exam').innerText()) === 'Start over', 'the Start button is labelled "Start over"');
+await page.getByTestId('resume-here').click();
+await page.getByTestId('timer').waitFor();
+check((await page.getByTestId('tile-23').getAttribute('data-state')) === 'answered', 'Resume returns to the exam with the answer intact');
+
+// ---- 6. A second tab takes over: the first tab stops saving and cannot overwrite or resurrect the exam
+const page2 = await context.newPage();
+await page2.goto(`${BASE}#/`);
+await page2.getByTestId('resume').click();
+await page2.getByTestId('timer').waitFor();
+await page2.getByTestId('tile-24').click();
+await page2.getByTestId('option-B').click();
+await page.getByTestId('claimed-modal').waitFor({ timeout: 5000 });
+check(true, 'the first tab is told that the exam is open in another tab');
+await page.waitForTimeout(2500); // the first tab's autosave would run every second
+const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mtv:v1:session')));
+check(saved.answers.q24 === 'B' && saved.answers.q23 === 'A', 'the first tab did not overwrite the second tab (its answers are intact)');
+await page2.getByTestId('ready').click();
+await page2.getByTestId('handin-continue').click();
+await page2.getByTestId('handin-confirm-yes').click();
+await page2.getByTestId('summary').waitFor();
+await page.waitForTimeout(2500);
+check((await page.evaluate(() => localStorage.getItem('mtv:v1:session'))) === null, 'the first tab does not resurrect an exam that was handed in elsewhere');
+await page2.close();
+await page.getByTestId('claimed-leave').click();
+await page.getByTestId('history').waitFor();
+check((await page.getByTestId('resume-banner').count()) === 0, 'after leaving, the overview shows no exam in progress');
+
+// ---- 7. Keyboard focus stays inside an open dialog
+await page.goto(`${BASE}#/start/qm1-2023-first-sit`);
+await page.getByTestId('confirm-check').check();
+await page.getByTestId('start-exam').click();
+await page.getByTestId('ready').click();
+await page.getByTestId('handin-overview').waitFor();
+let escaped = 0;
+for (let i = 0; i < 12; i++) {
+  await page.keyboard.press(i % 5 === 4 ? 'Shift+Tab' : 'Tab');
+  if (!(await page.evaluate(() => !!document.activeElement?.closest('.dialog')))) escaped++;
+}
+check(escaped === 0, `Tab and Shift+Tab stay inside the hand-in dialog (${escaped} escapes in 12 presses)`);
+await page.keyboard.press('Escape');
+check((await page.getByTestId('handin-overview').count()) === 0, 'Escape closes the dialog');
+
+// ---- 8. The Start button stays reachable in a half-width window (the exam table scrolls sideways there)
+await page.goto(`${BASE}#/`);
+await page.getByTestId('resume-banner').waitFor();
+await page.getByRole('button', { name: 'Discard' }).click();
+await page.getByTestId('confirm-yes').click();
+await page.setViewportSize({ width: 683, height: 700 });
+const box = await page.getByTestId('start-qm1-2023-first-sit').boundingBox();
+check(!!box && box.x >= 0 && box.x + box.width <= 683, `Start button is inside a 683 px wide window (x ${Math.round(box?.x ?? -1)}..${Math.round((box?.x ?? 0) + (box?.width ?? 0))})`);
+await page.getByTestId('start-qm1-2023-first-sit').click(); // fails if something covers it
+await page.getByTestId('confirm-screen').waitFor();
+check(true, 'the Start button can be clicked in a 683 px wide window');
+await page.setViewportSize({ width: 1366, height: 860 });
+
+// ---- 9. Notes on the start pages are written for students (no file names to edit)
+for (const id of ['qm1-2021-2022-first-sit', 'qm1-2023-first-sit', 'qm1-2024-2025-first-sit', 'qm1-2025-exam']) {
+  await page.goto(`${BASE}#/start/${id}`);
+  const txt = await page.getByTestId('confirm-screen').innerText();
+  check(!/JSON|durationMinutes/.test(txt), `${id}: start page has no developer instructions`);
+}
+await page.goto(`${BASE}#/`);
+check(!(await page.locator('body').innerText()).includes('data/exams'), 'the overview does not mention data/exams/*.json');
+
+// ---- 10. A browser that refuses localStorage: the exam still starts, with a warning
+const blockedCtx = await browser.newContext({ viewport: { width: 1366, height: 860 } });
+await blockedCtx.addInitScript(() => {
+  Object.defineProperty(window, 'localStorage', {
+    get() {
+      throw new DOMException('denied', 'SecurityError');
+    },
+  });
+});
+const bp = await blockedCtx.newPage();
+const blockedErrors = [];
+bp.on('pageerror', (e) => blockedErrors.push(e.message));
+await bp.goto(BASE);
+check((await bp.getByTestId('storage-blocked').count()) === 1, 'the overview warns that this browser blocks saving');
+await bp.getByTestId('start-qm1-2023-first-sit').click();
+check((await bp.getByTestId('storage-blocked').count()) === 1, 'the confirm page warns too');
+await bp.getByTestId('confirm-check').check();
+await bp.getByTestId('start-exam').click();
+await bp.getByTestId('timer').waitFor({ timeout: 5000 });
+check(true, 'Start still opens the exam when saving is blocked');
+await bp.getByTestId('tile-23').click();
+await bp.getByTestId('option-A').click();
+await bp.getByTestId('ready').click();
+await bp.getByTestId('handin-continue').click();
+await bp.getByTestId('handin-confirm-yes').click();
+await bp.getByTestId('summary').waitFor({ timeout: 5000 });
+check(/^[\d.]+ \/ 40$/.test((await bp.getByTestId('points').innerText()).replace(/\s+/g, ' ')), 'the exam can be handed in and marked when saving is blocked');
+check(blockedErrors.length === 0, `no page errors when saving is blocked ${blockedErrors.join(' | ')}`);
+await blockedCtx.close();
 
 check(errors.length === 0, `no page errors ${errors.join(' | ')}`);
 await browser.close();

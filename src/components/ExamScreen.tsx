@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { examLabel, resolveImage } from '../lib/exams';
 import { fmtClock } from '../lib/format';
 import { isAnswered, questionsById } from '../lib/scoring';
-import { loadSession, saveSession } from '../lib/storage';
+import { KEY_SESSION, loadSession, saveSession } from '../lib/storage';
 import type { AnswerValue, Exam, Question, Session } from '../types';
 import { AnswerInput } from './AnswerInput';
 import { Calculator } from './Calculator';
@@ -30,6 +30,16 @@ export function ExamScreen({ exam, session: initial, onHandIn }: Props) {
   const [confirm, setConfirm] = useState(false);
   const handedIn = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Set when another tab or window changes the saved exam (opened it, handed it in, cleared it). This tab then
+  // stops saving and cannot hand in, so it never overwrites or resurrects the other tab's exam.
+  const [claimed, setClaimed] = useState(false);
+  useEffect(() => {
+    const on = (e: StorageEvent) => {
+      if (e.storageArea === window.localStorage && (e.key === KEY_SESSION || e.key === null)) setClaimed(true);
+    };
+    window.addEventListener('storage', on);
+    return () => window.removeEventListener('storage', on);
+  }, []);
 
   const byId = useMemo(() => questionsById(exam), [exam]);
   const questions = useMemo(() => s.questionIds.map((id) => byId.get(id)).filter((q): q is Question => !!q), [s.questionIds, byId]);
@@ -55,16 +65,16 @@ export function ExamScreen({ exam, session: initial, onHandIn }: Props) {
 
   // Autosave answers, flags, position and remaining time on every change (and every second).
   useEffect(() => {
-    if (!handedIn.current) saveSession({ ...s, remainingSec: remaining });
-  }, [s, remaining]);
+    if (!handedIn.current && !claimed) saveSession({ ...s, remainingSec: remaining });
+  }, [s, remaining, claimed]);
 
   const handIn = useCallback(
     (auto: boolean) => {
-      if (handedIn.current) return;
+      if (handedIn.current || claimed) return;
       handedIn.current = true;
       onHandIn({ ...s, remainingSec: remaining }, auto);
     },
-    [s, remaining, onHandIn],
+    [s, remaining, onHandIn, claimed],
   );
 
   useEffect(() => {
@@ -196,6 +206,23 @@ export function ExamScreen({ exam, session: initial, onHandIn }: Props) {
       </div>
 
       {calcOpen && <Calculator onClose={() => setCalcOpen(false)} />}
+
+      {claimed && (
+        <Modal
+          title="This exam is open in another tab"
+          testId="claimed-modal"
+          footer={
+            <a className="btn primary" href="#/" data-testid="claimed-leave">
+              Go to the overview
+            </a>
+          }
+        >
+          <p>
+            This exam was changed in another tab or window, so this tab has stopped saving. That keeps the other tab&apos;s answers safe.
+          </p>
+          <p className="muted">Continue in the other tab, or go to the overview and click Resume to continue here.</p>
+        </Modal>
+      )}
 
       {resOpen && exam.resources && (
         <Modal title="Formula sheets and tables" onClose={() => setResOpen(false)} wide>

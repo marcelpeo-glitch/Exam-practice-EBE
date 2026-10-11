@@ -44,8 +44,11 @@ const js = fs.readFileSync(path.join(tmp, 'app.js'), 'utf8');
 // other two copies (this halves the CSS).
 css = css.replace(/,url\(data:font\/(?:woff|ttf);base64,[A-Za-z0-9+/=]+\) ?format\("(?:woff|truetype)"\)/g, '');
 if (/data:font\/(?:woff;|ttf)/.test(css)) throw new Error('could not strip the fallback fonts');
-// The code is embedded in <style>/<script>, so it must not contain the closing tags.
+// The code is embedded in <style>/<script>. A closing tag inside would end the element early, and an HTML comment
+// opener followed by "<script" puts the HTML parser in a state where the real </script> is ignored (the page
+// then opens blank). esbuild already writes "</script" as "<\/script" inside strings; check anyway.
 if (/<\/style/i.test(css) || /<\/script/i.test(js)) throw new Error('bundle contains a closing tag; cannot inline it');
+if (js.includes('<!--') && /<script/i.test(js)) throw new Error('bundle contains "<!--" and "<script"; the inline script would not parse');
 
 // Plain concatenation (never String.replace: "$&" sequences inside the bundle would be rewritten).
 const html = [

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { examLabel, keyKind } from '../lib/exams';
+import { fmtClock } from '../lib/format';
+import { storageBlocked } from '../lib/storage';
 import type { Exam, Session } from '../types';
 import { RichText } from './RichText';
 
@@ -10,11 +12,14 @@ interface Props {
   mode: 'full' | 'retry';
   otherSession: Session | null;
   otherLabel?: string;
+  /** The exam in progress is this very exam: offer to resume it instead of warning about "another exam". */
+  resumable: boolean;
+  onResume: () => void;
   onStart: () => void;
 }
 
 /** The "are you ready to start?" page that precedes the exam, like the TestVision start screen. */
-export function ConfirmScreen({ exam, questionIds, durationMinutes, mode, otherSession, otherLabel, onStart }: Props) {
+export function ConfirmScreen({ exam, questionIds, durationMinutes, mode, otherSession, otherLabel, resumable, onResume, onStart }: Props) {
   const [ok, setOk] = useState(false);
   const kind = keyKind(exam);
   return (
@@ -29,6 +34,24 @@ export function ConfirmScreen({ exam, questionIds, durationMinutes, mode, otherS
         </div>
       </div>
       <div className="page" style={{ maxWidth: 760 }}>
+        {resumable && otherSession && (
+          <div className="banner warn" data-testid="resume-here-banner">
+            <div className="row">
+              <div>
+                <strong>You already started this exam</strong> ({fmtClock(otherSession.remainingSec)} left). Your answers are saved.
+              </div>
+              <div className="spacer" />
+              <button className="btn primary" onClick={onResume} data-testid="resume-here">
+                Resume exam
+              </button>
+            </div>
+          </div>
+        )}
+        {storageBlocked() && (
+          <div className="banner bad" data-testid="storage-blocked">
+            <strong>This browser blocks saving.</strong> The exam still works in this tab, but your answers and history are lost if you reload or close it.
+          </div>
+        )}
         <section className="card" data-testid="confirm-screen">
           <h2>{mode === 'retry' ? 'Retry wrong questions' : 'Start exam'}</h2>
           <dl className="facts">
@@ -78,24 +101,25 @@ export function ConfirmScreen({ exam, questionIds, durationMinutes, mode, otherS
           <ul>
             <li>The timer starts as soon as you click <strong>Start</strong>. When it reaches zero, the exam is handed in automatically.</li>
             <li>Navigate with <strong>Previous</strong>/<strong>Next</strong> or click a question number. Use <strong>Flag</strong> to mark a question for review.</li>
-            <li>Your answers, flags and remaining time are saved automatically; refreshing the page does not lose anything.</li>
+            <li>Your answers, flags and remaining time are saved automatically; refreshing the page does not lose anything. Keep the exam open in one tab only.</li>
             <li>Numeric answers: use a dot as decimal separator (0.51, not 0,51).</li>
             <li>
               Click <strong>Ready</strong> to hand in. You will see which questions are unanswered or flagged first.
             </li>
           </ul>
-          {otherSession && (
+          {otherSession && !resumable && (
             <div className="banner warn">
               You still have another exam in progress ({otherLabel ?? otherSession.examId}). Starting this one discards it.
             </div>
           )}
+          {resumable && <div className="small muted">Starting again discards the answers you have saved for this exam.</div>}
           <label className="row" style={{ marginTop: 12 }}>
             <input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} data-testid="confirm-check" />
             I have read the instructions and I am ready to start.
           </label>
           <div className="row" style={{ marginTop: 16 }}>
             <button className="btn primary" disabled={!ok} onClick={onStart} data-testid="start-exam">
-              Start
+              {resumable ? 'Start over' : 'Start'}
             </button>
             <a className="btn" href="#/">
               Cancel

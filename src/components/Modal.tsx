@@ -17,8 +17,33 @@ export function Modal({ title, onClose, children, footer, wide, testId }: Props)
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     ref.current?.focus();
+    const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeRef.current?.();
+      if (e.key === 'Escape') {
+        closeRef.current?.();
+        return;
+      }
+      if (e.key !== 'Tab' || !ref.current) return;
+      // Keep keyboard focus inside the dialog while it is open (the page behind it is not reachable).
+      const items = [...ref.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      if (!items.length) {
+        e.preventDefault();
+        ref.current.focus();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (!ref.current.contains(active) || active === ref.current) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => {

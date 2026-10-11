@@ -2,11 +2,24 @@ import type { Attempt, Session } from '../types';
 
 // Everything is kept in localStorage under these keys.
 const KEY_ATTEMPTS = 'mtv:v1:attempts';
-const KEY_SESSION = 'mtv:v1:session';
+export const KEY_SESSION = 'mtv:v1:session';
+
+// If the browser refuses localStorage (site data blocked by a setting or a school policy), everything is
+// kept in memory instead, so an exam can still be taken in this tab. storageBlocked() lets the screens warn
+// that nothing survives a reload.
+const mem = new Map<string, string>();
+let blocked = false;
+export const storageBlocked = () => blocked;
+try {
+  localStorage.setItem('mtv:probe', '1');
+  localStorage.removeItem('mtv:probe');
+} catch {
+  blocked = true;
+}
 
 function read<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = mem.has(key) ? mem.get(key) : localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
     return fallback;
@@ -14,11 +27,16 @@ function read<T>(key: string, fallback: T): T {
 }
 
 function write(key: string, value: unknown) {
+  const raw = value === null ? null : JSON.stringify(value);
   try {
-    if (value === null) localStorage.removeItem(key);
-    else localStorage.setItem(key, JSON.stringify(value));
+    if (raw === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, raw);
+    mem.delete(key);
   } catch (e) {
-    console.warn('Could not save to localStorage', e);
+    blocked = true;
+    if (raw === null) mem.delete(key);
+    else mem.set(key, raw);
+    console.warn('Could not save to localStorage; keeping it in memory for this tab', e);
   }
 }
 

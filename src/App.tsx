@@ -53,9 +53,10 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // The exam screen autosaves to localStorage; re-read it on every route change so the resume
-    // banner and a remounted exam screen never work from a stale copy.
+    // The exam screen autosaves to localStorage, and another tab may have changed things; re-read both on
+    // every route change so the resume banner, the history and a remounted exam screen are never stale.
     setSession(loadSession());
+    setAttempts(loadAttempts());
   }, [hash]);
 
   const startSession = useCallback((examId: string, questionIds: string[], durationMinutes: number, mode: 'full' | 'retry', retryOf?: string) => {
@@ -129,6 +130,7 @@ export default function App() {
       duration = Math.max(5, Math.round((exam.durationMinutes * questionIds.length) / exam.questions.length));
     }
     const otherExam = session ? getExam(session.examId) : undefined;
+    const resumable = !!session && session.examId === exam.id && session.mode === mode && session.retryOf === retryOf;
     return (
       <ConfirmScreen
         exam={exam}
@@ -137,6 +139,8 @@ export default function App() {
         mode={mode}
         otherSession={session}
         otherLabel={otherExam ? examLabel(otherExam) : undefined}
+        resumable={resumable}
+        onResume={() => go('#/exam', true)}
         onStart={() => startSession(exam.id, questionIds, duration, mode, retryOf)}
       />
     );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { examLabel, keyKind, loadExams } from '../lib/exams';
 import { fmtClock, fmtDate, fmtGrade, fmtPoints } from '../lib/format';
+import { storageBlocked } from '../lib/storage';
 import type { Attempt, Exam, Session } from '../types';
 import { Modal } from './Modal';
 
@@ -36,6 +37,11 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
         </div>
       </div>
       <div className="page">
+        {storageBlocked() && (
+          <div className="banner bad" data-testid="storage-blocked">
+            <strong>This browser blocks saving.</strong> You can still take an exam in this tab, but your answers and history are lost if you reload or close it.
+          </div>
+        )}
         {session && sessionExam && (
           <div className="banner warn" data-testid="resume-banner">
             <div className="row">
@@ -182,9 +188,7 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
         </section>
 
         <div className="row small muted">
-          <span>
-            Exams are read from <code>data/exams/*.json</code>. Progress and history are stored in this browser (localStorage).
-          </span>
+          <span>Your progress and history are stored in this browser on this computer. Use the same browser each time.</span>
           <div className="spacer" />
           {(history.length > 0 || session) && (
             <button className="btn small" onClick={() => setAsk('clear')} data-testid="clear-data">

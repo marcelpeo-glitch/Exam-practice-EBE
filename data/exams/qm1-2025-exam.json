@@ -44,8 +44,8 @@
   "notes": [
     "Answers and explanations come from the official TestVision feedback shown in the screenshots, unless marked AI-solved.",
     "The file does not say which sitting this is (first sit or resit) or the academic year; it is labelled 2025 and assumed to be a regular sitting.",
-    "Some screenshot parts were hidden behind feedback pop-ups; see EXTRACTION_REPORT.md for what was reconstructed.",
-    "The duration is not stated in the source; 180 minutes is assumed. Edit durationMinutes in the JSON to change it."
+    "Some parts of the scanned source were hidden behind feedback pop-ups and were reconstructed: part of the instruction text of Q16, Q23, Q24 and Q27, the drop-down choices of Q22, the pool of draggable options of Q25, the bottom of the option lists of Q20 and Q28, and the top-right corner of the Q18 histogram. Details are in the question notes after you hand in, and in EXTRACTION_REPORT.md in the GitHub repository.",
+    "The duration is not stated in the source; 180 minutes is assumed."
   ],
   "questions": [
     {

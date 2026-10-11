@@ -4,10 +4,11 @@ A local practice version of TestVision for SBE exams. It ships with six past **Q
 
 ## Open it in Chrome (no installation)
 
-Download **[`standalone/mock-testvision.html`](standalone/mock-testvision.html)** (on GitHub: open the file, then use the download button at the top right of the file view) and double-click it. It opens in a Chrome tab. It is one self-contained file with all six exams, the maths fonts, the figures and the formula sheets inside, so it needs no internet, no login and no installation. It works on Windows, Mac and Chromebook.
+Download **[`standalone/mock-testvision.html`](standalone/mock-testvision.html)** (on GitHub: open the file, then use the download button at the top right of the file view) and double-click it. It opens in your default browser. If that is not Chrome (for example Edge or Safari), right-click the file, choose **Open with**, then **Google Chrome**, or drag the file into a Chrome window. It is one self-contained file with all six exams, the maths fonts, the figures and the formula sheets inside, so it needs no internet, no login and no installation. It works on Windows, Mac and Chromebook.
 
 - On a **Chromebook**, open the Files app, find the download and double-click it.
-- Your answers, attempt history and best scores are saved in your browser (not in the file). Use the same browser each time, and not an incognito or guest window, or the history is not kept. Clearing the browser's site data deletes it.
+- Your answers, attempt history and best scores are saved in your browser (not in the file). Open the file in the same browser each time, and not in an incognito or guest window, or the history is not kept. Clearing the browser's site data deletes it. If a browser setting or a school policy blocks saving, the app shows a red warning: the exam still works in that tab, but nothing is kept after a reload.
+- Keep an exam open in **one tab only**. If you open it in a second tab, the first tab stops saving and asks you to continue in the other one, so the two never overwrite each other.
 - The file only changes when someone rebuilds it. After adding or changing an exam in `data/exams/`, run `npm run build:standalone` to rebuild it.
 
 ## Run it from the source code
