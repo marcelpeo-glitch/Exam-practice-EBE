@@ -2,7 +2,15 @@
 
 A local practice version of TestVision for SBE exams. It ships with six past **QM1** exams (EBC1005/1006/1007). You take an exam under exam conditions (one question at a time, a countdown, flags, a calculator and formula sheets, autosave) and get marked when you hand in.
 
-## Start the app
+## Open it in Chrome (no installation)
+
+Download **[`standalone/mock-testvision.html`](standalone/mock-testvision.html)** (on GitHub: open the file, then use the download button at the top right of the file view) and double-click it. It opens in a Chrome tab. It is one self-contained file with all six exams, the maths fonts, the figures and the formula sheets inside, so it needs no internet, no login and no installation. It works on Windows, Mac and Chromebook.
+
+- On a **Chromebook**, open the Files app, find the download and double-click it.
+- Your answers, attempt history and best scores are saved in your browser (not in the file). Use the same browser each time, and not an incognito or guest window, or the history is not kept. Clearing the browser's site data deletes it.
+- The file only changes when someone rebuilds it. After adding or changing an exam in `data/exams/`, run `npm run build:standalone` to rebuild it.
+
+## Run it from the source code
 
 You need [Node.js](https://nodejs.org) 18 or newer. In this folder, run:
 
@@ -76,8 +84,9 @@ npm run dev        # dev server without reinstalling
 npm test           # unit tests + data validation (KaTeX renders every formula)
 npm run typecheck
 npm run build      # static build in dist/
+npm run build:standalone   # the single-file version in standalone/mock-testvision.html
 ```
 
-End-to-end checks (optional, need Playwright with Chromium): start the dev server, then run `node tests/e2e/main.mjs` (a full exam with a known mix of right, wrong, partial and blank answers; it checks the score, timer, refresh, flags, calculator, hand-in, auto hand-in, retry and self-marking) `node tests/e2e/sweep.mjs` (every question of every exam renders, with no answers visible during the exam) and `node tests/e2e/regressions.mjs` (Back/Forward and Resume keep progress, the calculator continues from Ans, and Back after hand-in is not stuck). If Playwright is installed globally, point `PLAYWRIGHT_MODULE` at it.
+End-to-end checks (optional, need Playwright with Chromium): start the dev server, then run `node tests/e2e/main.mjs` (a full exam with a known mix of right, wrong, partial and blank answers; it checks the score, timer, refresh, flags, calculator, hand-in, auto hand-in, retry and self-marking) `node tests/e2e/sweep.mjs` (every question of every exam renders, with no answers visible during the exam) and `node tests/e2e/regressions.mjs` (Back/Forward and Resume keep progress, the calculator continues from Ans, and Back after hand-in is not stuck). For the single-file version, run `npm run build:standalone` and then `node tests/e2e/standalone.mjs`: it opens the file from disk with the network switched off and checks that maths, figures, saving, marking and the calculator all work. Any of the other scripts can also be pointed at the file with `BASE_URL=file:///full/path/to/standalone/mock-testvision.html`. If Playwright is installed globally, point `PLAYWRIGHT_MODULE` at it.
 
 Everything is stored in your browser's `localStorage` (keys starting with `mtv:`). **Clear saved data** on the start screen removes it.
