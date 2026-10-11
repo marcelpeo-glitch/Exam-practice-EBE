@@ -26,6 +26,37 @@ describe('calculator', () => {
   ])('%s', (expr, expected) => {
     expect(evaluate(expr, { angle: 'deg' })).toBeCloseTo(expected as number, 10);
   });
+  // Regressions from the pre-merge review.
+  it.each([
+    ['1÷2π', 1 / (2 * Math.PI)], // implicit product before π binds tighter than ÷ (Casio)
+    ['2π÷2π', 1],
+    ['1÷2√(3)', 1 / (2 * Math.sqrt(3))],
+    ['1÷2sin(30)', 1],
+    ['6÷2(1+2)', 9], // before a bracket it stays at the ×/÷ level
+    ['2e−1', 2 * Math.E - 1], // lowercase e is Euler's number, not an exponent
+    ['0.5e−0.5', 0.5 * Math.E - 0.5],
+    ['1.5E3', 1500],
+    ['1.5E−3', 0.0015],
+    ['e^(2)', Math.E ** 2],
+  ])('Casio-like: %s', (expr, expected) => {
+    expect(evaluate(expr, { angle: 'deg' })).toBeCloseTo(expected as number, 10);
+  });
+  it('exact trig values and no floating-point noise', () => {
+    expect(evaluate('cos(90)')).toBe(0);
+    expect(evaluate('sin(180)')).toBe(0);
+    expect(evaluate('sin(-90)')).toBe(-1);
+    expect(evaluate('tan(45)')).toBeCloseTo(1, 12);
+    expect(() => evaluate('tan(90)')).toThrow('Math error');
+    expect(evaluate('sin(π)', { angle: 'rad' })).toBe(0);
+    expect(() => evaluate('tan(π÷2)', { angle: 'rad' })).toThrow('Math error');
+    expect(evaluate('0.3−0.1−0.2')).toBe(0);
+    expect(formatResult(evaluate('cos(90)'))).toBe('0');
+  });
+  it('rejects malformed numbers', () => {
+    expect(() => evaluate('1.2.3')).toThrow('Syntax error');
+    expect(() => evaluate('1E3.5')).toThrow('Syntax error');
+    expect(() => evaluate('E3')).toThrow('Syntax error');
+  });
   it('radians and Ans', () => {
     expect(evaluate('cos(π)', { angle: 'rad' })).toBeCloseTo(-1);
     expect(evaluate('Ans×2', { ans: 21 })).toBe(42);

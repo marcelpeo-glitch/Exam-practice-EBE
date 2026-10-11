@@ -137,7 +137,14 @@ export function gradeFromPoints(points: number, maxPoints: number): number {
   return Math.round((10 * points) / maxPoints * 10) / 10;
 }
 
-export function scoreExam(exam: Exam, questionIds: string[], answers: Answers, selfScores: Record<string, number> = {}): ExamResult {
+/** mode: the attempt's mode; the exam's own pass rule only applies to full attempts (not to retries). */
+export function scoreExam(
+  exam: Exam,
+  questionIds: string[],
+  answers: Answers,
+  selfScores: Record<string, number> = {},
+  mode?: 'full' | 'retry',
+): ExamResult {
   const byId = questionsById(exam);
   const qs = questionIds.map((id) => byId.get(id)).filter((q): q is Question => !!q);
   const perQuestion = qs.map((q) => scoreQuestion(exam, q, answers[q.id], selfScores[q.id]));
@@ -168,7 +175,7 @@ export function scoreExam(exam: Exam, questionIds: string[], answers: Answers, s
   const passGrade = g.passGrade ?? 5.5;
   let passed: boolean;
   let passReason: string;
-  const isFull = questionIds.length === exam.questions.length;
+  const isFull = mode ? mode === 'full' : questionIds.length === exam.questions.length;
   if (g.passRule && isFull) {
     const rule = g.passRule;
     const fails: string[] = [];
@@ -176,7 +183,8 @@ export function scoreExam(exam: Exam, questionIds: string[], answers: Answers, s
     if (rule.minPercentage !== undefined && percentage < rule.minPercentage) fails.push(`below ${rule.minPercentage}%`);
     for (const [sec, min] of Object.entries(rule.minSectionPoints ?? {})) {
       const s = sectionMap.get(sec);
-      if (!s || s.earned < min) fails.push(`fewer than ${min} points in ${sec}`);
+      // compare the rounded section score (as displayed), so thirds like 0.3333 × 3 meet a minimum of 1
+      if (!s || round(s.earned) < min - 1e-9) fails.push(`fewer than ${min} points in ${sec}`);
     }
     passed = fails.length === 0;
     passReason = passed ? 'Meets the exam’s own pass rule.' : `Fails the exam’s own pass rule: ${fails.join('; ')}.`;

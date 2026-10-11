@@ -10,22 +10,28 @@ import type { Attempt, Session } from './types';
 
 // Hash routes: #/  ·  #/start/<examId>  ·  #/start/<examId>/retry/<attemptId>  ·  #/exam  ·  #/results/<attemptId>
 // navigate() updates the route state synchronously, so it lands in the same render as other state changes.
-function useHash(): [string, (h: string) => void] {
+type Navigate = (h: string, replace?: boolean) => void;
+
+function useHash(): [string, Navigate] {
   const [hash, setHash] = useState(window.location.hash || '#/');
   useEffect(() => {
     const on = () => setHash(window.location.hash || '#/');
     window.addEventListener('hashchange', on);
     return () => window.removeEventListener('hashchange', on);
   }, []);
-  const navigate = useCallback((h: string) => {
-    if (window.location.hash !== h) window.location.hash = h;
+  // replace=true swaps the current history entry, so Back never lands on a route that only redirects.
+  const navigate = useCallback<Navigate>((h, replace = false) => {
+    if (window.location.hash !== h) {
+      if (replace) window.location.replace(h);
+      else window.location.hash = h;
+    }
     setHash(h);
   }, []);
   return [hash, navigate];
 }
 
-function Redirect({ to, navigate }: { to: string; navigate: (h: string) => void }) {
-  useEffect(() => navigate(to), [to, navigate]);
+function Redirect({ to, navigate }: { to: string; navigate: Navigate }) {
+  useEffect(() => navigate(to, true), [to, navigate]);
   return null;
 }
 
@@ -47,6 +53,9 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // The exam screen autosaves to localStorage; re-read it on every route change so the resume
+    // banner and a remounted exam screen never work from a stale copy.
+    setSession(loadSession());
   }, [hash]);
 
   const startSession = useCallback((examId: string, questionIds: string[], durationMinutes: number, mode: 'full' | 'retry', retryOf?: string) => {
@@ -71,7 +80,7 @@ export default function App() {
   const handIn = useCallback((s: Session, auto: boolean) => {
     const exam = getExam(s.examId);
     if (!exam) return;
-    const result = scoreExam(exam, s.questionIds, s.answers, {});
+    const result = scoreExam(exam, s.questionIds, s.answers, {}, s.mode);
     const attempt: Attempt = {
       id: s.attemptId,
       examId: exam.id,
@@ -93,7 +102,7 @@ export default function App() {
     saveSession(null);
     setSession(null);
     setAttempts(loadAttempts());
-    go(`#/results/${attempt.id}`);
+    go(`#/results/${attempt.id}`, true);
   }, [go]);
 
   // ---- routes ----
@@ -113,7 +122,7 @@ export default function App() {
     if (retryOf) {
       const prev = attempts.find((a) => a.id === retryOf);
       if (!prev) return <NotFound what="Attempt" />;
-      const r = scoreExam(exam, prev.questionIds, prev.answers, prev.selfScores);
+      const r = scoreExam(exam, prev.questionIds, prev.answers, prev.selfScores, prev.mode);
       questionIds = r.perQuestion.filter((p) => p.status !== 'correct').map((p) => p.questionId);
       if (questionIds.length === 0) return <NotFound what="Wrong question" />;
       mode = 'retry';
@@ -145,7 +154,7 @@ export default function App() {
           const selfScores = { ...attempt.selfScores };
           if (score === undefined) delete selfScores[qid];
           else selfScores[qid] = score;
-          const updated: Attempt = { ...attempt, selfScores, score: snapshot(scoreExam(exam, attempt.questionIds, attempt.answers, selfScores)) };
+          const updated: Attempt = { ...attempt, selfScores, score: snapshot(scoreExam(exam, attempt.questionIds, attempt.answers, selfScores, attempt.mode)) };
           upsertAttempt(updated);
           setAttempts(loadAttempts());
         }}

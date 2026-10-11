@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { examLabel, resolveImage } from '../lib/exams';
 import { fmtClock } from '../lib/format';
 import { isAnswered, questionsById } from '../lib/scoring';
-import { saveSession } from '../lib/storage';
+import { loadSession, saveSession } from '../lib/storage';
 import type { AnswerValue, Exam, Question, Session } from '../types';
 import { AnswerInput } from './AnswerInput';
 import { Calculator } from './Calculator';
@@ -17,8 +17,12 @@ interface Props {
 }
 
 export function ExamScreen({ exam, session: initial, onHandIn }: Props) {
-  const [s, setS] = useState<Session>(initial);
-  const [remaining, setRemaining] = useState(initial.remainingSec);
+  // Start from the latest autosave for this attempt (the prop can be stale after Back/Forward or Resume).
+  const [s, setS] = useState<Session>(() => {
+    const saved = loadSession();
+    return saved && saved.attemptId === initial.attemptId ? saved : initial;
+  });
+  const [remaining, setRemaining] = useState(() => s.remainingSec);
   const [calcOpen, setCalcOpen] = useState(false);
   const [resOpen, setResOpen] = useState(false);
   const [resTab, setResTab] = useState(0);

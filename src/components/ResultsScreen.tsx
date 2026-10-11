@@ -24,7 +24,7 @@ const STATUS_LABEL: Record<QuestionScore['status'], string> = {
 
 export function ResultsScreen({ exam, attempt, onSelfScore }: Props) {
   const [filter, setFilter] = useState<Filter>('all');
-  const result = useMemo(() => scoreExam(exam, attempt.questionIds, attempt.answers, attempt.selfScores), [exam, attempt]);
+  const result = useMemo(() => scoreExam(exam, attempt.questionIds, attempt.answers, attempt.selfScores, attempt.mode), [exam, attempt]);
   const byId = useMemo(() => questionsById(exam), [exam]);
   const items = attempt.questionIds
     .map((id, i) => ({ q: byId.get(id), r: result.perQuestion.find((p) => p.questionId === id), i }))

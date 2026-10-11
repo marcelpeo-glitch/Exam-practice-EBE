@@ -101,15 +101,11 @@ export function Calculator({ onClose }: Props) {
       return inputRef.current?.focus();
     }
     const ins = k.insert ?? '';
-    setExpr((x) => {
-      // After "=", typing an operator continues from Ans; typing a number starts fresh.
-      if (justEvaluated.current) {
-        justEvaluated.current = false;
-        if (/^[+×÷−^!]/.test(ins) || ins === '^2') return 'Ans' + ins;
-        return ins;
-      }
-      return x + ins;
-    });
+    // After "=", typing an operator continues from Ans; typing a number starts fresh.
+    // Read and reset the ref outside the state updater: updaters must be pure (StrictMode runs them twice).
+    const fresh = justEvaluated.current;
+    justEvaluated.current = false;
+    setExpr((x) => (fresh ? (/^[+×÷−^!]/.test(ins) ? 'Ans' + ins : ins) : x + ins));
     inputRef.current?.focus();
   };
 

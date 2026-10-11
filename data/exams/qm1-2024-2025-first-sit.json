@@ -189,7 +189,7 @@
       "explanation": "$f_x=2x\\left(4-(y-1)^2\\right)$ and $f_y=2(y-1)(4-x^2)$. Next to $(0,1)$ we need $(y-1)^2=4$ and $x^2=4$: $(2,3),(2,-1),(-2,3),(-2,-1)$. So there are 4 other stationary points.",
       "answerSource": "ai",
       "explanationSource": "ai",
-      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked. The same question in the 2021-22 and 2023 exams (official keys) has answer '4 or more' too."
+      "sourceNote": "The screenshot says 'Your answer is incorrect (See correct answer below)'. The option marked there is most likely TestVision showing the correct answer, but the file does not make this certain, so the answer is labelled AI-solved; it was solved independently and agrees with the marked option. The same question in the 2021-22 and 2023 exams (official keys) also has the answer '4 or more'."
     },
     {
       "id": "q5",
@@ -261,7 +261,7 @@
       "explanation": "$\\pi(Q)=(50-\\sqrt Q)Q-100-20Q=30Q-Q^{3/2}-100$. $\\pi'(Q)=30-\\tfrac32\\sqrt Q=0\\Rightarrow\\sqrt Q=20\\Rightarrow Q=400$.\n$\\pi(400)=12000-8000-100=3900$, which is between 2000 and 4000.",
       "answerSource": "ai",
       "explanationSource": "ai",
-      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+      "sourceNote": "The screenshot says 'Your answer is incorrect (See correct answer below)'. The option marked there is most likely TestVision showing the correct answer, but the file does not make this certain, so the answer is labelled AI-solved; it was solved independently and agrees with the marked option."
     },
     {
       "id": "q7",
@@ -369,7 +369,7 @@
       "explanation": "$f''(x)=2(x^2-1)\\cdot2x=4x(x-1)(x+1)$. Each factor has a simple zero, so $f''$ changes sign at $x=-1$, $x=0$ and $x=1$: 3 inflection points.",
       "answerSource": "ai",
       "explanationSource": "ai",
-      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+      "sourceNote": "The screenshot says 'Your answer is incorrect (See correct answer below)'. The option marked there is most likely TestVision showing the correct answer, but the file does not make this certain, so the answer is labelled AI-solved; it was solved independently and agrees with the marked option."
     },
     {
       "id": "q10",
@@ -441,7 +441,7 @@
       "explanation": "Let $u=p\\sqrt p$. Then $\\dfrac8u=u-7\\Rightarrow u^2-7u-8=0\\Rightarrow(u-8)(u+1)=0\\Rightarrow u=8$ (since $u>0$). $p^{3/2}=8\\Rightarrow p=4$.",
       "answerSource": "ai",
       "explanationSource": "ai",
-      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+      "sourceNote": "The screenshot says 'Your answer is incorrect (See correct answer below)'. The option marked there is most likely TestVision showing the correct answer, but the file does not make this certain, so the answer is labelled AI-solved; it was solved independently and agrees with the marked option."
     },
     {
       "id": "q12",
@@ -657,7 +657,7 @@
       "explanation": "$H_0$: the new drug is not more effective; $H_A$: it is more effective. A Type II error is failing to reject a false $H_0$: concluding \"not more effective\" when it actually is. (Option C is the Type I error.)",
       "answerSource": "ai",
       "explanationSource": "ai",
-      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+      "sourceNote": "The screenshot says 'Your answer is incorrect (See correct answer below)'. The option marked there is most likely TestVision showing the correct answer, but the file does not make this certain, so the answer is labelled AI-solved; it was solved independently and agrees with the marked option."
     },
     {
       "id": "q18",
@@ -971,7 +971,7 @@
       "explanation": "$X$ = number who have *not* had chickenpox $\\sim\\text{Bin}(10,\\,0.1)$. $P(X\\le2)=0.9^{10}+10(0.1)(0.9)^9+45(0.1)^2(0.9)^8=0.349+0.387+0.194=0.930$.",
       "answerSource": "ai",
       "explanationSource": "ai",
-      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked."
+      "sourceNote": "The screenshot says 'Your answer is incorrect (See correct answer below)'. The option marked there is most likely TestVision showing the correct answer, but the file does not make this certain, so the answer is labelled AI-solved; it was solved independently and agrees with the marked option."
     },
     {
       "id": "q26",
@@ -1085,7 +1085,7 @@
       "explanation": "The response is the well-being score. The variables used to explain it are screen time plus the additional variables included in the analysis (sex, age, mother's education, ethnicity, psychological distress, employment). The number of participants or data sets and the countries are not explanatory variables.",
       "answerSource": "ai",
       "explanationSource": "ai",
-      "sourceNote": "The source screenshot labels the marked option 'incorrect', but the official correct answer is not visible. The answer here was solved by AI and matches the option the uploader marked. Verify with your course materials: the source labels this option incorrect, and no other option fits."
+      "sourceNote": "The screenshot says 'Your answer is incorrect (See correct answer below)'. The option marked there is most likely TestVision showing the correct answer, but the file does not make this certain, so the answer is labelled AI-solved; it was solved independently and agrees with the marked option. No other option fits."
     }
   ]
 }

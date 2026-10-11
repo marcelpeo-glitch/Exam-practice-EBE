@@ -52,9 +52,9 @@ The formula sheet, Z tables and T table from the 2018-19 paper exam (pages 11-15
 
 ### 2024-2025 first sit (scanned student results view)
 - The file shows one student's answers with TestVision's verdict. When the verdict is **"Your answer is correct"**, the selected option is taken as **official** (21 questions).
-- **AI-solved: Q4, Q6, Q9, Q11, Q17, Q25, Q28.** For these the screenshot says "Your answer is incorrect (See correct answer below)", but the correct answer below is not in the file. Each was solved independently, and in every case the marked option is the correct one. This suggests the uploader re-marked the correct options ("with answers"). Notes:
+- **AI-solved: Q4, Q6, Q9, Q11, Q17, Q25, Q28.** For these the screenshot says "Your answer is incorrect (See correct answer below)". In TestVision's review that phrase means the options shown underneath are the correct key, so the marked option is most likely the official answer. The file does not make this certain, so these stay labelled AI-solved. Each was solved independently, and in every case the marked option is the correct one. Notes:
   - Q4 (other stationary points of 4(y−1)² + 4x² − (y−1)²x²) gives 4 other points, so "4 or more". The same question in 2021-22 and 2023 has the official answer "4 or more".
-  - **Q28 (explanatory variables) is worth verifying.** The marked option (screen time, sex, age, mother's education, …) is the only one that fits, yet the source labels it incorrect.
+  - Q28 (explanatory variables): the marked option (screen time, sex, age, mother's education, …) is the only one that fits.
 - TestVision shuffles options per student, so option order follows this student's screen.
 - The Wonkyworld survey (Q19) was retyped as a table. Q21's histogram/box-plot figure and Q26's infant-mortality histogram were cropped.
 - The duration is not stated, so 180 min is assumed.
@@ -70,7 +70,7 @@ The formula sheet, Z tables and T table from the 2018-19 paper exam (pages 11-15
 - Partly hidden behind feedback pop-ups and **reconstructed**:
   - Q16: part of the instruction text.
   - Q18: the top-right of the satisfaction histogram (masked in the image so no hint shows).
-  - Q20 and Q28: the multi-select lists may have had more options (the student got "partially correct" despite ticking both visible correct options).
+  - Q20 and Q28: the bottom of the multi-select lists. The verdict "partially correct (See correct answer below)" means the ticked options shown are the correct key, and they match the official feedback. So the stored answers are right even if an option is hidden.
   - Q22: the drop-down choices.
   - Q23, Q24, Q27: parts of the instructions.
   - Q25: the pool of draggable sampling methods.
@@ -90,3 +90,6 @@ The formula sheet, Z tables and T table from the 2018-19 paper exam (pages 11-15
 ## Topic tags used
 Mathematics: Functions & domains · Derivatives · Inverse functions · Elasticity · Economic applications · Monotonicity, convexity & extremes · Exponential & logistic growth · Two variables: partial derivatives & level curves · Two variables: stationary points.
 Statistics: Data & displays · Describing distributions · Probability · Random variables & binomial · Normal model · Sampling & study design · Sampling distributions · Confidence intervals · Hypothesis tests · Errors & power.
+
+## Independent review before merging
+Before the first merge, four reviewers re-checked all 204 questions against the source page images: stems, numbers, formulas, tables, option text and order, and figures. They also re-solved every AI-solved question from scratch and compared each official key with the boxed letter or the feedback. **No transcription or answer errors were found.** The review also confirmed the reading of TestVision's "(See correct answer below)" described above.

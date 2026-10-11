@@ -78,6 +78,23 @@ describe('scoreExam', () => {
     expect(scoreExam(e, ids, { q0: 'B', q1: 'B', q2: 'B', q3: 'A' }).passed).toBe(false); // 3 points but Stats 1
     expect(scoreExam(e, ids, { q0: 'B', q1: 'A', q2: 'B', q3: 'B' }).passed).toBe(true);
   });
+  it('a retry that contains every question does not use the exam pass rule', () => {
+    const qs: Question[] = Array.from({ length: 4 }, (_, i) => ({ ...single, id: `q${i}`, number: i + 1, section: i < 2 ? 'Math' : 'Stats' }));
+    const e: Exam = { ...exam, questions: qs, grading: { passRule: { minSectionPoints: { Math: 2 } } } };
+    const ids = qs.map((q) => q.id);
+    const ans = { q0: 'B', q2: 'B', q3: 'B' }; // 3/4 = 7.5 but only 1 point in Math
+    expect(scoreExam(e, ids, ans, {}, 'full').passed).toBe(false);
+    const retry = scoreExam(e, ids, ans, {}, 'retry');
+    expect(retry.passed).toBe(true);
+    expect(retry.passReason).toContain('5.5');
+  });
+  it('section minimums compare the rounded section score (thirds add up)', () => {
+    const qs: Question[] = [0, 1, 2].map((i) => ({ ...fields, id: `f${i}`, number: i + 1, points: 1, section: 'A' }));
+    const e: Exam = { ...exam, questions: qs, grading: { passRule: { minSectionPoints: { A: 1 } } } };
+    const r = scoreExam(e, qs.map((q) => q.id), { f0: { a: '1.973' }, f1: { a: '1.973' }, f2: { a: '1.973' } }, {}, 'full');
+    expect(r.points).toBe(1);
+    expect(r.passed).toBe(true);
+  });
   it('grade = 10 × points / max, one decimal', () => {
     expect(gradeFromPoints(27, 40)).toBe(6.8);
     expect(gradeFromPoints(0, 40)).toBe(0);

@@ -51,6 +51,7 @@ export function validateExam(exam: Exam, imageExists?: (src: string) => boolean)
         q.prompts?.forEach((p) => {
           if (!cids.has(key[p.id])) errs.push(`${w}: correctAnswer for prompt ${p.id} is not a choice id`);
           p.choiceIds?.forEach((c) => !cids.has(c) && errs.push(`${w}: prompt ${p.id} lists unknown choice ${c}`));
+          if (p.choiceIds && !p.choiceIds.includes(key[p.id])) errs.push(`${w}: correct choice for prompt ${p.id} is not in its choiceIds`);
         });
         break;
       }
@@ -59,5 +60,8 @@ export function validateExam(exam: Exam, imageExists?: (src: string) => boolean)
         break;
     }
   });
+  const sections = new Set(exam.questions.map((q) => q.section ?? 'Questions'));
+  for (const sec of Object.keys(exam.grading?.passRule?.minSectionPoints ?? {}))
+    if (!sections.has(sec)) errs.push(`grading.passRule.minSectionPoints: no question has section "${sec}"`);
   return errs;
 }

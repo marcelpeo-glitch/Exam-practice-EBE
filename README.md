@@ -78,6 +78,6 @@ npm run typecheck
 npm run build      # static build in dist/
 ```
 
-End-to-end checks (optional, need Playwright with Chromium): start the dev server, then run `node tests/e2e/main.mjs` (a full exam with a known mix of right, wrong, partial and blank answers; it checks the score, timer, refresh, flags, calculator, hand-in, auto hand-in, retry and self-marking) and `node tests/e2e/sweep.mjs` (every question of every exam renders, with no answers visible during the exam). If Playwright is installed globally, point `PLAYWRIGHT_MODULE` at it.
+End-to-end checks (optional, need Playwright with Chromium): start the dev server, then run `node tests/e2e/main.mjs` (a full exam with a known mix of right, wrong, partial and blank answers; it checks the score, timer, refresh, flags, calculator, hand-in, auto hand-in, retry and self-marking) `node tests/e2e/sweep.mjs` (every question of every exam renders, with no answers visible during the exam) and `node tests/e2e/regressions.mjs` (Back/Forward and Resume keep progress, the calculator continues from Ans, and Back after hand-in is not stuck). If Playwright is installed globally, point `PLAYWRIGHT_MODULE` at it.
 
 Everything is stored in your browser's `localStorage` (keys starting with `mtv:`). **Clear saved data** on the start screen removes it.

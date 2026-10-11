@@ -22,10 +22,12 @@ function tokenize(src: string): Tok[] {
   while (i < s.length) {
     const c = s[i];
     if (/[0-9.]/.test(c)) {
-      const m = /^(\d+\.?\d*|\.\d+)(E[-+]?\d+)?/i.exec(s.slice(i));
+      // Scientific notation uses an uppercase E (the ×10ˣ key); a lowercase e is Euler's number.
+      const m = /^(\d+\.?\d*|\.\d+)(E[-+]?\d+)?/.exec(s.slice(i));
       if (!m) throw new Error('Syntax error');
       out.push({ t: 'num', v: Number(m[0]) });
       i += m[0].length;
+      if (s[i] === '.') throw new Error('Syntax error'); // e.g. 1.2.3
       continue;
     }
     if ('+-*/^!'.includes(c)) {
@@ -70,6 +72,7 @@ function tokenize(src: string): Tok[] {
       i += 2;
       continue;
     }
+    if (c === 'E') throw new Error('Syntax error'); // ×10ˣ without a number in front of it
     if (rest[0] === 'e') {
       out.push({ t: 'const', v: 'e' });
       i += 1;
@@ -105,24 +108,33 @@ export function evaluate(expr: string, opts: { ans?: number; angle?: AngleMode }
       if (t?.t === 'op' && (t.v === '+' || t.v === '-')) {
         p++;
         const r = parseTerm();
-        v = t.v === '+' ? v + r : v - r;
+        const nv = t.v === '+' ? v + r : v - r;
+        v = Math.abs(nv) < 1e-14 * Math.max(Math.abs(v), Math.abs(r)) ? 0 : nv;
       } else return v;
     }
   }
-  // term := unary (('*'|'/'|implicit) unary)*
+  // term := implicit (('*'|'/'|implicit-before-number-or-bracket) implicit)*
   function parseTerm(): number {
-    let v = parseUnary();
+    let v = parseImplicit();
     for (;;) {
       const t = peek();
       if (t?.t === 'op' && (t.v === '*' || t.v === '/')) {
         p++;
-        const r = parseUnary();
+        const r = parseImplicit();
         if (t.v === '/' && r === 0) throw new Error('Math error');
         v = t.v === '*' ? v * r : v / r;
       } else if (startsPrimary(t)) {
-        v = v * parseUnary();
+        v = v * parseImplicit();
       } else return v;
     }
+  }
+  // implicit := unary (unary starting with a constant or function)*
+  // Like a Casio, multiplication with an omitted sign before π, e, Ans or a function binds tighter
+  // than × and ÷, so 1÷2π = 1/(2π) and 1÷2sin(30) = 1.
+  function parseImplicit(): number {
+    let v = parseUnary();
+    while (peek()?.t === 'const' || peek()?.t === 'fn') v = v * parseUnary();
+    return v;
   }
   // unary := ('-'|'+') unary | power
   function parseUnary(): number {
@@ -167,11 +179,9 @@ export function evaluate(expr: string, opts: { ans?: number; angle?: AngleMode }
       const arg = parseUnaryForFn();
       switch (t.v) {
         case 'sin':
-          return Math.sin(toRad(arg));
         case 'cos':
-          return Math.cos(toRad(arg));
         case 'tan':
-          return Math.tan(toRad(arg));
+          return trig(t.v as 'sin' | 'cos' | 'tan', arg);
         case 'asin':
           return fromRad(Math.asin(arg));
         case 'acos':
@@ -194,6 +204,25 @@ export function evaluate(expr: string, opts: { ans?: number; angle?: AngleMode }
       }
     }
     throw new Error('Syntax error');
+  }
+  // Exact values at multiples of 90° and no floating-point noise such as cos(90°) = 6.1E−17;
+  // tan(90°) is a Math error, like on a Casio.
+  function trig(fn: 'sin' | 'cos' | 'tan', arg: number): number {
+    if (angle === 'deg' && Number.isFinite(arg) && arg % 90 === 0) {
+      const k = (((arg / 90) % 4) + 4) % 4;
+      if (fn === 'sin') return [0, 1, 0, -1][k];
+      if (fn === 'cos') return [1, 0, -1, 0][k];
+      if (k % 2 === 1) throw new Error('Math error');
+      return 0;
+    }
+    const x = toRad(arg);
+    const snap = (y: number) => (Math.abs(x) >= 1 && Math.abs(y) < 1e-15 * Math.abs(x) ? 0 : y);
+    const sin = snap(Math.sin(x));
+    const cos = snap(Math.cos(x));
+    if (fn === 'sin') return sin;
+    if (fn === 'cos') return cos;
+    if (cos === 0) throw new Error('Math error');
+    return sin === 0 ? 0 : Math.tan(x);
   }
   // Function argument: a bracketed expression or a single number/constant (sin30, √2), so that
   // sin(30)^2 means (sin 30)^2 like on a Casio.

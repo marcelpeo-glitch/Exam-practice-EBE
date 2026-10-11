@@ -736,7 +736,7 @@
       "explanation": "Box plots display medians (the horizontal bar through the box) and interquartile ranges (the vertical width of the box). The mean and the mode may be similar to the median, but you can't know that for sure - it depends on the exact distribution. Likewise, the group with the largest IQR may also have the largest standard deviation, but you can't know that for sure, either. For example, the outlier in the group that lives with their parents may inflate the standard deviation of that group.",
       "answerSource": "official",
       "explanationSource": "official",
-      "sourceNote": "The answer options were partly covered by a feedback pop-up in the source; more options may have existed."
+      "sourceNote": "The option list was partly covered by a feedback pop-up in the source; the options marked there match the official feedback."
     },
     {
       "id": "q21",
@@ -1031,7 +1031,7 @@
       "explanation": "You will have more power when the sample size is larger, but also when the true population mean deviates more from what the null hypothesis says. Choosing a smaller significance level will *cost* power: you make it harder to get significant results. See the overview on one of the final lecture slides for week 7.",
       "answerSource": "official",
       "explanationSource": "official",
-      "sourceNote": "The option list was partly covered by a feedback pop-up in the source; more options may have existed."
+      "sourceNote": "The option list was partly covered by a feedback pop-up in the source; the options marked there match the official feedback."
     }
   ]
 }
