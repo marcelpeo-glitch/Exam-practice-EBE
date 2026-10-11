@@ -95,6 +95,34 @@ for (let i = 0; i < 4; i++) {
 }
 check(seen.includes(`#/start/${EXAM}`), `repeated Back walks through history (${seen.join(' → ')})`);
 
+// ---- 4. Discard / Clear use in-page confirmations (browser confirm() is blocked in embedded viewers)
+page.removeAllListeners('dialog');
+let nativeDialog = false;
+page.on('dialog', (d) => {
+  nativeDialog = true;
+  d.dismiss();
+});
+await page.goto(`${BASE}#/start/${EXAM}`);
+await page.getByTestId('confirm-check').check();
+await page.getByTestId('start-exam').click();
+await page.getByTestId('option-E').click();
+await page.goto(`${BASE}#/`);
+await page.getByTestId('discard').click();
+await page.getByTestId('confirm-dialog').waitFor();
+await page.getByTestId('confirm-yes').click();
+check((await page.getByTestId('resume-banner').count()) === 0, 'Discard asks in the page and removes the exam in progress');
+await page.getByTestId('clear-data').click();
+await page.getByTestId('confirm-yes').click();
+check((await page.getByTestId('history').count()) === 0, 'Clear saved data asks in the page and empties the history');
+check(!nativeDialog, 'no browser confirm() dialogs are used');
+await page.setViewportSize({ width: 400, height: 800 });
+await page.goto(`${BASE}#/start/qm1-2023-first-sit`);
+await page.getByTestId('confirm-check').check();
+await page.getByTestId('start-exam').click();
+await page.getByTestId('tile-23').click();
+const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
+check(sw <= iw, `exam screen fits a 400 px phone without sideways scrolling (${sw} <= ${iw})`);
+
 check(errors.length === 0, `no page errors ${errors.join(' | ')}`);
 await browser.close();
 console.log(failures ? `\n${failures} FAILURE(S)` : '\nALL REGRESSION CHECKS PASSED');

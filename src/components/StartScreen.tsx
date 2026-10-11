@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { examLabel, keyKind, loadExams } from '../lib/exams';
 import { fmtClock, fmtDate, fmtGrade, fmtPoints } from '../lib/format';
 import type { Attempt, Exam, Session } from '../types';
+import { Modal } from './Modal';
 
 interface Props {
   attempts: Attempt[];
@@ -18,6 +20,8 @@ function best(attempts: Attempt[], exam: Exam): Attempt | undefined {
 
 export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll }: Props) {
   const { exams, problems } = loadExams();
+  // In-page confirmations (browser confirm() dialogs are blocked in some embedded viewers).
+  const [ask, setAsk] = useState<'discard' | 'clear' | null>(null);
   const sessionExam = session ? exams.find((e) => e.id === session.examId) : undefined;
   const courses = [...new Set(exams.map((e) => `${e.courseCode}|${e.courseName}`))];
   const history = [...attempts].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
@@ -43,12 +47,7 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
               <button className="btn primary" onClick={onResume} data-testid="resume">
                 Resume
               </button>
-              <button
-                className="btn"
-                onClick={() => {
-                  if (confirm('Discard the exam in progress? Your answers will be lost.')) onDiscard();
-                }}
-              >
+              <button className="btn" onClick={() => setAsk('discard')} data-testid="discard">
                 Discard
               </button>
             </div>
@@ -188,17 +187,44 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
           </span>
           <div className="spacer" />
           {(history.length > 0 || session) && (
-            <button
-              className="btn small"
-              onClick={() => {
-                if (confirm('Delete all attempts and any exam in progress from this browser?')) onClearAll();
-              }}
-            >
+            <button className="btn small" onClick={() => setAsk('clear')} data-testid="clear-data">
               Clear saved data
             </button>
           )}
         </div>
       </div>
+
+      {ask && (
+        <Modal
+          title={ask === 'discard' ? 'Discard the exam in progress?' : 'Clear all saved data?'}
+          onClose={() => setAsk(null)}
+          testId="confirm-dialog"
+          footer={
+            <>
+              <button className="btn" onClick={() => setAsk(null)}>
+                Cancel
+              </button>
+              <button
+                className="btn danger"
+                data-testid="confirm-yes"
+                onClick={() => {
+                  if (ask === 'discard') onDiscard();
+                  else onClearAll();
+                  setAsk(null);
+                }}
+              >
+                {ask === 'discard' ? 'Discard exam' : 'Delete everything'}
+              </button>
+            </>
+          }
+        >
+          <p>
+            {ask === 'discard'
+              ? 'Your answers and remaining time for this exam will be lost.'
+              : 'This deletes every attempt in your history and any exam in progress from this browser.'}
+          </p>
+        </Modal>
+      )}
     </>
   );
 }
