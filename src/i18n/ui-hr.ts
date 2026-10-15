@@ -284,7 +284,7 @@ export const UI_HR: UiDict = {
   'confirm.questionsSplit': '{n} ({split})',
   'key.generated': 'Generirana',
   'exam.warn10': 'Preostalo je 10 minuta.',
-  'exam.warn1': 'Preostala je 1 minuta. Na 0:00 vaš se ispit automatski predaje.',
+  'exam.warn1': 'Preostala je 1 minuta. Kada mjerač vremena dođe do 0:00, ispit se automatski predaje.',
   'review.workedSolution': 'Postupak rješavanja',
   'review.generatedBadge': 'Izračunano u kodu',
   'review.generatedBadgeTitle': 'Generirano pitanje: odgovor je izračunan i provjeren u kodu, a ne preuzet iz rješenja.',

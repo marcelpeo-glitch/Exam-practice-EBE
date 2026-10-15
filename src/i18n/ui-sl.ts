@@ -290,7 +290,7 @@ export const UI_SL: UiDict = {
   'confirm.questionsSplit': '{n} ({split})',
   'key.generated': 'Generirane',
   'exam.warn10': 'Še 10 minut.',
-  'exam.warn1': 'Še 1 minuta. Pri 0:00 se vaš izpit samodejno odda.',
+  'exam.warn1': 'Še 1 minuta. Ko časovnik doseže 0:00, se izpit samodejno odda.',
   'review.workedSolution': 'Rešitev po korakih',
   'review.generatedBadge': 'Izračunano v kodi',
   'review.generatedBadgeTitle': 'Generirano vprašanje: odgovor je bil izračunan in preverjen v kodi, ne prevzet iz rešitev.',

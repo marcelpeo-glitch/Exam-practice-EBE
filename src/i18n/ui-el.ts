@@ -259,7 +259,7 @@ export const UI_EL: UiDict = {
   'predict.basedOn': 'Με βάση',
   'predict.basedOnValue': { one: '{n} παλαιότερη εξέταση ({years})', other: '{n} παλαιότερες εξετάσεις ({years})' },
   'predict.keyGenerated': 'Υπολογισμένες και ελεγμένες με κώδικα',
-  'predict.newOne': 'Δημιουργία νέας προβλεπόμενης εξέτασης',
+  'predict.newOne': 'Νέα προβλεπόμενη εξέταση',
   'confirm.questionsSplit': '{n} ({split})',
   'key.generated': 'Παραγμένες',
   'exam.warn10': 'Απομένουν 10 λεπτά.',

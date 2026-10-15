@@ -280,6 +280,7 @@ textarea.open { width: 100%; min-height: 180px; padding: 8px 10px; border: 1px s
   .match-row { grid-template-columns: 1fr; }
   .exam-title { font-size: 14px; }
   .exam-header .lang-name { display: none; }
+  .exam-header .pill.predicted { display: none; } /* the title and the note strip below say it already */
   .exam-header .lang-code { display: inline; }
 }
 

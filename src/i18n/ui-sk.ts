@@ -276,7 +276,7 @@ export const UI_SK: UiDict = {
   'confirm.questionsSplit': '{n} ({split})',
   'key.generated': 'Vygenerovaný',
   'exam.warn10': 'Zostáva 10 minút.',
-  'exam.warn1': 'Zostáva 1 minúta. Pri 0:00 sa vaša skúška automaticky odovzdá.',
+  'exam.warn1': 'Zostáva 1 minúta. Keď časomiera dosiahne 0:00, skúška sa automaticky odovzdá.',
   'review.workedSolution': 'Postup riešenia',
   'review.generatedBadge': 'Vypočítané v kóde',
   'review.generatedBadgeTitle': 'Vygenerovaná otázka: jej odpoveď bola vypočítaná a overená v kóde, nie prevzatá z kľúča odpovedí.',

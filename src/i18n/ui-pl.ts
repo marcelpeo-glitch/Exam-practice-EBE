@@ -315,7 +315,7 @@ export const UI_PL: UiDict = {
   'confirm.questionsSplit': '{n} ({split})',
   'key.generated': 'Wygenerowany',
   'exam.warn10': 'Zostało 10 minut.',
-  'exam.warn1': 'Została 1 minuta. Przy 0:00 twój egzamin zostanie oddany automatycznie.',
+  'exam.warn1': 'Została 1 minuta. Gdy licznik dojdzie do 0:00, egzamin zostanie oddany automatycznie.',
   'review.workedSolution': 'Rozwiązanie krok po kroku',
   'review.generatedBadge': 'Obliczone w kodzie',
   'review.generatedBadgeTitle': 'Wygenerowane pytanie: odpowiedź została obliczona i sprawdzona w kodzie, a nie wzięta z klucza odpowiedzi.',

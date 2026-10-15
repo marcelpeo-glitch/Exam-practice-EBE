@@ -247,7 +247,7 @@ export const UI_ES: UiDict = {
   'predict.generatedOn': 'Generado el {date}',
   'predict.generatedLabel': 'Generado el',
   'predict.how': 'Cómo funciona la predicción',
-  'predict.howText': 'Los {n} exámenes anteriores ({years}) se convirtieron en un modelo: el tema, la posición, el tipo de pregunta, los puntos y la dificultad de cada pregunta. Los temas se ponderan según la frecuencia con que aparecen, y los exámenes recientes cuentan más (cada examen cuenta la mitad que el siguiente). Los temas que aparecieron en todos los exámenes anteriores se incluyen siempre; el resto de preguntas se elige según los pesos.',
+  'predict.howText': 'Los {n} exámenes anteriores ({years}) se convirtieron en un modelo: el tema, la posición, el tipo de pregunta, los puntos y la dificultad de cada pregunta. Los temas se ponderan según la frecuencia con que aparecen, y los exámenes recientes cuentan más (cada examen cuenta la mitad que el siguiente). Los temas que aparecieron en todos los exámenes anteriores se incluyen siempre; el resto de las preguntas se sortea según los pesos.',
   'predict.col.inExams': 'En exámenes anteriores',
   'predict.col.weight': 'Peso',
   'predict.col.expected': 'Preguntas esperadas',
