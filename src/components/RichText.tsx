@@ -18,13 +18,15 @@ interface Props {
   text: string;
   className?: string;
   as?: 'div' | 'span';
+  /** Language of the text (exam content is English while the UI around it may not be). */
+  lang?: string;
 }
 
-export const RichText = memo(function RichText({ text, className, as = 'div' }: Props) {
+export const RichText = memo(function RichText({ text, className, as = 'div', lang }: Props) {
   const nodes = useMemo(() => parseRich(text), [text]);
   const Tag = as;
   return (
-    <Tag className={className ? `rich ${className}` : 'rich'}>
+    <Tag className={className ? `rich ${className}` : 'rich'} lang={lang}>
       {nodes.map((s, i) => {
         if (s.kind === 'br') return <br key={i} />;
         if (s.kind === 'math')

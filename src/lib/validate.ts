@@ -60,7 +60,7 @@ export function validateExam(exam: Exam, imageExists?: (src: string) => boolean)
         break;
     }
   });
-  const sections = new Set(exam.questions.map((q) => q.section ?? 'Questions'));
+  const sections = new Set(exam.questions.map((q) => q.section ?? ''));
   for (const sec of Object.keys(exam.grading?.passRule?.minSectionPoints ?? {}))
     if (!sections.has(sec)) errs.push(`grading.passRule.minSectionPoints: no question has section "${sec}"`);
   return errs;

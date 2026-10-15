@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { useI18n } from '../i18n';
 
 interface Props {
   title: string;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function Modal({ title, onClose, children, footer, wide, testId }: Props) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
   // Keep the latest onClose without re-running the focus effect (the exam screen re-renders every second).
   const closeRef = useRef(onClose);
@@ -57,7 +59,7 @@ export function Modal({ title, onClose, children, footer, wide, testId }: Props)
         <div className="dialog-head">
           <h2>{title}</h2>
           {onClose && (
-            <button className="btn small" onClick={onClose} aria-label="Close">
+            <button className="btn small" onClick={onClose} aria-label={t('common.close')}>
               ✕
             </button>
           )}

@@ -53,8 +53,12 @@ export function DataTable({ table }: { table?: TableData }) {
 export function QuestionStem({ q }: { q: Question }) {
   return (
     <div>
-      {q.section && <div className="section-bar">{q.section}</div>}
-      <div className={q.section ? 'stem-box' : 'stem-box no-bar'}>
+      {q.section && (
+        <div className="section-bar" lang="en">
+          {q.section}
+        </div>
+      )}
+      <div className={q.section ? 'stem-box' : 'stem-box no-bar'} lang="en">
         <RichText text={q.stem} />
         <DataTable table={q.table} />
         <Figures images={q.images} />

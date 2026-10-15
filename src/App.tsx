@@ -2,10 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ConfirmScreen } from './components/ConfirmScreen';
 import { ExamScreen } from './components/ExamScreen';
 import { ResultsScreen } from './components/ResultsScreen';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { StartScreen } from './components/StartScreen';
-import { examLabel, getExam } from './lib/exams';
+import { useI18n } from './i18n';
+import type { TextKey } from './i18n/ui-en';
+import { addPredictedExam, examLabel, getExam, loadExams } from './lib/exams';
 import { scoreExam, snapshot } from './lib/scoring';
-import { KEY_ATTEMPTS, KEY_SESSION, clearAll, loadAttempts, loadSession, newId, saveSession, upsertAttempt } from './lib/storage';
+import { KEY_ATTEMPTS, KEY_PREDICTED, KEY_SESSION, clearAll, loadAttempts, loadSession, newId, saveSession, upsertAttempt } from './lib/storage';
+import { blueprintFor } from './predict/courses';
+import { randomSeed } from './predict/rng';
 import type { Attempt, Session } from './types';
 
 // Hash routes: #/  ·  #/start/<examId>  ·  #/start/<examId>/retry/<attemptId>  ·  #/exam  ·  #/results/<attemptId>
@@ -35,17 +40,30 @@ function Redirect({ to, navigate }: { to: string; navigate: Navigate }) {
   return null;
 }
 
-function NotFound({ what }: { what: string }) {
+function NotFound({ what }: { what: 'notFound.exam' | 'notFound.attempt' | 'notFound.result' | 'notFound.noWrong' }) {
+  const { t } = useI18n();
   return (
-    <div className="page">
-      <div className="banner bad">
-        {what} not found. <a href="#/">Back to the overview</a>
+    <>
+      <div className="topbar">
+        <div className="topbar-inner">
+          <span className="brand">Mock TestVision</span>
+          <div className="spacer" />
+          <LanguageSwitcher />
+        </div>
       </div>
-    </div>
+      <div className="page">
+        <div className="banner bad" data-testid="not-found">
+          {t(what)} <a href="#/">{t('notFound.back')}</a>
+        </div>
+      </div>
+    </>
   );
 }
 
+const PAGE_TITLE: Record<string, TextKey> = { '': 'meta.overview', start: 'meta.start', exam: 'meta.exam', results: 'meta.results' };
+
 export default function App() {
+  const { t } = useI18n();
   const [hash, go] = useHash();
   const [session, setSession] = useState<Session | null>(() => loadSession());
   const [attempts, setAttempts] = useState<Attempt[]>(() => loadAttempts());
@@ -64,7 +82,7 @@ export default function App() {
   useEffect(() => {
     const on = (e: StorageEvent) => {
       if (e.storageArea !== window.localStorage) return;
-      if (e.key !== null && e.key !== KEY_SESSION && e.key !== KEY_ATTEMPTS) return;
+      if (e.key !== null && e.key !== KEY_SESSION && e.key !== KEY_ATTEMPTS && e.key !== KEY_PREDICTED) return;
       if (window.location.hash.startsWith('#/exam')) return;
       setSession(loadSession());
       setAttempts(loadAttempts());
@@ -72,6 +90,12 @@ export default function App() {
     window.addEventListener('storage', on);
     return () => window.removeEventListener('storage', on);
   }, []);
+
+  // Page title in the active language, e.g. "Results · Mock TestVision".
+  const titleKey = PAGE_TITLE[parts[0] ?? ''] ?? 'meta.notFound';
+  useEffect(() => {
+    document.title = `${t(titleKey)} · Mock TestVision`;
+  }, [t, titleKey]);
 
   // The exam route always works from what is saved right now, never from this tab's in-memory copy.
   const examSession = useMemo(() => (parts[0] === 'exam' ? loadSession() : null), [hash]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -123,6 +147,39 @@ export default function App() {
     go(`#/results/${attempt.id}`, true);
   }, [go]);
 
+  // "Generate predicted exam": build a new exam from the course's stored blueprint (all in the browser; the
+  // generator is loaded on first use), save it, and open its start page.
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState(false);
+  const generate = useCallback(
+    async (courseCode: string) => {
+      setGenerating(true);
+      setGenerateError(false);
+      try {
+        const blueprint = blueprintFor(courseCode);
+        if (!blueprint) throw new Error(`No blueprint for ${courseCode}`);
+        const { generatePredictedExam } = await import('./predict/generate');
+        const past = loadExams().exams.filter((e) => e.courseCode === courseCode && !e.isDemo);
+        const newest = past.find((e) => e.id === blueprint.exams[0]?.id) ?? past[past.length - 1];
+        const exam = generatePredictedExam({
+          blueprint,
+          seed: randomSeed(),
+          pastStems: past.flatMap((e) => e.questions.map((q) => q.stem)),
+          resources: newest?.resources,
+          generatedAt: new Date().toISOString(),
+        });
+        addPredictedExam(exam);
+        go(`#/start/${exam.id}`);
+      } catch (e) {
+        console.error(e);
+        setGenerateError(true);
+      } finally {
+        setGenerating(false);
+      }
+    },
+    [go],
+  );
+
   // ---- routes ----
   if (parts[0] === 'exam') {
     const exam = examSession ? getExam(examSession.examId) : undefined;
@@ -132,17 +189,17 @@ export default function App() {
 
   if (parts[0] === 'start' && parts[1]) {
     const exam = getExam(parts[1]);
-    if (!exam) return <NotFound what="Exam" />;
+    if (!exam) return <NotFound what="notFound.exam" />;
     let questionIds = exam.questions.map((q) => q.id);
     let mode: 'full' | 'retry' = 'full';
     let duration = exam.durationMinutes;
     const retryOf = parts[2] === 'retry' ? parts[3] : undefined;
     if (retryOf) {
       const prev = attempts.find((a) => a.id === retryOf);
-      if (!prev) return <NotFound what="Attempt" />;
+      if (!prev) return <NotFound what="notFound.attempt" />;
       const r = scoreExam(exam, prev.questionIds, prev.answers, prev.selfScores, prev.mode);
       questionIds = r.perQuestion.filter((p) => p.status !== 'correct').map((p) => p.questionId);
-      if (questionIds.length === 0) return <NotFound what="Wrong question" />;
+      if (questionIds.length === 0) return <NotFound what="notFound.noWrong" />;
       mode = 'retry';
       duration = Math.max(5, Math.round((exam.durationMinutes * questionIds.length) / exam.questions.length));
     }
@@ -179,11 +236,13 @@ export default function App() {
   if (parts[0] === 'results' && parts[1]) {
     const attempt = attempts.find((a) => a.id === parts[1]);
     const exam = attempt ? getExam(attempt.examId) : undefined;
-    if (!attempt || !exam) return <NotFound what="Result" />;
+    if (!attempt || !exam) return <NotFound what="notFound.result" />;
     return (
       <ResultsScreen
         exam={exam}
         attempt={attempt}
+        onGenerate={() => generate(exam.courseCode)}
+        generating={generating}
         onSelfScore={(qid, score) => {
           const selfScores = { ...attempt.selfScores };
           if (score === undefined) delete selfScores[qid];
@@ -219,6 +278,9 @@ export default function App() {
         setSession(null);
         setAttempts([]);
       }}
+      onGenerate={generate}
+      generating={generating}
+      generateError={generateError}
     />
   );
 }

@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n';
 import { resolveImage } from '../lib/exams';
 import { numericFields } from '../lib/scoring';
 import type { AnswerValue, Question } from '../types';
@@ -11,24 +12,25 @@ interface Props {
 
 /** Answer area for one question during the exam. Never shows correct answers. */
 export function AnswerInput({ q, value, onChange }: Props) {
+  const { t, tn } = useI18n();
   switch (q.type) {
     case 'single-choice': {
       const cur = typeof value === 'string' ? value : '';
       return (
-        <div role="radiogroup" aria-label={`Answer to question ${q.number}`}>
+        <div role="radiogroup" aria-label={t('answer.groupAria', { n: q.number })}>
           {q.options?.map((o) => (
             <label key={o.id} className={cur === o.id ? 'opt selected' : 'opt'} data-testid={`option-${o.id}`}>
               <input type="radio" name={`q-${q.id}`} value={o.id} checked={cur === o.id} onChange={() => onChange(o.id)} />
               <span className="letter">{o.id}</span>
               <span className="otext">
                 {o.text && <RichText as="span" text={o.text} />}
-                {o.image && <img src={resolveImage(o.image)} alt={`Option ${o.id}`} />}
+                {o.image && <img src={resolveImage(o.image)} alt={t('answer.optionAlt', { id: o.id })} />}
               </span>
             </label>
           ))}
           {cur && (
             <button className="clear-link" onClick={() => onChange(undefined)}>
-              Clear answer
+              {t('answer.clear')}
             </button>
           )}
         </div>
@@ -41,14 +43,14 @@ export function AnswerInput({ q, value, onChange }: Props) {
         onChange(next.length ? next : undefined);
       };
       return (
-        <div role="group" aria-label={`Answer to question ${q.number}`}>
+        <div role="group" aria-label={t('answer.groupAria', { n: q.number })}>
           {q.options?.map((o) => (
             <label key={o.id} className={cur.includes(o.id) ? 'opt selected' : 'opt'} data-testid={`option-${o.id}`}>
               <input type="checkbox" checked={cur.includes(o.id)} onChange={() => toggle(o.id)} />
               <span className="letter">{o.id}</span>
               <span className="otext">
                 {o.text && <RichText as="span" text={o.text} />}
-                {o.image && <img src={resolveImage(o.image)} alt={`Option ${o.id}`} />}
+                {o.image && <img src={resolveImage(o.image)} alt={t('answer.optionAlt', { id: o.id })} />}
               </span>
             </label>
           ))}
@@ -80,7 +82,7 @@ export function AnswerInput({ q, value, onChange }: Props) {
                     type="text"
                     inputMode="decimal"
                     autoComplete="off"
-                    aria-label={f.label ?? 'Your answer'}
+                    aria-label={f.label ?? t('answer.yourAnswer')}
                     data-testid={`numeric-${f.id}`}
                     value={raw}
                     onChange={(e) => {
@@ -91,8 +93,8 @@ export function AnswerInput({ q, value, onChange }: Props) {
                   />
                   {f.suffix && <span>{f.suffix}</span>}
                 </div>
-                {comma && <div className="hint">TestVision expects a dot (.) as decimal separator.</div>}
-                {invalid && !comma && <div className="hint">This does not look like a number.</div>}
+                {comma && <div className="hint">{t('answer.commaHint')}</div>}
+                {invalid && !comma && <div className="hint">{t('answer.notNumber')}</div>}
               </div>
             );
           })}
@@ -105,12 +107,12 @@ export function AnswerInput({ q, value, onChange }: Props) {
         <div>
           <textarea
             className="open"
-            aria-label={`Answer to question ${q.number}`}
+            aria-label={t('answer.groupAria', { n: q.number })}
             data-testid="open-answer"
             value={cur}
             onChange={(e) => onChange(e.target.value === '' ? undefined : e.target.value)}
           />
-          <div className="small muted">{cur.trim() ? cur.trim().split(/\s+/).length : 0} words</div>
+          <div className="small muted">{tn('answer.words', cur.trim() ? cur.trim().split(/\s+/).length : 0)}</div>
         </div>
       );
     }
@@ -134,7 +136,7 @@ export function AnswerInput({ q, value, onChange }: Props) {
                     onChange(Object.keys(next).length ? next : undefined);
                   }}
                 >
-                  <option value="">— choose —</option>
+                  <option value="">{t('answer.choose')}</option>
                   {choices.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.text}

@@ -1,8 +1,9 @@
-import type { Attempt, Session } from '../types';
+import type { Attempt, Exam, Session } from '../types';
 
 // Everything is kept in localStorage under these keys.
 export const KEY_ATTEMPTS = 'mtv:v1:attempts';
 export const KEY_SESSION = 'mtv:v1:session';
+export const KEY_PREDICTED = 'mtv:v1:predicted';
 
 // If the browser refuses localStorage (site data blocked by a setting or a school policy), everything is
 // kept in memory instead, so an exam can still be taken in this tab. storageBlocked() lets the screens warn
@@ -54,9 +55,24 @@ export function upsertAttempt(a: Attempt) {
   saveAttempts(all);
 }
 
+// Generated predicted exams. Parsed once per change: the exam and results screens look them up on every render.
+let predictedCache: { raw: string | null; exams: Exam[] } = { raw: null, exams: [] };
+export function loadPredictedExams(): Exam[] {
+  let raw: string | null;
+  try {
+    raw = mem.has(KEY_PREDICTED) ? mem.get(KEY_PREDICTED)! : localStorage.getItem(KEY_PREDICTED);
+  } catch {
+    raw = null;
+  }
+  if (raw !== predictedCache.raw) predictedCache = { raw, exams: read<Exam[]>(KEY_PREDICTED, []) };
+  return predictedCache.exams;
+}
+export const savePredictedExams = (exams: Exam[]) => write(KEY_PREDICTED, exams);
+
 export function clearAll() {
   write(KEY_ATTEMPTS, null);
   write(KEY_SESSION, null);
+  write(KEY_PREDICTED, null);
 }
 
 export function newId(): string {

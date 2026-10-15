@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
-import { examLabel, resolveImage } from '../lib/exams';
-import { fmtDate, fmtDuration, fmtGrade, fmtPoints } from '../lib/format';
-import { choiceText, defaultTolerance, numericFields, questionsById, scoreExam, type QuestionScore } from '../lib/scoring';
+import { useI18n, type I18n } from '../i18n';
+import type { TextKey } from '../i18n/ui-en';
+import { courseShortName, examLabel, resolveImage } from '../lib/exams';
+import { choiceText, defaultTolerance, numericFields, questionsById, scoreExam, type PassCheck, type QuestionScore } from '../lib/scoring';
 import type { Attempt, Exam, Question } from '../types';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { DataTable, Figures } from './QuestionContent';
 import { RichText } from './RichText';
 
@@ -10,19 +12,37 @@ interface Props {
   exam: Exam;
   attempt: Attempt;
   onSelfScore: (questionId: string, score: number | undefined) => void;
+  /** Generate a new predicted exam (shown for predicted exams). */
+  onGenerate?: () => void;
+  generating?: boolean;
 }
 
 type Filter = 'all' | 'notright' | 'open';
 
-const STATUS_LABEL: Record<QuestionScore['status'], string> = {
-  correct: 'Correct',
-  partial: 'Partly correct',
-  wrong: 'Wrong',
-  blank: 'Not answered',
-  ungraded: 'Mark it yourself',
+const STATUS_LABEL: Record<QuestionScore['status'], TextKey> = {
+  correct: 'status.correct',
+  partial: 'status.partial',
+  wrong: 'status.wrong',
+  blank: 'status.blank',
+  ungraded: 'status.ungraded',
 };
 
-export function ResultsScreen({ exam, attempt, onSelfScore }: Props) {
+function passText({ t, fmt }: I18n, check: PassCheck): string {
+  if (check.kind === 'grade') return t('results.passIfGrade', { grade: fmt.grade(check.passGrade) });
+  if (!check.failures.length) return t('results.meetsRule');
+  const reasons = check.failures.map((f) =>
+    f.kind === 'minPoints'
+      ? t('results.fail.minPoints', { n: f.min })
+      : f.kind === 'minPercentage'
+        ? t('results.fail.minPercentage', { n: fmt.percent(f.min) })
+        : t('results.fail.minSection', { n: f.min, section: f.section }),
+  );
+  return t('results.failsRule', { reasons: reasons.join('; ') });
+}
+
+export function ResultsScreen({ exam, attempt, onSelfScore, onGenerate, generating }: Props) {
+  const i18n = useI18n();
+  const { t, tn, fmt } = i18n;
   const [filter, setFilter] = useState<Filter>('all');
   const result = useMemo(() => scoreExam(exam, attempt.questionIds, attempt.answers, attempt.selfScores, attempt.mode), [exam, attempt]);
   const byId = useMemo(() => questionsById(exam), [exam]);
@@ -35,83 +55,107 @@ export function ResultsScreen({ exam, attempt, onSelfScore }: Props) {
   const topics = [...result.byTopic].sort((a, b) => a.earned / a.max - b.earned / b.max || a.topic.localeCompare(b.topic));
   const isFull = attempt.mode === 'full';
   const rule = exam.grading?.passRule;
+  const label = exam.prediction ? `${courseShortName(exam.courseName)} · ${t('predict.label')}` : examLabel(exam);
 
   return (
     <>
       <div className="topbar">
         <div className="topbar-inner">
-          <span className="brand">Results</span>
+          <span className="brand">{t('results.title')}</span>
           <div className="spacer" />
+          <LanguageSwitcher />
           <a className="btn small" href="#/" data-testid="back-overview">
-            Back to overview
+            {t('common.backToOverview')}
           </a>
         </div>
       </div>
       <div className="page">
         {attempt.autoSubmitted && (
           <div className="banner warn" data-testid="auto-submitted">
-            Time is up: your exam was handed in automatically.
+            {t('results.autoSubmitted')}
+          </div>
+        )}
+        {exam.prediction && (
+          <div className="banner warn" data-testid="predicted-note">
+            <strong>{t('predict.label')}.</strong> {t('predict.note')}
           </div>
         )}
         <section className="card" data-testid="summary">
           <h2>
-            {examLabel(exam)}
-            {!isFull && <span className="muted small"> · retry of {attempt.questionIds.length} questions</span>}
+            {label}
+            {!isFull && <span className="muted small"> · {tn('common.retryOfN', attempt.questionIds.length)}</span>}
           </h2>
           <p className="small muted" style={{ marginTop: -6 }}>
-            Handed in {fmtDate(attempt.submittedAt)}
+            {t('results.handedIn', { date: fmt.date(attempt.submittedAt) })}
           </p>
           <div className="score-grid">
             <div className="stat">
-              <div className="k">Points</div>
+              <div className="k">{t('results.points')}</div>
               <div className="v" data-testid="points">
-                {fmtPoints(result.points)} <small>/ {fmtPoints(result.maxPoints)}</small>
+                {fmt.points(result.points)} <small>/ {fmt.points(result.maxPoints)}</small>
               </div>
             </div>
             <div className="stat">
-              <div className="k">Percentage</div>
+              <div className="k">{t('results.percentage')}</div>
               <div className="v" data-testid="percentage">
-                {result.percentage.toFixed(1)}%
+                {fmt.percent(result.percentage, 1)}
               </div>
             </div>
             <div className="stat">
-              <div className="k">Grade (out of 10)</div>
+              <div className="k">{t('results.grade')}</div>
               <div className="v" data-testid="grade">
-                {fmtGrade(result.grade)}
+                {fmt.grade(result.grade)}
               </div>
             </div>
             <div className="stat">
-              <div className="k">Result</div>
+              <div className="k">{t('results.result')}</div>
               <div className="v">
                 <span className={result.passed ? 'pill pass' : 'pill fail'} style={{ fontSize: 16 }} data-testid="pass-fail">
-                  {result.passed ? 'Pass' : 'Fail'}
+                  {result.passed ? t('common.pass') : t('common.fail')}
                 </span>
               </div>
             </div>
+            {result.bySection.length > 1 &&
+              result.bySection.map((sec) => (
+                <div className="stat" key={sec.section} data-testid={`section-score-${sec.section}`}>
+                  <div className="k" lang="en">
+                    {sec.section || t('exam.questions')}
+                  </div>
+                  <div className="v">
+                    {fmt.points(sec.earned)} <small>/ {fmt.points(sec.max)}</small>
+                  </div>
+                  <div className="small muted">{fmt.percent(sec.max ? (100 * sec.earned) / sec.max : 0)}</div>
+                </div>
+              ))}
             <div className="stat">
-              <div className="k">Time used</div>
+              <div className="k">{t('results.timeUsed')}</div>
               <div className="v" style={{ fontSize: 20 }} data-testid="time-used">
-                {fmtDuration(attempt.timeUsedSec)} <small>of {fmtDuration(attempt.durationSec)}</small>
+                {fmt.duration(attempt.timeUsedSec)} <small>{t('results.ofDuration', { duration: fmt.duration(attempt.durationSec) })}</small>
               </div>
             </div>
           </div>
           <p className="small muted" style={{ marginBottom: 0 }}>
-            Grade = 10 × points ÷ maximum points, rounded to one decimal. {result.passReason}
-            {rule && isFull && rule.description && <> {rule.description}</>}
-            {rule && !isFull && ' (The exam’s own pass rule only applies to full attempts.)'}
-            {result.ungradedOpen > 0 && <strong> {result.ungradedOpen} open question(s) still need your marks below.</strong>}
+            {t('results.gradeRule')} {passText(i18n, result.passCheck)}
+            {rule && isFull && rule.description && <span lang="en"> {rule.description}</span>}
+            {rule && !isFull && ` ${t('results.ruleFullOnly')}`}
+            {result.ungradedOpen > 0 && <strong> {tn('results.toMark', result.ungradedOpen)}</strong>}
           </p>
           <div className="row" style={{ marginTop: 14 }}>
             <a className="btn primary" href={`#/start/${exam.id}`} data-testid="retake">
-              Retake exam
+              {t('results.retake')}
             </a>
             {notRight.length > 0 ? (
               <a className="btn" href={`#/start/${exam.id}/retry/${attempt.id}`} data-testid="retry-wrong">
-                Retry the {notRight.length} question{notRight.length > 1 ? 's' : ''} I got wrong
+                {tn('results.retryWrong', notRight.length)}
               </a>
             ) : (
               <button className="btn" disabled>
-                No wrong questions to retry
+                {t('results.noWrong')}
+              </button>
+            )}
+            {exam.prediction && onGenerate && (
+              <button className="btn" onClick={onGenerate} disabled={generating} data-testid="generate-again">
+                {generating ? t('predict.generating') : t('predict.newOne')}
               </button>
             )}
           </div>
@@ -119,26 +163,26 @@ export function ResultsScreen({ exam, attempt, onSelfScore }: Props) {
 
         {result.bySection.length > 1 && (
           <section className="card">
-            <h2>Score per part</h2>
+            <h2>{t('results.perPart')}</h2>
             <div className="table-wrap">
               <table className="list">
                 <thead>
                   <tr>
-                    <th>Part</th>
-                    <th className="num">Points</th>
-                    <th className="num">%</th>
-                    {rule?.minSectionPoints && isFull && <th className="num">Minimum to pass</th>}
+                    <th>{t('results.col.part')}</th>
+                    <th className="num">{t('results.col.points')}</th>
+                    <th className="num">{t('results.col.pct')}</th>
+                    {rule?.minSectionPoints && isFull && <th className="num">{t('results.col.minPass')}</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {result.bySection.map((s) => (
                     <tr key={s.section}>
-                      <td>{s.section}</td>
+                      <td lang="en">{s.section || t('exam.questions')}</td>
                       <td className="num">
-                        {fmtPoints(s.earned)} / {fmtPoints(s.max)}
+                        {fmt.points(s.earned)} / {fmt.points(s.max)}
                       </td>
-                      <td className="num">{s.max ? Math.round((100 * s.earned) / s.max) : 0}%</td>
-                      {rule?.minSectionPoints && isFull && <td className="num">{rule.minSectionPoints[s.section] ?? '—'}</td>}
+                      <td className="num">{fmt.percent(s.max ? (100 * s.earned) / s.max : 0)}</td>
+                      {rule?.minSectionPoints && isFull && <td className="num">{rule.minSectionPoints[s.section] !== undefined ? fmt.points(rule.minSectionPoints[s.section]) : '—'}</td>}
                     </tr>
                   ))}
                 </tbody>
@@ -148,33 +192,33 @@ export function ResultsScreen({ exam, attempt, onSelfScore }: Props) {
         )}
 
         <section className="card">
-          <h2>Score per topic</h2>
+          <h2>{t('results.perTopic')}</h2>
           <p className="small muted" style={{ marginTop: -6 }}>
-            Weakest topics first.
+            {t('results.weakestFirst')}
           </p>
           <div className="table-wrap">
             <table className="list" data-testid="topics">
               <thead>
                 <tr>
-                  <th>Topic</th>
-                  <th className="num">Questions</th>
-                  <th className="num">Points</th>
-                  <th className="num">%</th>
+                  <th>{t('results.col.topic')}</th>
+                  <th className="num">{t('results.col.questions')}</th>
+                  <th className="num">{t('results.col.points')}</th>
+                  <th className="num">{t('results.col.pct')}</th>
                   <th className="bar-cell" aria-hidden="true" />
                 </tr>
               </thead>
               <tbody>
-                {topics.map((t) => {
-                  const pct = t.max ? Math.round((100 * t.earned) / t.max) : 0;
+                {topics.map((tp) => {
+                  const pct = tp.max ? Math.round((100 * tp.earned) / tp.max) : 0;
                   return (
-                    <tr key={t.topic}>
-                      <td>{t.topic}</td>
-                      <td className="num">{t.count}</td>
+                    <tr key={tp.topic}>
+                      <td lang="en">{tp.topic}</td>
+                      <td className="num">{fmt.num(tp.count)}</td>
                       <td className="num">
-                        {fmtPoints(t.earned)} / {fmtPoints(t.max)}
+                        {fmt.points(tp.earned)} / {fmt.points(tp.max)}
                       </td>
-                      <td className="num">{pct}%</td>
-                      <td className="bar-cell" title={`${t.topic}: ${pct}%`}>
+                      <td className="num">{fmt.percent(pct)}</td>
+                      <td className="bar-cell" title={`${tp.topic}: ${fmt.percent(pct)}`}>
                         <div className="bar-track">
                           <div className="bar-fill" style={{ width: `${pct}%` }} />
                         </div>
@@ -188,17 +232,17 @@ export function ResultsScreen({ exam, attempt, onSelfScore }: Props) {
         </section>
 
         <section className="card">
-          <h2>Question review</h2>
+          <h2>{t('results.review')}</h2>
           <div className="review-tools">
             <button className={filter === 'all' ? 'btn small active' : 'btn small'} onClick={() => setFilter('all')}>
-              All ({items.length})
+              {t('results.filter.all', { n: items.length })}
             </button>
             <button className={filter === 'notright' ? 'btn small active' : 'btn small'} onClick={() => setFilter('notright')} data-testid="filter-wrong">
-              Not fully correct ({notRight.length})
+              {t('results.filter.notRight', { n: notRight.length })}
             </button>
             {hasOpen && (
               <button className={filter === 'open' ? 'btn small active' : 'btn small'} onClick={() => setFilter('open')}>
-                Open questions
+                {t('results.filter.open')}
               </button>
             )}
           </div>
@@ -212,35 +256,39 @@ export function ResultsScreen({ exam, attempt, onSelfScore }: Props) {
 }
 
 function ReviewItem({ q, r, index, attempt, onSelfScore }: { q: Question; r: QuestionScore; index: number; attempt: Attempt; onSelfScore: Props['onSelfScore'] }) {
+  const { t, fmt } = useI18n();
   const a = attempt.answers[q.id];
   const flagged = attempt.flags.includes(q.id);
   return (
     <article className="rq" data-testid={`review-${q.number}`} data-status={r.status}>
       <div className="rq-head">
-        <span className="qn">Question {attempt.mode === 'full' ? q.number : `${index + 1} (Q${q.number})`}</span>
-        <span className={`status ${r.status}`}>{STATUS_LABEL[r.status]}</span>
-        <span className="small">
-          {fmtPoints(r.earned)} / {fmtPoints(r.max)} pt
-        </span>
-        <span className="small muted">
+        <span className="qn">{attempt.mode === 'full' ? t('review.questionN', { n: q.number }) : t('review.questionRetry', { n: index + 1, orig: q.number })}</span>
+        <span className={`status ${r.status}`}>{t(STATUS_LABEL[r.status])}</span>
+        <span className="small">{t('review.pts', { earned: fmt.points(r.earned), max: fmt.points(r.max) })}</span>
+        <span className="small muted" lang="en">
           {q.section ? `${q.section} · ` : ''}
           {q.topic}
         </span>
-        {flagged && <span className="pill neutral">Flagged</span>}
+        {flagged && <span className="pill neutral">{t('exam.flagged')}</span>}
         <div className="spacer" />
         {q.answerSource === 'ai' && (
-          <span className="pill ai" title="No official answer was available; this answer was solved by AI." data-testid="ai-badge">
-            AI-solved, verify
+          <span className="pill ai" title={t('review.aiBadgeTitle')} data-testid="ai-badge">
+            {t('review.aiBadge')}
+          </span>
+        )}
+        {q.answerSource === 'generated' && (
+          <span className="pill official" title={t('review.generatedBadgeTitle')} data-testid="generated-badge">
+            {t('review.generatedBadge')}
           </span>
         )}
         {q.answerSource === 'official' && q.explanationSource === 'ai' && (
-          <span className="pill neutral" title="The answer is official; the explanation was written by AI.">
-            Explanation by AI
+          <span className="pill neutral" title={t('review.aiExplanationTitle')}>
+            {t('review.aiExplanation')}
           </span>
         )}
       </div>
       <div className="rq-body">
-        <RichText text={q.stem} />
+        <RichText text={q.stem} lang="en" />
         <DataTable table={q.table} />
         <Figures images={q.images} />
 
@@ -253,24 +301,24 @@ function ReviewItem({ q, r, index, attempt, onSelfScore }: { q: Question; r: Que
               return (
                 <div key={o.id} className={cls}>
                   <span className="mark">
-                    {chosen && correct && '✓ Your answer'}
-                    {chosen && !correct && '✗ Your answer'}
-                    {!chosen && correct && 'Correct answer'}
+                    {chosen && correct && t('review.yourAnswerRight')}
+                    {chosen && !correct && t('review.yourAnswerWrong')}
+                    {!chosen && correct && t('review.correctAnswer')}
                   </span>
                   <strong>{o.id}</strong>
-                  <span className="otext">
+                  <span className="otext" lang="en">
                     {o.text && <RichText as="span" text={o.text} />}
-                    {o.image && <img src={resolveImage(o.image)} alt={`Option ${o.id}`} />}
+                    {o.image && <img src={resolveImage(o.image)} alt={t('answer.optionAlt', { id: o.id })} />}
                   </span>
                 </div>
               );
             })}
             <dl className="answers-compare">
-              <dt>Your answer</dt>
+              <dt>{t('review.yourAnswer')}</dt>
               <dd data-testid="your-answer">{q.type === 'single-choice' ? (typeof a === 'string' ? a : '—') : Array.isArray(a) && a.length ? [...a].sort().join(', ') : '—'}</dd>
-              <dt>Correct answer</dt>
+              <dt>{t('review.correctAnswer')}</dt>
               <dd data-testid="correct-answer">
-                {q.type === 'single-choice' ? [q.correctAnswer as string, ...(q.alsoAccepted ?? [])].join(' or ') : ((q.correctAnswer as string[]) ?? []).join(', ')}
+                {q.type === 'single-choice' ? fmt.or([q.correctAnswer as string, ...(q.alsoAccepted ?? [])]) : ((q.correctAnswer as string[]) ?? []).join(', ')}
               </dd>
             </dl>
           </div>
@@ -281,9 +329,9 @@ function ReviewItem({ q, r, index, attempt, onSelfScore }: { q: Question; r: Que
             <table className="list" style={{ marginTop: 10 }}>
               <thead>
                 <tr>
-                  <th>Field</th>
-                  <th>Your answer</th>
-                  <th>Correct answer</th>
+                  <th>{t('review.field')}</th>
+                  <th>{t('review.yourAnswer')}</th>
+                  <th>{t('review.correctAnswer')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,7 +340,7 @@ function ReviewItem({ q, r, index, attempt, onSelfScore }: { q: Question; r: Que
                   const tol = f.tolerance ?? defaultTolerance(f.answer);
                   return (
                     <tr key={f.id}>
-                      <td>{f.label ? <RichText as="span" text={f.label} /> : 'Answer'}</td>
+                      <td>{f.label ? <RichText as="span" text={f.label} lang="en" /> : t('review.answer')}</td>
                       <td data-testid="your-answer">
                         {f.prefix ? `${f.prefix} ` : ''}
                         {raw?.trim() || '—'}
@@ -303,7 +351,7 @@ function ReviewItem({ q, r, index, attempt, onSelfScore }: { q: Question; r: Que
                         {f.answer}
                         {f.suffix ? ` ${f.suffix}` : ''}
                         <span className="muted small">
-                          {f.acceptRange ? ` (accepted ${f.acceptRange[0]}–${f.acceptRange[1]})` : tol > 1e-6 ? ` (± ${Number(tol.toPrecision(3))})` : ''}
+                          {f.acceptRange ? ` ${t('review.accepted', { from: String(f.acceptRange[0]), to: String(f.acceptRange[1]) })}` : tol > 1e-6 ? ` (± ${Number(tol.toPrecision(3))})` : ''}
                         </span>
                       </td>
                     </tr>
@@ -319,9 +367,9 @@ function ReviewItem({ q, r, index, attempt, onSelfScore }: { q: Question; r: Que
             <table className="list" style={{ marginTop: 10 }}>
               <thead>
                 <tr>
-                  <th>Item</th>
-                  <th>Your answer</th>
-                  <th>Correct answer</th>
+                  <th>{t('review.item')}</th>
+                  <th>{t('review.yourAnswer')}</th>
+                  <th>{t('review.correctAnswer')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -331,7 +379,7 @@ function ReviewItem({ q, r, index, attempt, onSelfScore }: { q: Question; r: Que
                   return (
                     <tr key={p.id}>
                       <td>
-                        <RichText as="span" text={p.text} />
+                        <RichText as="span" text={p.text} lang="en" />
                       </td>
                       <td style={{ color: mine ? (mine === right ? 'var(--ok)' : 'var(--bad)') : undefined }}>{choiceText(q, mine) ?? '—'}</td>
                       <td>{choiceText(q, right)}</td>
@@ -345,33 +393,38 @@ function ReviewItem({ q, r, index, attempt, onSelfScore }: { q: Question; r: Que
 
         {q.type === 'open' && (
           <div style={{ marginTop: 10 }}>
-            <div className="small muted">Your answer</div>
+            <div className="small muted">{t('review.yourAnswer')}</div>
             <div className="open-answer" data-testid="your-answer">
               {typeof a === 'string' && a.trim() ? a : '—'}
             </div>
             <div className="explain">
-              <h4>Model answer</h4>
-              <RichText text={q.modelAnswer ?? ''} />
+              <h4>{t('review.modelAnswer')}</h4>
+              <RichText text={q.modelAnswer ?? ''} lang="en" />
             </div>
             <SelfMark q={q} value={attempt.selfScores[q.id]} onChange={(v) => onSelfScore(q.id, v)} />
           </div>
         )}
 
         <div className="explain">
-          <h4>Explanation</h4>
-          <RichText text={q.explanation} />
+          <h4>{q.answerSource === 'generated' ? t('review.workedSolution') : t('review.explanation')}</h4>
+          <RichText text={q.explanation} lang="en" />
           <Figures images={q.explanationImages} />
         </div>
-        {q.sourceNote && <RichText className="source-note" text={`Note: ${q.sourceNote}`} />}
+        {q.sourceNote && (
+          <div className="rich source-note">
+            <strong>{t('review.note')}</strong> <RichText as="span" text={q.sourceNote} lang="en" />
+          </div>
+        )}
       </div>
     </article>
   );
 }
 
 function SelfMark({ q, value, onChange }: { q: Question; value: number | undefined; onChange: (v: number | undefined) => void }) {
+  const { t, tn, fmt } = useI18n();
   return (
     <div className="self-mark" data-testid={`self-mark-${q.number}`}>
-      <strong>Your mark:</strong>
+      <strong>{t('selfMark.yourMark')}</strong>
       <input
         type="number"
         min={0}
@@ -379,24 +432,24 @@ function SelfMark({ q, value, onChange }: { q: Question; value: number | undefin
         step={0.5}
         value={value ?? ''}
         placeholder="—"
-        aria-label="Points you award yourself"
+        aria-label={t('selfMark.aria')}
         data-testid="self-score"
         onChange={(e) => {
           const v = e.target.value === '' ? undefined : Math.max(0, Math.min(q.points, Number(e.target.value)));
           onChange(v === undefined || Number.isNaN(v) ? undefined : v);
         }}
       />
-      <span>/ {q.points} points</span>
+      <span>{tn('selfMark.outOf', q.points)}</span>
       <button className="btn small" onClick={() => onChange(0)}>
         0
       </button>
       {q.points > 1 && (
         <button className="btn small" onClick={() => onChange(q.points / 2)}>
-          {q.points / 2}
+          {fmt.num(q.points / 2)}
         </button>
       )}
       <button className="btn small" onClick={() => onChange(q.points)}>
-        Full
+        {t('selfMark.full')}
       </button>
     </div>
   );

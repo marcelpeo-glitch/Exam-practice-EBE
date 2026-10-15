@@ -1,7 +1,8 @@
 // Course-agnostic exam schema. Exams are JSON files in /data/exams (see README.md).
 
 export type QuestionType = 'single-choice' | 'multi-select' | 'numeric' | 'open' | 'matching';
-export type AnswerSource = 'official' | 'ai';
+/** official: from the exam's answer key; ai: solved by AI (verify); generated: a predicted-exam question whose answer was computed in code. */
+export type AnswerSource = 'official' | 'ai' | 'generated';
 
 export interface ImageRef {
   /** Path relative to /data/exams, e.g. "img/qm1-2023/q08-normal-pdf.png". */
@@ -78,6 +79,8 @@ export interface Question {
   answerSource: AnswerSource;
   explanationSource?: AnswerSource;
   sourceNote?: string;
+  /** Predicted exams: the template that generated the question. */
+  templateId?: string;
 }
 
 export interface PassRule {
@@ -121,6 +124,23 @@ export interface Exam {
   questions: Question[];
   /** Set by the loader for demo/example exams. */
   isDemo?: boolean;
+  /** A generated "predicted exam" (stored in the browser, not in /data/exams). */
+  prediction?: PredictionInfo;
+}
+
+/** How a predicted exam was put together (shown on its start and results pages). */
+export interface PredictionInfo {
+  seed: number;
+  generatedAt: string;
+  /** Past exams the blueprint was built from (ids, newest first) and their academic years. */
+  basedOn: string[];
+  basedOnYears: string[];
+  /** Questions per section, e.g. { Mathematics: 14, Statistics: 14 }. */
+  split: Record<string, number>;
+  /** Share of each section in the past exams (recency-weighted), e.g. { Mathematics: 0.5, Statistics: 0.5 }. */
+  ratio: Record<string, number>;
+  /** Questions per topic in this exam. */
+  topics: { topic: string; section: string; count: number; expected: number; mandatory: boolean }[];
 }
 
 /** single-choice / open: string; multi-select: string[]; numeric & matching: { fieldOrPromptId: value } */

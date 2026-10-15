@@ -115,6 +115,13 @@ export function scoreQuestion(exam: Exam, q: Question, a: AnswerValue | undefine
   return res(0, 'wrong');
 }
 
+export type PassFailure =
+  | { kind: 'minPoints'; min: number }
+  | { kind: 'minPercentage'; min: number }
+  | { kind: 'minSection'; min: number; section: string };
+
+export type PassCheck = { kind: 'grade'; passGrade: number } | { kind: 'rule'; failures: PassFailure[] };
+
 export interface ExamResult {
   perQuestion: QuestionScore[];
   points: number;
@@ -122,7 +129,8 @@ export interface ExamResult {
   percentage: number;
   grade: number;
   passed: boolean;
-  passReason: string;
+  /** Why the attempt passes or fails; the UI words it in the active language. */
+  passCheck: PassCheck;
   ungradedOpen: number;
   bySection: { section: string; earned: number; max: number }[];
   byTopic: { topic: string; earned: number; max: number; count: number }[];
@@ -157,7 +165,7 @@ export function scoreExam(
   const topicMap = new Map<string, { earned: number; max: number; count: number }>();
   qs.forEach((q, i) => {
     const r = perQuestion[i];
-    const sec = q.section ?? 'Questions';
+    const sec = q.section ?? '';
     const s = sectionMap.get(sec) ?? { earned: 0, max: 0 };
     s.earned += r.earned;
     s.max += r.max;
@@ -173,27 +181,25 @@ export function scoreExam(
 
   const g = exam.grading ?? {};
   const passGrade = g.passGrade ?? 5.5;
-  let passed: boolean;
-  let passReason: string;
+  let passCheck: PassCheck;
   const isFull = mode ? mode === 'full' : questionIds.length === exam.questions.length;
   if (g.passRule && isFull) {
     const rule = g.passRule;
-    const fails: string[] = [];
-    if (rule.minPoints !== undefined && points < rule.minPoints) fails.push(`fewer than ${rule.minPoints} points`);
-    if (rule.minPercentage !== undefined && percentage < rule.minPercentage) fails.push(`below ${rule.minPercentage}%`);
+    const fails: PassFailure[] = [];
+    if (rule.minPoints !== undefined && points < rule.minPoints) fails.push({ kind: 'minPoints', min: rule.minPoints });
+    if (rule.minPercentage !== undefined && percentage < rule.minPercentage) fails.push({ kind: 'minPercentage', min: rule.minPercentage });
     for (const [sec, min] of Object.entries(rule.minSectionPoints ?? {})) {
       const s = sectionMap.get(sec);
       // compare the rounded section score (as displayed), so thirds like 0.3333 × 3 meet a minimum of 1
-      if (!s || round(s.earned) < min - 1e-9) fails.push(`fewer than ${min} points in ${sec}`);
+      if (!s || round(s.earned) < min - 1e-9) fails.push({ kind: 'minSection', min, section: sec });
     }
-    passed = fails.length === 0;
-    passReason = passed ? 'Meets the exam’s own pass rule.' : `Fails the exam’s own pass rule: ${fails.join('; ')}.`;
+    passCheck = { kind: 'rule', failures: fails };
   } else {
-    passed = grade >= passGrade;
-    passReason = `Pass if grade ≥ ${passGrade}.`;
+    passCheck = { kind: 'grade', passGrade };
   }
+  const passed = passCheck.kind === 'rule' ? passCheck.failures.length === 0 : grade >= passGrade;
   const ungradedOpen = perQuestion.filter((r) => r.status === 'ungraded').length;
-  return { perQuestion, points, maxPoints, percentage, grade, passed, passReason, ungradedOpen, bySection, byTopic };
+  return { perQuestion, points, maxPoints, percentage, grade, passed, passCheck, ungradedOpen, bySection, byTopic };
 }
 
 export function snapshot(r: ExamResult): ScoreSnapshot {
