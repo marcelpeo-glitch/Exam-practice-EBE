@@ -124,7 +124,7 @@ export const UI_MT: UiDict = {
   'confirm.keyMixed': 'L-aktar uffiċjali, xi tweġibiet solvuti mill-IA',
   'confirm.instructions': 'Struzzjonijiet',
   'confirm.i1': 'It-tajmer jibda hekk kif tikklikkja **{start}**. Meta jasal għal żero, l-eżami jiġi kkonsenjat awtomatikament.',
-  'confirm.i2': 'Mexxi b’**{prev}**/**{next}** jew ikklikkja fuq numru ta’ mistoqsija. Uża **{flag}** biex timmarka mistoqsija għar-reviżjoni.',
+  'confirm.i2': 'Innaviga b’**{prev}**/**{next}** jew ikklikkja fuq in-numru ta’ mistoqsija. Uża **{flag}** biex timmarka mistoqsija għar-reviżjoni.',
   'confirm.i3': 'It-tweġibiet tiegħek, il-mistoqsijiet immarkati u l-ħin li fadal jinħażnu awtomatikament; jekk taġġorna l-paġna ma jintilef xejn. Żomm l-eżami miftuħ f’tab waħda biss.',
   'confirm.i4': 'Tweġibiet numeriċi: uża punt bħala separatur deċimali (0.51, mhux 0,51).',
   'confirm.i5': 'Ikklikkja **{ready}** biex tikkonsenja. L-ewwel tara liema mistoqsijiet m’għandhomx tweġiba jew huma mmarkati.',
@@ -223,7 +223,7 @@ export const UI_MT: UiDict = {
   // ---- results ----
   'results.title': 'Riżultati',
   'results.autoSubmitted': 'Il-ħin spiċċa: l-eżami tiegħek ġie kkonsenjat awtomatikament.',
-  'results.handedIn': 'Ikkonsenjat {date}',
+  'results.handedIn': 'Ikkonsenjat: {date}',
   'results.points': 'Punti',
   'results.percentage': 'Persentaġġ',
   'results.grade': 'Marka (minn 10)',

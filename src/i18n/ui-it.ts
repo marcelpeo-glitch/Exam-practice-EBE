@@ -20,7 +20,7 @@ export const UI_IT: UiDict = {
   'common.discard': 'Scarta',
   'common.backToOverview': 'Torna alla panoramica',
   'common.assumed': '(presunto)',
-  'common.retryOfN': { one: 'nuovo tentativo su {n} domanda', other: 'nuovo tentativo su {n} domande' },
+  'common.retryOfN': { one: 'ripetizione di {n} domanda', other: 'ripetizione di {n} domande' },
   'common.pass': 'Superato',
   'common.fail': 'Non superato',
   'storage.blocked.title': 'Questo browser blocca il salvataggio.',
@@ -28,7 +28,7 @@ export const UI_IT: UiDict = {
   'examType.regular': 'Ordinario',
   'examType.resit': 'Recupero',
   'key.official': 'Ufficiali',
-  'key.ai': 'Risolte con IA',
+  'key.ai': 'Risolte dall’IA',
   'key.mixed': 'Miste',
 
   // ---- not found ----
