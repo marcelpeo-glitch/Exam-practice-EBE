@@ -118,6 +118,8 @@ table.list tr.clickable:hover td { background: #f5f9fc; }
 .predict-panel table.list caption { text-align: left; padding: 10px 0 4px; }
 .predict-how { margin-top: 10px; }
 .predict-how summary { cursor: pointer; color: var(--tv-blue-dark); font-weight: 500; }
+label.check-row { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+label.check-row input { margin-top: 4px; width: 17px; height: 17px; flex: none; }
 table.list tr.group-row th { background: #eef3f8; color: var(--text); text-transform: none; letter-spacing: 0; font-size: 13px; }
 
 dl.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0; }
@@ -291,4 +293,9 @@ textarea.open { width: 100%; min-height: 180px; padding: 8px 10px; border: 1px s
   .ropt { flex-wrap: wrap; }
   .ropt .mark { width: 100%; }
   .exam-header { padding: 8px 10px; gap: 8px; }
+  table[data-testid='blueprint-table'] { font-size: 12px; }
+  table[data-testid='blueprint-table'] th, table[data-testid='blueprint-table'] td { padding: 5px 4px; }
+  table[data-testid='blueprint-table'] th { font-size: 10px; letter-spacing: 0; }
+  .predict-panel { padding: 12px; }
+  .predict-head .btn.big { width: 100%; justify-content: center; }
 }

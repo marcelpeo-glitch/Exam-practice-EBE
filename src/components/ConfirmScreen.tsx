@@ -149,7 +149,7 @@ export function ConfirmScreen({ exam, questionIds, durationMinutes, mode, otherS
             </div>
           )}
           {resumable && <div className="small muted">{t('confirm.startAgainWarning')}</div>}
-          <label className="row" style={{ marginTop: 12 }}>
+          <label className="check-row" style={{ marginTop: 12 }}>
             <input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} data-testid="confirm-check" />
             {t('confirm.readyCheck')}
           </label>
