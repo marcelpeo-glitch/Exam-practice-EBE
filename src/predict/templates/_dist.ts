@@ -16,7 +16,7 @@ const STROKE = '#1e3a8a';
 
 /** A tick step so that 0..max needs at most `maxTicks` intervals. */
 export function niceStep(max: number, maxTicks = 6): number {
-  for (const m of [1, 2, 2.5, 5]) for (let e = 0; e < 7; e++) if (max / (m * 10 ** e) <= maxTicks) return m * 10 ** e;
+  for (let e = 0; e < 7; e++) for (const m of [1, 2, 2.5, 5]) if (max / (m * 10 ** e) <= maxTicks) return m * 10 ** e;
   return 10 ** 7;
 }
 
@@ -81,7 +81,7 @@ export function panelsSvg(panels: { name: string; counts: number[] }[], values: 
   const W = cols * PW;
   const H = rows * PH + 18;
   const top = Math.max(...panels.flatMap((p) => p.counts));
-  const step = niceStep(top, 4);
+  const step = niceStep(top, 8);
   const ymax = Math.ceil(top / step) * step;
   let s = head(W, H);
   panels.forEach((p, i) => {
@@ -135,13 +135,13 @@ export function boxplotSvg(boxes: Box[], axis: { lo: number; hi: number; step: n
   boxes.forEach((b, i) => {
     const cx = L + (i + 0.5) * slot;
     const bw = 64;
-    const line = (cls: string, x1: number, y1: number, x2: number, y2: number, extra = '') =>
-      `<line class="${cls}" x1="${p2(x1)}" y1="${p2(y1)}" x2="${p2(x2)}" y2="${p2(y2)}" stroke="${STROKE}" stroke-width="1.6"${extra}/>`;
+    const line = (cls: string, x1: number, y1: number, x2: number, y2: number, width = 1.6) =>
+      `<line class="${cls}" x1="${p2(x1)}" y1="${p2(y1)}" x2="${p2(x2)}" y2="${p2(y2)}" stroke="${STROKE}" stroke-width="${width}"/>`;
     s += '<g class="bp">';
     s += line('wh', cx, Y(b.q3), cx, Y(b.max)) + line('wh', cx, Y(b.q1), cx, Y(b.min));
     s += line('cap', cx - 14, Y(b.max), cx + 14, Y(b.max)) + line('cap', cx - 14, Y(b.min), cx + 14, Y(b.min));
     s += `<rect class="box" x="${p2(cx - bw / 2)}" y="${p2(Y(b.q3))}" width="${bw}" height="${p2(Y(b.q1) - Y(b.q3))}" fill="#dbeafe" stroke="${STROKE}" stroke-width="1.6"/>`;
-    s += line('med', cx - bw / 2, Y(b.med), cx + bw / 2, Y(b.med), ' stroke-width="3.2"');
+    s += line('med', cx - bw / 2, Y(b.med), cx + bw / 2, Y(b.med), 3.2);
     for (const o of b.outliers ?? []) s += `<circle class="out" cx="${p2(cx)}" cy="${p2(Y(o))}" r="4" fill="#ffffff" stroke="${STROKE}" stroke-width="1.6"/>`;
     s += `<text class="gl" x="${p2(cx)}" y="${H - B + 20}" text-anchor="middle" font-size="13">${esc(b.name)}</text></g>`;
   });

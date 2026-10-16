@@ -2,7 +2,7 @@
 // the shape of the level curves of √(y − ln x), √(x − ln y), √ln(1 + 2y + 3x), (2x + y)²; which g = f + … has the same
 // level curves as f; the marginal rate of substitution −U'w/U'n of a Cobb–Douglas utility). Derivatives come from
 // exact polynomial rules (Poly2) and are checked against mathjs; see two-var-partials.test.ts for independent checks.
-import { buildMcq, buildMulti, INSTRUCTION, mistakesNote, num, sgn, type Choice } from '../build';
+import { buildMcq, buildMulti, INSTRUCTION, mistakesNote, num, type Choice } from '../build';
 import { diff, frac, gcd } from '../mathx';
 import type { Rng } from '../rng';
 import type { Generated, Template } from '../types';
@@ -31,7 +31,11 @@ function chainRule(o: Outer, n: number, g: Poly2, d: Poly2): FormulaChoice {
   const [G, Ge, D, De] = [p2Tex(g), p2Expr(g), p2Tex(d), p2Expr(d)];
   if (o === 'exp') return { tex: times(d, `e^{${G}}`), expr: `(${De})*exp(${Ge})` };
   if (o === 'ln') return { tex: `\\dfrac{${D}}{${G}}`, expr: `(${De})/(${Ge})` };
-  if (o === 'sqrt') return { tex: `\\dfrac{${D}}{2\\sqrt{${G}}}`, expr: `(${De})/(2*sqrt(${Ge}))` };
+  if (o === 'sqrt') {
+    // an even numerator is simplified against the 2 in the denominator, as students would write it
+    if (d.every(([c]) => c % 2 === 0)) return { tex: `\\dfrac{${p2Tex(p2Scale(d, 0.5))}}{\\sqrt{${G}}}`, expr: `(${De})/(2*sqrt(${Ge}))` };
+    return { tex: `\\dfrac{${D}}{2\\sqrt{${G}}}`, expr: `(${De})/(2*sqrt(${Ge}))` };
+  }
   return { tex: times(p2Scale(d, n), `\\left(${G}\\right)^{${n - 1}}`), expr: `${n}*(${De})*(${Ge})^${n - 1}` };
 }
 
@@ -78,7 +82,8 @@ const partialDerivative: Template = {
     do {
       g = innerPoly(rng, o);
       cands = numericPoints(o, n, g, w);
-    } while (type === 'numeric' && cands.length === 0);
+      // ln and √ need enough sample points inside the domain to tell formulas apart
+    } while ((type === 'numeric' && cands.length === 0) || PTS.filter(([x, y]) => o === 'exp' || o === 'pow' || p2Eval(g, x, y) > 0.05).length < 5);
     const [dw, dv] = w === 'x' ? [p2Dx(g), p2Dy(g)] : [p2Dy(g), p2Dx(g)];
     const G = p2Tex(g);
     const fTex = { exp: `e^{${G}}`, ln: `\\ln\\left(${G}\\right)`, sqrt: `\\sqrt{${G}}`, pow: `\\left(${G}\\right)^{${n}}` }[o];
@@ -174,13 +179,14 @@ const SHAPE_PHRASE: Record<Shape, string> = {
   sqrt: 'the graph of a square-root function of $x$',
   parab: 'a parabola (the graph of a quadratic function of $x$)',
 };
-type Out = 'sqrt' | 'ln' | 'sqrtln' | 'exp' | 'cube';
+type Out = 'sqrt' | 'ln' | 'sqrtln' | 'exp' | 'cube' | 'square';
 const OUTER: Record<Out, { wrap: (I: string) => string; K: string; name: string; looks: Shape[] }> = {
   sqrt: { wrap: (I) => `\\sqrt{${I}}`, K: 'c^2', name: 'square root', looks: ['sqrt'] },
   ln: { wrap: (I) => `\\ln\\left(${I}\\right)`, K: 'e^{c}', name: 'logarithm', looks: ['log'] },
   sqrtln: { wrap: (I) => `\\sqrt{\\ln\\left(${I}\\right)}`, K: 'e^{c^2}', name: 'square root of a logarithm', looks: ['log', 'sqrt'] },
   exp: { wrap: (I) => `e^{${I}}`, K: '\\ln(c)', name: 'exponential', looks: ['exp'] },
   cube: { wrap: (I) => `\\left(${I}\\right)^3`, K: '\\sqrt[3]{c}', name: 'third power', looks: ['parab'] },
+  square: { wrap: (I) => `\\left(${I}\\right)^2`, K: '\\sqrt{c}\\text{ or }K=-\\sqrt{c}', name: 'square', looks: ['parab'] },
 };
 
 interface Family {
@@ -285,11 +291,15 @@ const levelCurveShape: Template = {
   difficulty: 2,
   generate({ rng, type, optionCount }) {
     const fam = levelFamily(rng);
-    const o = rng.pick<Out>(['sqrt', 'sqrt', 'ln', 'sqrtln', 'sqrtln', 'exp', 'cube']);
+    const o = rng.pick<Out>(['sqrt', 'sqrt', 'ln', 'sqrtln', 'sqrtln', 'exp', 'cube', 'square']);
     const O = OUTER[o];
     const fTex = O.wrap(fam.I);
+    const undo =
+      o === 'square'
+        ? `The outer square is not one-to-one, but for $c\\ge 0$ we have $f(x,y)=c$ exactly when $${fam.I}=K$ with $K=${O.K}$: a constant (each level curve consists of at most two curves of the same shape). `
+        : `The outer ${O.name} is strictly increasing, so it can be undone: $f(x,y)=c$ holds exactly when $${fam.I}=K$, where $K=${O.K}$ is a constant. `;
     const explanation =
-      `The outer ${O.name} is strictly increasing, so it can be undone: $f(x,y)=c$ holds exactly when $${fam.I}=K$, where $K=${O.K}$ is a constant. ` +
+      undo +
       `Solving for $y$: $$${fam.solve}$$ So every level curve is ${SHAPE_PHRASE[fam.shape]}.`;
     const looks = O.looks.filter((s) => s !== fam.shape).map((s) => ({ shape: s, why: `judges the shape by the outer ${O.name}; it only changes the constant $K$, not the shape of the curves.` }));
     const wrong = [...fam.wrong, ...looks];
@@ -322,10 +332,10 @@ const sameLevelCurves: Template = {
   generate({ rng, type, optionCount }) {
     const [c, k, m] = [rng.int(1, 9), rng.int(2, 6), rng.int(2, 5)];
     const yes = [
-      { text: `${F}${sgn(rng.sign() * c)}`, why: 'adding a constant only renumbers the levels: $g=L$ exactly when $f$ equals $L$ minus that constant.' },
+      { text: `${F}${rng.chance(0.5) ? '+' : '-'}${c}`, why: 'adding a constant only renumbers the levels: $g=L$ exactly when $f$ equals $L$ minus that constant.' },
       { text: `${k}${F}`, why: `$g=L$ exactly when $f=\\frac{L}{${k}}$: multiplying by a non-zero constant keeps the level curves.` },
       { text: `${c}-${k}${F}`, why: `$g=L$ exactly when $f=\\frac{${c}-L}{${k}}$: a decreasing linear transformation keeps the level curves.` },
-      { text: `\\dfrac{${F}}{${m}}${sgn(c)}`, why: `$g=L$ exactly when $f=${m}(L-${c})$.` },
+      { text: `\\dfrac{${F}}{${m}}+${c}`, why: `$g=L$ exactly when $f=${m}(L-${c})$.` },
       { text: `e^{${F}}`, why: '$e^{t}$ is strictly increasing: $e^{f}=L$ exactly when $f=\\ln(L)$.' },
       { text: `\\left(${F}\\right)^3`, why: '$t^3$ is strictly increasing: $f^3=L$ exactly when $f=\\sqrt[3]{L}$.' },
       { text: `${m}e^{${F}}`, why: '$e^{t}$ times a positive constant is strictly increasing: each level of $g$ corresponds to one level of $f$.' },
@@ -427,6 +437,7 @@ function cobbDouglas(rng: Rng): MrsCase {
   const d1 = `${frac(A * e1[0], e1[1])}${powers([e1[0] - e1[1], e1[1]], e2)}`;
   const d2 = `${frac(A * e2[0], e2[1])}${powers(e1, [e2[0] - e2[1], e2[1]])}`;
   const simpl = `-\\dfrac{${rn === 1 ? '' : rn}${v2}}{${rd === 1 ? '' : rd}${v1}}`;
+  const plugDone = rn === 1 && rd === 1 && gcd(val1, val2) === 1;
   let stem: string;
   if (prod) {
     stem =
@@ -440,7 +451,7 @@ function cobbDouglas(rng: Rng): MrsCase {
   const explanation =
     `Power rule for each variable (the other one is held constant): $$${N}'_{${v1}}=${d1},\\qquad ${N}'_{${v2}}=${d2}$$ ` +
     `In the quotient the powers combine to $${v1}^{-1}$ and $${v2}^{1}$${prod ? ` (the constant ${A} cancels)` : ''}: $$-\\dfrac{${N}'_{${v1}}}{${N}'_{${v2}}}=${simpl}$$ ` +
-    `At $${v1}=${val1}$ and $${v2}=${val2}$: $$-\\dfrac{${rn === 1 ? '' : `${rn}\\cdot `}${val2}}{${rd === 1 ? '' : `${rd}\\cdot `}${val1}}=${ratTex(key)}$$`;
+    `At $${v1}=${val1}$ and $${v2}=${val2}$: $$-\\dfrac{${rn === 1 ? '' : `${rn}\\cdot `}${val2}}{${rd === 1 ? '' : `${rd}\\cdot `}${val1}}${plugDone ? '' : `=${ratTex(key)}`}$$`;
   return {
     stem,
     what: prod ? 'the MRTS at this input combination' : 'the MRS at this bundle',
@@ -453,6 +464,7 @@ function cobbDouglas(rng: Rng): MrsCase {
       { value: -r, why: 'keeps only the ratio of the exponents and forgets the quantities.' },
       { value: -(1 / r) * (val2 / val1), why: 'swaps the two exponents.' },
       { value: -(val2 / val1), why: 'forgets the exponents that the power rule brings down.' },
+      ...(prod ? [{ value: key * A, why: `keeps the constant ${A} in $Q'_{L}$ but drops it from $Q'_{K}$, so it does not cancel.` }] : []),
     ],
   };
 }
