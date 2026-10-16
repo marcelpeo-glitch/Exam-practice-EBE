@@ -7,7 +7,7 @@ import { buildMcq, INSTRUCTION, mistakesNote, num, numericField, sgn, type Choic
 import { diff, evalAt, frac } from '../mathx';
 import type { Rng } from '../rng';
 import type { GenContext, Generated, Template } from '../types';
-import { integerFallback, numTex, sumTex } from './_econ';
+import { ensure, integerFallback, numTex, sumTex } from './_econ';
 import { assertSame, coef, formulaMcq, lin, linE, termsExpr, termsTex, type FormulaChoice, type Term } from './_fnderiv';
 
 /** f(x) = (a x + b) e^{c x}; asks for f'(0) — product rule + chain rule. */
@@ -159,7 +159,7 @@ function linfracQ(rng: Rng, name: string): FormulaQ {
     pts: pts([-4.3, -1.7, 0.6, 2.9, 7.1].filter((x) => Math.abs(c * x + d) > 0.2)),
     steps:
       `Quotient rule with $u=${lin(a, b)}$, $u'=${a}$ and $v=${v}$, $v'=${c}$: ` +
-      `$$${name}'(x)=\\frac{u'v-uv'}{v^2}=\\frac{${a}\\left(${v}\\right)-${c}\\left(${lin(a, b)}\\right)}{${sq}}=\\frac{${lin(a * c, a * d)}-\\left(${lin(a * c, b * c)}\\right)}{${sq}}=\\frac{${D}}{${sq}}$$`,
+      `$$${name}'(x)=\\frac{u'v-uv'}{v^2}=\\frac{${par(a)}\\left(${v}\\right)-${coef(c)}\\left(${lin(a, b)}\\right)}{${sq}}=\\frac{${lin(a * c, a * d)}-\\left(${lin(a * c, b * c)}\\right)}{${sq}}=\\frac{${D}}{${sq}}$$`,
     x0,
     atX0: `\\frac{${D}}{(${c * x0 + d})^2}`,
     fallback: (i) => {
@@ -247,7 +247,7 @@ function logOverXQ(rng: Rng, name: string): FormulaQ {
       `Quotient rule with $u=${u}$${pow ? ` (note that $${Ls}=${b}\\ln(x)$)` : ''}, $u'=\\frac{${b}}{x}$, and $v=x$, $v'=1$: ` +
       `$$${name}'(x)=\\frac{\\frac{${b}}{x}\\cdot x-\\left(${u}\\right)\\cdot 1}{x^2}=\\frac{${keyNum}}{x^2}$$`,
     x0,
-    atX0: `\\frac{${b - a}-${b}\\ln(${x0})}{${x0 * x0}}`,
+    atX0: `\\frac{${b - a}-${coef(b)}\\ln(${x0})}{${x0 * x0}}`,
     fallback: (i) => {
       const n = b - a + offset(i, b - a);
       return ratio(termsTex([[n, ''], [-Lc, Ls]]), `${n} - ${lnE}`, 'an arithmetic slip in the constant.');
@@ -310,7 +310,7 @@ function lnChainQ(rng: Rng, name: string): FormulaQ {
     pts: pts([-2.1, -0.6, 0.7, 1.9, 3.4]),
     steps:
       `Chain rule: $\\frac{d}{dx}\\ln(u)=\\frac{u'}{u}$ with $u=${p.tex}$ and $u'=${p.d}$${m !== 1 ? `, times the constant $${m}$` : ''}: ` +
-      `$$${name}'(x)=${m !== 1 ? `${m}\\cdot` : ''}\\frac{${p.d}}{${p.tex}}=\\frac{${num1}}{${p.tex}}$$`,
+      `$$${name}'(x)=${m !== 1 ? `${m}\\cdot\\frac{${p.d}}{${p.tex}}=` : ''}\\frac{${num1}}{${p.tex}}$$`,
     x0,
     atX0: `\\frac{${m * (2 * p.a * x0 + p.b)}}{${p.at(x0)}}`,
     fallback: (i) => fc(`\\dfrac{${lin(2 * p.a * m, p.b * m + offset(i, p.b * m))}}{${p.tex}}`, `(${linE(2 * p.a * m, p.b * m + offset(i, p.b * m))})/(${p.expr})`, 'an arithmetic slip in the derivative of the inside.'),
@@ -401,8 +401,8 @@ function recipLnQ(rng: Rng, name: string): FormulaQ {
     ],
     pts: pts([1.1, 1.6, 2.5, 4, 7]),
     steps:
-      `Write $${name}(x)=${k}u^{-1}$ with $u=${den}$ and $u'=\\frac{${b}}{x}$. Chain rule: ` +
-      `$$${name}'(x)=-${k}u^{-2}\\cdot u'=-\\frac{${k}}{\\left(${den}\\right)^2}\\cdot\\frac{${b}}{x}=-\\frac{${k * b}}{x\\left(${den}\\right)^2}$$`,
+      `Write $${name}(x)=${coef(k)}u^{-1}$ with $u=${den}$ and $u'=\\frac{${b}}{x}$. Chain rule: ` +
+      `$$${name}'(x)=-${coef(k)}u^{-2}\\cdot u'=-\\frac{${k}}{\\left(${den}\\right)^2}\\cdot\\frac{${b}}{x}=-\\frac{${k * b}}{x\\left(${den}\\right)^2}$$`,
     x0,
     atX0: `-\\frac{${k * b}}{${x0}\\left(${a}+${b}\\ln(${x0})\\right)^2}`,
     fallback: (i) => {
@@ -502,7 +502,7 @@ function tangentLine({ rng, type, optionCount }: GenContext): Generated {
     fTex = `\\sqrt{${lin(a, b)}}`;
     fExpr = `sqrt(${linE(a, b)})`;
     [y0, m] = [s, a / (2 * s)];
-    deriv = `Chain rule: $$${name}'(x)=\\frac{${a}}{2\\sqrt{${lin(a, b)}}}$$ At $x=${x0}$: $${lin(a, b).replace(/x/g, `\\cdot ${x0}`)}=${s * s}$, so $${name}(${x0})=\\sqrt{${s * s}}=${s}$ and $${name}'(${x0})=\\frac{${a}}{2\\cdot ${s}}=${numTex(m)}$.`;
+    deriv = `Chain rule: $$${name}'(x)=\\frac{${a}}{2\\sqrt{${lin(a, b)}}}$$ At $x=${x0}$: $${a}\\cdot ${x0} ${sgn(b)}=${s * s}$, so $${name}(${x0})=\\sqrt{${s * s}}=${s}$ and $${name}'(${x0})=\\frac{${a}}{2\\cdot ${s}}=${numTex(m)}$.`;
     wrong = [
       { m: 1 / (2 * s), why: `forgets the inner derivative $${a}$, giving slope $${numTex(1 / (2 * s))}$.` },
       { m: a / s, why: `forgets the factor $\\frac12$, giving slope $${numTex(a / s)}$.` },
@@ -510,7 +510,8 @@ function tangentLine({ rng, type, optionCount }: GenContext): Generated {
     ];
   } else {
     const a = rng.sign() * rng.int(1, 5);
-    const b = rng.sign() * rng.int(1, 6);
+    let b = rng.sign() * rng.int(1, 6);
+    if (a + b === 0) b += rng.sign() * 2; // f(1) = a + b ≠ 0 (a tangent through the origin is too degenerate)
     const c = rng.sign() * rng.int(1, 3);
     const ex = `${coef(c)}(x-1)`;
     fTex = `\\left(${lin(a, b)}\\right)e^{${ex}}`;
@@ -525,6 +526,8 @@ function tangentLine({ rng, type, optionCount }: GenContext): Generated {
       { m: a * c, why: `multiplies the two derivatives ($u'v'$), giving slope $${a * c}$.` },
     ];
   }
+  // self-check of the hand-derived value and slope against mathjs
+  ensure(Math.abs(evalAt(fExpr, { x: x0 }) - y0) < 1e-9 && Math.abs(evalAt(diff(fExpr), { x: x0 }) - m) < 1e-9, `tangent at ${fExpr}`);
   const q = y0 - m * x0;
   const pm = (v: number) => (v < 0 ? `-${numTex(-v)}` : `+${numTex(v)}`);
   const explanation = `${deriv}\nThe tangent line is $$y=${name}(${x0})+${name}'(${x0})(x-${x0})=${numTex(y0)}${pm(m)}(x-${x0})$$ which simplifies to $y=${lineTex(m, q)}$.`;
@@ -577,7 +580,7 @@ function tangentParameter({ rng, type, optionCount }: GenContext): Generated {
   const fAt = (x: number) => k * x * x + p * x;
   const explanation =
     `At the touching point the slopes are equal: $${name}'(x)=${lin(2 * k, p)}=${m}$, so $x=${xs}$. ` +
-    `The line passes through $(${xs},\\,${ys})$ because $${m}\\cdot ${par(xs)}${sgn(q)}=${ys}$. ` +
+    `The line passes through $(${xs},\\,${ys})$ because $${m}\\cdot ${par(xs)}${q === 0 ? '' : sgn(q)}=${ys}$. ` +
     `The graph must pass through the same point: $$${name}(${xs})=${fAt(xs)}+a=${ys}\\;\\Rightarrow\\; a=${a}$$`;
   if (type === 'numeric') return { type, stem, instruction: INSTRUCTION.numeric(0), correctAnswer: a, tolerance: 0, explanation };
   const at = (x: number) => m * x + q - fAt(x); // the value of a that makes the graph pass through the line at x
