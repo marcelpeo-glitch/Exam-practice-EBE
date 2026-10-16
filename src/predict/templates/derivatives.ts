@@ -23,8 +23,11 @@ const productExpAtZero: Template = {
     let c = rng.sign() * rng.int(2, 6);
     if (a + c * b === 0) c = -c; // keep the answer non-zero (then a + cb = −2cb ≠ 0) and |c| ≥ 2
     const expr = `(${a}*x + ${b}) * exp(${c}*x)`;
-    // The answer, computed symbolically by mathjs (not by hand): f'(0).
-    const answer = evalAt(diff(expr), { x: 0 });
+    // The answer, computed symbolically by mathjs (not by hand): f'(0). It is an integer (a + bc); rounding removes
+    // floating-point noise, which a numeric question with tolerance 0 could not absorb.
+    const exact = evalAt(diff(expr), { x: 0 });
+    const answer = Math.round(exact);
+    ensure(Math.abs(exact - answer) < 1e-9, `f'(0) of ${expr} is not an integer`);
     const fTex = `f(x)=\\left(${a}x ${sgn(b)}\\right)e^{${c}x}`;
     // A plain function (no context): with negative coefficients a "cost" or "price" would become negative.
     const stem = rng.pick([
@@ -51,7 +54,14 @@ const productExpAtZero: Template = {
         { text: `$${num(b * c)}$`, value: b * c, why: "differentiating only the second factor ($uv'$)." },
         { text: `$${num(b)}$`, value: b, why: "giving $f(0)$ instead of $f'(0)$." },
       ],
-      { count: optionCount, fallback: (i) => ({ text: `$${num(answer + (i + 1) * rng.sign())}$`, value: answer + (i + 1) * rng.sign() }) },
+      {
+        count: optionCount,
+        // one random sign per fallback option, so the printed text and the value used for de-duplication agree
+        fallback: (i) => {
+          const v = answer + (i + 1) * rng.sign();
+          return { text: `$${num(v)}$`, value: v };
+        },
+      },
     );
     return {
       type,
@@ -82,9 +92,9 @@ interface FormulaQ {
   pts: number[][];
   /** Worked derivation ending in the derivative. */
   steps: string;
-  /** Point for the numeric version and f'(x0) with x0 substituted (LaTeX). */
-  x0: number;
-  atX0: string;
+  /** Candidate points for the numeric version (in random order) and f'(x0) with x0 substituted (LaTeX). */
+  x0s: number[];
+  atX0: (x0: number) => string;
   fallback: (i: number) => FormulaChoice;
   stems: string[];
 }
@@ -93,16 +103,19 @@ function finishFormula({ rng, type, optionCount }: GenContext, q: FormulaQ): Gen
   const dExpr = diff(q.fExpr);
   assertSame(q.key.expr, dExpr, q.pts); // the printed key is mathjs' own derivative
   if (type === 'numeric') {
-    const ans = evalAt(dExpr, { x: q.x0 });
+    // The first candidate point whose slope is not tiny: with 3 decimals an answer like 0.004 would keep a single
+    // significant digit (and a rounding slip would decide the mark). Fall back to the steepest candidate.
+    const cands = q.x0s.map((x) => ({ x, ans: evalAt(dExpr, { x }) }));
+    const { x: x0, ans } = cands.find((c) => Math.abs(c.ans) >= 0.02) ?? cands.reduce((m, c) => (Math.abs(c.ans) > Math.abs(m.ans) ? c : m));
     const dp = Math.abs(ans) < 1 ? 3 : 2;
     const f = numericField('value', undefined, ans, dp);
     const stem = rng.pick([
-      `Let $$${q.name}(x)=${q.fTex}$$ Calculate $${q.name}'(${q.x0})$.`,
-      `Find the slope of the graph of $$${q.name}(x)=${q.fTex}$$ at the point where $x=${q.x0}$, that is, the value of $${q.name}'(${q.x0})$.`,
-      `How fast does $$${q.name}(x)=${q.fTex}$$ change at $x=${q.x0}$? Give $${q.name}'(${q.x0})$.`,
+      `Let $$${q.name}(x)=${q.fTex}$$ Calculate $${q.name}'(${x0})$.`,
+      `Find the slope of the graph of $$${q.name}(x)=${q.fTex}$$ at the point where $x=${x0}$, that is, the value of $${q.name}'(${x0})$.`,
+      `How fast does $$${q.name}(x)=${q.fTex}$$ change at $x=${x0}$? Give $${q.name}'(${x0})$.`,
     ]);
     const exact = Math.abs(ans * 10 ** dp - Math.round(ans * 10 ** dp)) < 1e-9;
-    const explanation = `${q.steps}\nSubstitute $x=${q.x0}$: $$${q.name}'(${q.x0})=${q.atX0}${exact ? '=' : '\\approx '}${num(ans, dp)}$$`;
+    const explanation = `${q.steps}\nSubstitute $x=${x0}$: $$${q.name}'(${x0})=${q.atX0(x0)}${exact ? '=' : '\\approx '}${num(ans, dp)}$$`;
     return { type, stem, instruction: INSTRUCTION.numeric(dp), correctAnswer: f.answer, tolerance: f.tolerance, explanation };
   }
   const mcq = formulaMcq(rng, q.key, rng.shuffle(q.distractors), { count: optionCount, pts: q.pts, label: `${q.name}'(x)=`, fallback: q.fallback });
@@ -149,7 +162,7 @@ function linfracQ(rng: Rng, name: string): FormulaQ {
     why,
   });
   const S = a * d + b * c;
-  const x0 = rng.pick([-2, -1, 0, 1, 2, 3].filter((x) => c * x + d !== 0));
+  const x0s = rng.shuffle([-2, -1, 0, 1, 2, 3].filter((x) => c * x + d !== 0));
   return {
     name,
     fTex,
@@ -167,8 +180,8 @@ function linfracQ(rng: Rng, name: string): FormulaQ {
     steps:
       `Quotient rule with $u=${lin(a, b)}$, $u'=${a}$ and $v=${v}$, $v'=${c}$: ` +
       `$$${name}'(x)=\\frac{u'v-uv'}{v^2}=\\frac{${par(a)}\\left(${v}\\right)-${coef(c)}\\left(${lin(a, b)}\\right)}{${sq}}=\\frac{${lin(a * c, a * d)}-\\left(${lin(a * c, b * c)}\\right)}{${sq}}=\\frac{${D}}{${sq}}$$`,
-    x0,
-    atX0: `\\frac{${D}}{(${c * x0 + d})^2}`,
+    x0s,
+    atX0: (x0) => `\\frac{${D}}{(${c * x0 + d})^2}`,
     fallback: (i) => {
       const n = D + offset(i, D);
       return over(String(n), String(n), 'an arithmetic slip in the numerator.');
@@ -195,7 +208,7 @@ function quadRatioQ(rng: Rng, name: string): FormulaQ {
     expr: `(${termsExpr(ts)})/${vE}${squared ? '^2' : ''}`,
     why,
   });
-  const x0 = rng.pick([-2, -1, 1, 2, 3]);
+  const x0s = rng.shuffle([-2, -1, 1, 2, 3]);
   return {
     name,
     fTex,
@@ -213,8 +226,8 @@ function quadRatioQ(rng: Rng, name: string): FormulaQ {
     steps:
       `Quotient rule with $u=${u}$, $u'=${2 * a}x$ and $v=${v}$, $v'=2x$: ` +
       `$$${name}'(x)=\\frac{${2 * a}x\\left(${v}\\right)-2x\\left(${u}\\right)}{${sq}}=\\frac{${termsTex([[2 * a, 'x^3'], [2 * a * k, 'x']])}-\\left(${termsTex([[2 * a, 'x^3'], [2 * b, 'x']])}\\right)}{${sq}}=\\frac{${E}x}{${sq}}$$`,
-    x0,
-    atX0: `\\frac{${E}\\cdot ${par(x0)}}{(${x0 * x0 + k})^2}`,
+    x0s,
+    atX0: (x0) => `\\frac{${E}\\cdot ${par(x0)}}{(${x0 * x0 + k})^2}`,
     fallback: (i) => over([[E + 2 * offset(i, E / 2), 'x']], 'an arithmetic slip in the numerator.'),
     stems: formulaStems(name, fTex, 'quotient rule'),
   };
@@ -235,7 +248,7 @@ function logOverXQ(rng: Rng, name: string): FormulaQ {
   const keyNum = termsTex([[b - a, ''], [-Lc, Ls]]);
   const tail0 = termsTex([[-a, ''], [-Lc, Ls]]);
   const tail = tail0.startsWith('-') ? tail0 : `+${tail0}`;
-  const x0 = rng.pick([2, 3, 4, 5]);
+  const x0s = rng.shuffle([2, 3, 4, 5]);
   return {
     name,
     fTex,
@@ -253,8 +266,8 @@ function logOverXQ(rng: Rng, name: string): FormulaQ {
     steps:
       `Quotient rule with $u=${u}$${pow ? ` (note that $${Ls}=${b}\\ln(x)$)` : ''}, $u'=\\frac{${b}}{x}$, and $v=x$, $v'=1$: ` +
       `$$${name}'(x)=\\frac{\\frac{${b}}{x}\\cdot x-\\left(${u}\\right)\\cdot 1}{x^2}=\\frac{${keyNum}}{x^2}$$`,
-    x0,
-    atX0: `\\frac{${b - a}-${coef(b)}\\ln(${x0})}{${x0 * x0}}`,
+    x0s,
+    atX0: (x0) => `\\frac{${b - a}-${coef(b)}\\ln(${x0})}{${x0 * x0}}`,
     fallback: (i) => {
       const n = b - a + offset(i, b - a);
       return ratio(termsTex([[n, ''], [-Lc, Ls]]), `${n} - ${lnE}`, 'an arithmetic slip in the constant.');
@@ -300,7 +313,7 @@ function lnChainQ(rng: Rng, name: string): FormulaQ {
   const m = rng.pick([1, 1, 2, 3, 5]);
   const fTex = `${coef(m)}\\ln\\left(${p.tex}\\right)`;
   const num1 = lin(2 * p.a * m, p.b * m);
-  const x0 = rng.pick([-2, -1, 1, 2, 3].filter((x) => 2 * p.a * x + p.b !== 0));
+  const x0s = rng.shuffle([-2, -1, 1, 2, 3].filter((x) => 2 * p.a * x + p.b !== 0));
   return {
     name,
     fTex,
@@ -318,8 +331,8 @@ function lnChainQ(rng: Rng, name: string): FormulaQ {
     steps:
       `Chain rule: $\\frac{d}{dx}\\ln(u)=\\frac{u'}{u}$ with $u=${p.tex}$ and $u'=${p.d}$${m !== 1 ? `, times the constant $${m}$` : ''}: ` +
       `$$${name}'(x)=${m !== 1 ? `${m}\\cdot\\frac{${p.d}}{${p.tex}}=` : ''}\\frac{${num1}}{${p.tex}}$$`,
-    x0,
-    atX0: `\\frac{${m * (2 * p.a * x0 + p.b)}}{${p.at(x0)}}`,
+    x0s,
+    atX0: (x0) => `\\frac{${m * (2 * p.a * x0 + p.b)}}{${p.at(x0)}}`,
     fallback: (i) => fc(`\\dfrac{${lin(2 * p.a * m, p.b * m + offset(i, p.b * m))}}{${p.tex}}`, `(${linE(2 * p.a * m, p.b * m + offset(i, p.b * m))})/(${p.expr})`, 'an arithmetic slip in the derivative of the inside.'),
     stems: formulaStems(name, fTex, 'chain rule'),
   };
@@ -330,7 +343,7 @@ function sqrtChainQ(rng: Rng, name: string): FormulaQ {
   const fTex = `\\sqrt{${p.tex}}`;
   const root = `\\sqrt{${p.tex}}`;
   const rootE = `sqrt(${p.expr})`;
-  const x0 = rng.pick([-2, -1, 1, 2, 3].filter((x) => 2 * p.a * x + p.b !== 0));
+  const x0s = rng.shuffle([-2, -1, 1, 2, 3].filter((x) => 2 * p.a * x + p.b !== 0));
   return {
     name,
     fTex,
@@ -346,8 +359,8 @@ function sqrtChainQ(rng: Rng, name: string): FormulaQ {
     pts: pts([-2.1, -0.6, 0.7, 1.9, 3.4]),
     steps:
       `Write $${name}(x)=u^{1/2}$ with $u=${p.tex}$, $u'=${p.d}$. Chain rule: $$${name}'(x)=\\frac12u^{-1/2}\\cdot u'=\\frac{${p.d}}{2${root}}$$`,
-    x0,
-    atX0: `\\frac{${2 * p.a * x0 + p.b}}{2\\sqrt{${p.at(x0)}}}`,
+    x0s,
+    atX0: (x0) => `\\frac{${2 * p.a * x0 + p.b}}{2\\sqrt{${p.at(x0)}}}`,
     fallback: (i) => fc(`\\dfrac{${lin(2 * p.a, p.b + offset(i, p.b))}}{2${root}}`, `(${linE(2 * p.a, p.b + offset(i, p.b))})/(2*${rootE})`, 'an arithmetic slip in the derivative of the inside.'),
     stems: formulaStems(name, fTex, 'chain rule'),
   };
@@ -362,7 +375,8 @@ function expChainQ(rng: Rng, name: string): FormulaQ {
   const d = lin(2 * a, b);
   const dE = linE(2 * a, b);
   const fTex = `e^{${qTex}}`;
-  const x0 = [-1, 1, 2, -2].find((x) => Math.abs(a * x * x + b * x) <= 4 && 2 * a * x + b !== 0) ?? 0;
+  const near = [-1, 1, 2, -2].filter((x) => Math.abs(a * x * x + b * x) <= 4 && 2 * a * x + b !== 0);
+  const x0s = near.length ? near : [0];
   return {
     name,
     fTex,
@@ -378,8 +392,8 @@ function expChainQ(rng: Rng, name: string): FormulaQ {
     ],
     pts: pts([-1.3, -0.4, 0.3, 0.9, 1.6]),
     steps: `Chain rule: $\\frac{d}{dx}e^{u}=e^{u}\\cdot u'$ with $u=${qTex}$ and $u'=${d}$: $$${name}'(x)=\\left(${d}\\right)e^{${qTex}}$$`,
-    x0,
-    atX0: `(${2 * a * x0 + b})\\,e^{${a * x0 * x0 + b * x0}}`,
+    x0s,
+    atX0: (x0) => `(${2 * a * x0 + b})\\,e^{${a * x0 * x0 + b * x0}}`,
     fallback: (i) => fc(`\\left(${lin(2 * a, b + offset(i, b))}\\right)e^{${qTex}}`, `(${linE(2 * a, b + offset(i, b))})*exp(${qE})`, 'an arithmetic slip in the derivative of the exponent.'),
     stems: formulaStems(name, fTex, 'chain rule'),
   };
@@ -392,7 +406,7 @@ function recipLnQ(rng: Rng, name: string): FormulaQ {
   const den = `${a}+${coef(b)}\\ln(x)`;
   const denE = `(${a} + ${b}*log(x))`;
   const fTex = `\\dfrac{${k}}{${den}}`;
-  const x0 = rng.pick([1, 2, 3]);
+  const x0s = rng.shuffle([1, 2, 3]);
   return {
     name,
     fTex,
@@ -410,8 +424,8 @@ function recipLnQ(rng: Rng, name: string): FormulaQ {
     steps:
       `Write $${name}(x)=${coef(k)}u^{-1}$ with $u=${den}$ and $u'=\\frac{${b}}{x}$. Chain rule: ` +
       `$$${name}'(x)=-${coef(k)}u^{-2}\\cdot u'=-\\frac{${k}}{\\left(${den}\\right)^2}\\cdot\\frac{${b}}{x}=-\\frac{${k * b}}{x\\left(${den}\\right)^2}$$`,
-    x0,
-    atX0: x0 === 1 ? `-\\frac{${k * b}}{1\\cdot\\left(${a}+${coef(b)}\\ln(1)\\right)^2}=-\\frac{${k * b}}{${a * a}}` : `-\\frac{${k * b}}{${x0}\\left(${a}+${coef(b)}\\ln(${x0})\\right)^2}`,
+    x0s,
+    atX0: (x0) => x0 === 1 ? `-\\frac{${k * b}}{1\\cdot\\left(${a}+${coef(b)}\\ln(1)\\right)^2}=-\\frac{${k * b}}{${a * a}}` : `-\\frac{${k * b}}{${x0}\\left(${a}+${coef(b)}\\ln(${x0})\\right)^2}`,
     fallback: (i) => {
       const n = k * b + offset(i, k * b);
       return fc(`-\\dfrac{${n}}{x\\left(${den}\\right)^2}`, `-${n}/(x*${denE}^2)`, 'an arithmetic slip in the constant.');
@@ -509,7 +523,7 @@ function tangentLine({ rng, type, optionCount }: GenContext): Generated {
     fTex = `\\sqrt{${lin(a, b)}}`;
     fExpr = `sqrt(${linE(a, b)})`;
     [y0, m] = [s, a / (2 * s)];
-    deriv = `Chain rule: $$${name}'(x)=\\frac{${a}}{2\\sqrt{${lin(a, b)}}}$$ At $x=${x0}$: $${a}\\cdot ${x0} ${sgn(b)}=${s * s}$, so $${name}(${x0})=\\sqrt{${s * s}}=${s}$ and $${name}'(${x0})=\\frac{${a}}{2\\cdot ${s}}=${numTex(m)}$.`;
+    deriv = `Chain rule: $$${name}'(x)=\\frac{${a}}{2\\sqrt{${lin(a, b)}}}$$ At $x=${x0}$: $${a}\\cdot ${x0}${b === 0 ? '' : ` ${sgn(b)}`}=${s * s}$, so $${name}(${x0})=\\sqrt{${s * s}}=${s}$ and $${name}'(${x0})=\\frac{${a}}{2\\cdot ${s}}=${numTex(m)}$.`;
     wrong = [
       { m: 1 / (2 * s), why: `forgets the inner derivative $${a}$, giving slope $${numTex(1 / (2 * s))}$.` },
       { m: a / s, why: `forgets the factor $\\frac12$, giving slope $${numTex(a / s)}$.` },
@@ -611,26 +625,33 @@ function tangentParameter({ rng, type, optionCount }: GenContext): Generated {
 }
 
 const MARGINAL = [
-  { x: 'p', y: 'v', xd: 'the ticket price $p$ (in euros) of a theme park', yd: 'the number of visitors $v$ (in hundreds per day)', yw: 'number of visitors', unit: 'hundred visitors', inc: false },
-  { x: 'w', y: 'R', xd: 'the cargo weight $w$ (in kg) of a delivery drone', yd: 'its range $R$ (in km)', yw: 'range', unit: 'km', inc: false },
-  { x: 's', y: 'T', xd: 'the number of staff hours $s$ per day at a help desk', yd: 'the average waiting time $T$ (in minutes)', yw: 'waiting time', unit: 'minutes', inc: false },
-  { x: 'b', y: 'S', xd: 'the advertising budget $b$ (in thousands of euros)', yd: 'the weekly sales $S$ (in thousands of units)', yw: 'weekly sales', unit: 'thousand units', inc: true },
-  { x: 'h', y: 'G', xd: 'the number of study hours $h$', yd: 'the expected exam grade $G$', yw: 'expected grade', unit: 'grade points', inc: true },
-  { x: 'd', y: 'Y', xd: 'the dose of fertiliser $d$ (in kg per hectare)', yd: 'the crop yield $Y$ (in tonnes per hectare)', yw: 'yield', unit: 'tonnes per hectare', inc: true },
+  { x: 'p', y: 'v', xd: 'the ticket price $p$ (in euros) of a theme park', yd: 'the number of visitors $v$ (in hundreds per day)', yw: 'number of visitors', unit: 'hundred visitors', inc: false, max: Infinity },
+  { x: 'w', y: 'R', xd: 'the cargo weight $w$ (in kg) of a delivery drone', yd: 'its range $R$ (in km)', yw: 'range', unit: 'km', inc: false, max: Infinity },
+  { x: 's', y: 'T', xd: 'the number of staff hours $s$ per day at a help desk', yd: 'the average waiting time $T$ (in minutes)', yw: 'waiting time', unit: 'minutes', inc: false, max: Infinity },
+  // "volume" keeps the subject singular ("the weekly sales volume increases", not "the weekly sales increases")
+  { x: 'b', y: 'S', xd: 'the advertising budget $b$ (in thousands of euros)', yd: 'the weekly sales volume $S$ (in thousands of units)', yw: 'weekly sales volume', unit: 'thousand units', inc: true, max: Infinity },
+  { x: 'h', y: 'G', xd: 'the number of study hours $h$', yd: 'the expected exam grade $G$ (on a scale from 1 to 10)', yw: 'expected grade', unit: 'grade points', inc: true, max: 10 },
+  { x: 'd', y: 'Y', xd: 'the dose of fertiliser $d$ (in kg per hectare)', yd: 'the crop yield $Y$ (in tonnes per hectare)', yw: 'yield', unit: 'tonnes per hectare', inc: true, max: Infinity },
 ] as const;
 
 function marginalApprox({ rng, type, optionCount }: GenContext): Generated {
   const c = rng.pick(MARGINAL);
-  let D: number, A: number, dmag: number, C: number;
-  do {
+  let D: number, A: number, dmag: number, C: number, B: number, dx: number;
+  for (;;) {
     D = rng.pick([10, 20, 25, 40, 50]);
     A = rng.pick([2, 4, 5, 8, 10].filter((v) => v < D));
     dmag = rng.pick([0.04, 0.05, 0.06, 0.08, 0.1, 0.12, 0.15, 0.2, 0.25, 0.3, 0.4]);
     C = Math.round(dmag * D * D);
-  } while (Math.abs(C - dmag * D * D) > 1e-9 || C / D < 2.5);
+    if (Math.abs(C - dmag * D * D) > 1e-9 || C / D < 2.5) continue;
+    B = c.inc ? Math.ceil(C / D) + rng.int(1, 8) : rng.int(1, Math.floor(C / D - 1));
+    dx = rng.pick([1, 2, 5, -1, -2, -5, 0.5, -0.5].filter((v) => D - A + v > 0));
+    // The quantity must stay meaningful at both points and after the linear approximation: at least 1 unit (no
+    // negative waiting times, yields or ranges) and at most the top of its scale (a grade of at most 10).
+    const yAt = (x: number) => (c.inc ? B - C / (x + A) : C / (x + A) - B);
+    const vals = [yAt(D - A), yAt(D - A + dx), yAt(D - A) + (c.inc ? 1 : -1) * dmag * dx];
+    if (vals.every((y) => y >= 1 && y <= c.max)) break;
+  }
   const x0 = D - A;
-  const B = c.inc ? Math.ceil(C / D) + rng.int(1, 8) : rng.int(1, Math.floor(C / D - 1));
-  const dx = rng.pick([1, 2, 5, -1, -2, -5, 0.5, -0.5].filter((v) => x0 + v > 0));
   const slope = (c.inc ? 1 : -1) * dmag; // y'(x0) = ±C/(x0 + A)²
   const v = slope * dx;
   const dp = Math.abs(v) < 0.1 ? 3 : 2;

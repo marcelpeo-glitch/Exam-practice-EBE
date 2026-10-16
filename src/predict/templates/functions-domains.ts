@@ -100,18 +100,11 @@ const quadratic: Template = {
       const statements = cands.map((v) => {
         const arg = evalAt(argExpr, { x: v });
         const ok = key.some((i) => (v > i.lo || (i.lc && v === i.lo)) && (v < i.hi || (i.hc && v === i.hi)));
-        const state = arg > 0 ? 'positive' : arg === 0 ? 'zero' : 'negative';
-        const verdict =
+        const why =
           arg === 0
-            ? outer === 'sqrt'
-              ? '$\\sqrt{0}=0$ is defined, so it belongs to the domain.'
-              : outer === 'ln'
-                ? '$\\ln(0)$ is not defined.'
-                : 'the denominator $\\sqrt{0}$ is zero.'
-            : arg > 0
-              ? 'so it belongs to the domain.'
-              : 'so it does not belong to the domain.';
-        return { text: `$x=${num(v)}$`, correct: ok, why: `the argument is $${num(arg)}$ (${state}); ${verdict}` };
+            ? `the argument is $0$; ${outer === 'sqrt' ? '$\\sqrt{0}=0$ is defined, so it belongs to the domain.' : outer === 'ln' ? '$\\ln(0)$ is not defined.' : 'then the denominator $\\sqrt{0}$ is zero.'}`
+            : `the argument is $${num(arg)}$ (${arg > 0 ? 'positive' : 'negative'}), so it ${arg > 0 ? 'belongs' : 'does not belong'} to the domain.`;
+        return { text: `$x=${num(v)}$`, correct: ok, why };
       });
       const multi = buildMulti(rng, statements, optionCount);
       const stem = `Consider the function $$${name}(x)=${fTex}$$ Which of the following values of $x$ lie in the domain of $${name}$?`;
@@ -208,7 +201,7 @@ const excludedPoint: Template = {
       explanation =
         `Two conditions. The logarithm needs a positive argument: $${axTex}>0$${a === 1 ? '' : ', so $x>0$'}. The denominator must not be zero: ` +
         `$$\\ln(${axTex})${c > 0 ? '+' : '-'}${Math.abs(c)}=0 \\iff \\ln(${axTex})=${-c} \\iff ${axTex}=${expTex(-c)}${a === 1 ? '' : ` \\iff x=\\frac{${expTex(-c)}}{${a}}`}$$` +
-        `So $x=${x0Tex}\\approx ${num(x0, 3)}$ must be left out. The domain is $${setTex(key)}$.`;
+        `So $x=${x0Tex}\\approx ${num(x0, 4)}$ must be left out. The domain is $${setTex(key)}$.`;
       const xs = Math.exp(c) / a;
       const xsTex = a === 1 ? expTex(c) : `\\frac{${expTex(c)}}{${a}}`;
       d = [
@@ -231,7 +224,7 @@ const excludedPoint: Template = {
       where = `$x>${h}$`;
       explanation =
         `The logarithm needs $${lin(1, -h)}>0$, so $x>${h}$. The denominator must not be zero: ` +
-        `$$\\ln\\left(${lin(1, -h)}\\right)=${-c} \\iff ${lin(1, -h)}=${expTex(-c)} \\iff x=${x0Tex}\\approx ${num(x0, 3)}$$\n` +
+        `$$\\ln\\left(${lin(1, -h)}\\right)=${-c} \\iff ${lin(1, -h)}=${expTex(-c)} \\iff x=${x0Tex}\\approx ${num(x0, 4)}$$\n` +
         `The domain is $${setTex(key)}$.`;
       const xs = h + Math.exp(c);
       const xsTex = `${h}+${expTex(c)}`;
@@ -256,7 +249,7 @@ const excludedPoint: Template = {
       where = 'every real $x$';
       explanation =
         `The exponential function is defined for every $x$, so the only condition is that the denominator is not zero: ` +
-        `$$${eTex}=${kk} \\iff ${a === 1 ? 'x' : `${a}x`}=\\ln(${kk})${a === 1 ? '' : ` \\iff x=\\frac{\\ln(${kk})}{${a}}`}\\approx ${num(x0, 3)}$$\n` +
+        `$$${eTex}=${kk} \\iff ${a === 1 ? 'x' : `${a}x`}=\\ln(${kk})${a === 1 ? '' : ` \\iff x=\\frac{\\ln(${kk})}{${a}}`}\\approx ${num(x0, 4)}$$\n` +
         `The domain is $${setTex(key)}$.`;
       const kx = kk / a;
       const kxTex = a === 1 ? String(kk) : `\\frac{${kk}}{${a}}`;
@@ -272,10 +265,12 @@ const excludedPoint: Template = {
     assertDomain(realFn(fExpr), key);
 
     if (type === 'numeric') {
-      const dp = x0 < 1 ? 3 : 2;
+      const dp = Math.abs(x0) < 1 ? 3 : 2;
       const stem = `The function $$${name}(x)=${fTex}$$ is defined for ${where} except for exactly one value $x_0$. Calculate $x_0$.`;
       const f = numericField('x0', undefined, x0, dp);
-      return { type, stem, instruction: INSTRUCTION.numeric(dp), correctAnswer: f.answer, tolerance: f.tolerance, explanation };
+      // The worked solution shows x0 to 4 decimals; state the rounded answer explicitly (no double rounding).
+      const rounded = `\nRounded to ${dp} decimals: $x_0\\approx ${num(x0, dp)}$.`;
+      return { type, stem, instruction: INSTRUCTION.numeric(dp), correctAnswer: f.answer, tolerance: f.tolerance, explanation: explanation + rounded };
     }
     const mcq = setMcq(rng, key, rng.shuffle(d), optionCount);
     const stem = rng.pick([

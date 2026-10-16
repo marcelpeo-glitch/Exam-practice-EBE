@@ -28,11 +28,16 @@ describe('derivatives.product-exp-at-zero', () => {
       for (const o of g.options!) if (o.id !== g.correctAnswer) expect(Math.abs(value(o.id) - expected)).toBeGreaterThan(0.5);
     }
   });
-  it('numeric version has the same key', () => {
-    const g = t.generate({ rng: makeRng(7), type: 'numeric', optionCount: 5 });
-    const m = g.stem.match(/\\left\((-?\d+)x ([+-]) (\d+)\\right\)e\^\{(-?\d+)x\}/)!;
-    const [a, b, c] = [Number(m[1]), Number(m[2] + m[3]), Number(m[4])];
-    expect(g.correctAnswer).toBeCloseTo(a + b * c, 9);
+  it("numeric: the key is an exact integer equal to a numerical f'(0) of the printed function", () => {
+    for (let seed = 1; seed <= SEEDS; seed++) {
+      const g = t.generate({ rng: makeRng(seed), type: 'numeric', optionCount: seed % 2 ? 5 : 4 });
+      const m = g.stem.match(/\\left\((-?\d+)x ([+-]) (\d+)\\right\)e\^\{(-?\d+)x\}/)!;
+      const [a, b, c] = [Number(m[1]), Number(m[2] + m[3]), Number(m[4])];
+      const expected = numDiff((x) => (a * x + b) * Math.exp(c * x), 0);
+      expect(g.tolerance, g.stem).toBe(0);
+      expect(Number.isInteger(g.correctAnswer), `${g.correctAnswer}`).toBe(true); // tolerance 0 needs an exact integer
+      expect(Math.abs((g.correctAnswer as number) - expected), g.stem).toBeLessThan(1e-4);
+    }
   });
 });
 
@@ -64,6 +69,8 @@ function checkNumericDerivative(g: Generated) {
   const { f } = printed(g);
   const x0 = Number(/'\((-?[\d.]+)\)/.exec(g.stem)![1]);
   expect(Math.abs((g.correctAnswer as number) - numDiff(f, x0)), g.stem).toBeLessThanOrEqual(g.tolerance! + 1e-7);
+  // not a near-zero slope that would keep a single significant digit at 3 decimals
+  expect(Math.abs(g.correctAnswer as number), g.stem).toBeGreaterThanOrEqual(0.02);
 }
 
 /** Cubic Hermite interpolation through (x_i, y_i) with slopes d_i (unit spacing), extrapolated by the end pieces. */
@@ -138,8 +145,8 @@ function touches(g: Generated, a: number): boolean {
   return Math.abs(h(xs)) < 1e-6;
 }
 
-/** Linear approximation from the printed relation (x + A)(y + B) = C or (x + A)(B − y) = C. */
-function marginalChange(g: Generated): number {
+/** The printed relation (x + A)(y + B) = C or (x + A)(B − y) = C solved for y, and the two x-values of the stem. */
+function marginalModel(g: Generated) {
   const r = /\\left\(([a-zA-Z])\+(\d+)\\right\)\\left\((?:([a-zA-Z])\+(\d+)|(\d+)-([a-zA-Z]))\\right\)=(\d+)/.exec(g.stem)!;
   const A = Number(r[2]);
   const C = Number(r[7]);
@@ -148,7 +155,19 @@ function marginalChange(g: Generated): number {
   const x1 = 3.7;
   expect(r[3] ? (x1 + A) * (y(x1) + Number(r[4])) : (x1 + A) * (Number(r[5]) - y(x1))).toBeCloseTo(C, 9);
   const [, from, to] = /from \$(-?[\d.]+)\$ to \$(-?[\d.]+)\$/.exec(g.stem)!.map(Number);
+  return { y, from, to };
+}
+
+/** Linear approximation of the change, from a numerical derivative of the printed relation solved for y. */
+function marginalChange(g: Generated): number {
+  const { y, from, to } = marginalModel(g);
   return numDiff(y, from) * (to - from);
+}
+
+/** Values of the modelled quantity at the two x-values of the stem. */
+function marginalValues(g: Generated) {
+  const { y, from, to } = marginalModel(g);
+  return { from: y(from), to: y(to) };
 }
 
 const changeIn = (text: string) => {
@@ -193,6 +212,11 @@ describe('derivatives.tangent-line', () => {
           exact = y0 - m * x0;
         } else exact = marginalChange(g);
         expect(Math.abs(ans - exact), g.stem).toBeLessThanOrEqual(g.tolerance! + 1e-7);
+      }
+      if (kind === 'marginal') {
+        // the modelled quantity stays meaningful: at least 1 unit at both points and after the approximation
+        const v = marginalValues(g);
+        for (const y of [v.from, v.to, v.from + (g.correctAnswer as number)]) expect(y, g.stem).toBeGreaterThanOrEqual(0.99); // (answer rounded)
       }
     }
   });

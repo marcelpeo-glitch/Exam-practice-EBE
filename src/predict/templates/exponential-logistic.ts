@@ -56,7 +56,7 @@ const percentageGrowth: Template = {
     const target = grow ? `${num(k)} times as large as on 1 January ${Y0}` : `below ${pct}% of its level on 1 January ${Y0}`;
     const explanation =
       `Each year the level is multiplied by $g=1${grow ? '+' : '-'}${num(r)}=${num(g)}$, so after $t$ years it equals $N_0\\cdot ${num(g)}^{t}$. ` +
-      `Solve $${num(g)}^{t}=${num(k)}$: $$t=\\frac{\\ln(${num(k)})}{\\ln(${num(g)})}=\\frac{${num(ln(k), 4)}}{${num(ln(g), 4)}}\\approx ${num(t, 2)}$$` +
+      `Solve $${num(g)}^{t}=${num(k)}$: $$t=\\frac{\\ln(${num(k)})}{\\ln(${num(g)})}=\\frac{${num(ln(k), 6)}}{${num(ln(g), 6)}}\\approx ${num(t, 2)}$$` +
       `So the level is reached about ${num(t, 2)} years after 1 January ${Y0}. ` +
       `Check: after ${n} years the factor is $${num(g)}^{${n}}\\approx ${num(g ** n, 3)}$ and after ${n + 1} years $${num(g)}^{${n + 1}}\\approx ${num(g ** (n + 1), 3)}$, so it happens during **${year}**.`;
     if (type === 'numeric') {

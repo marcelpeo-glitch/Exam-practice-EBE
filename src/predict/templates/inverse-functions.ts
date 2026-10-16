@@ -55,7 +55,8 @@ function numericLF(name: string, a: number, b: number, c: number, d: number, y0:
   const exact = Math.abs(x0 * 1e4 - Math.round(x0 * 1e4)) < 1e-6;
   const steps = [`\\dfrac{${b}-(${d})(${y0})}{(${c})(${y0})-(${a})}`, `\\dfrac{${N}}{${Dn}}`];
   const g = gcd(N, Dn);
-  if (g > 1 && Math.abs(Dn / g) !== 1) steps.push(frac(N, Dn));
+  // reduced fraction (also when only the sign moves to the front, e.g. 7/(−3) → −7/3); integers go straight to the value
+  if (Math.abs(Dn / g) !== 1 && (g > 1 || Dn < 0)) steps.push(frac(N, Dn));
   const value = exact ? `=${num(x0, 4)}` : `\\approx ${num(x0, 4)}`;
   return `With $y=${y0}$: $$${name}^{-1}(${y0})=${steps.join('=')}${value}$$ Check: $${name}(${num(x0, 4)})${exact ? '=' : '\\approx '}${num(realFn(fExpr)(x0), 4)}$.`;
 }
@@ -515,7 +516,8 @@ const inverseDemand: Template = {
         { tex: `\\ln\\left(\\dfrac{${A}}{q}\\right)`, expr: `log(${A}/q)`, why: `forgets to divide by $${k}$.` },
       ];
       ps = [2, 5, 10, 20, 30];
-      const m = rng.pick([2, 4, 5, 8, 10]);
+      // keep the price realistic for everyday goods (at most about €40): p0 = ln(m)/k
+      const m = rng.pick([2, 4, 5, 8, 10].filter((v) => Math.log(v) / k <= 40));
       q0 = A / m;
       p0 = Math.log(m) / k;
       dp = 2;

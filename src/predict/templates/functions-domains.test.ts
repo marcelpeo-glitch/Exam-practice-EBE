@@ -87,6 +87,8 @@ describe('functions-domains.excluded-point', () => {
       }
       expect(poles.length, `poles of ${g.stem}`).toBe(1);
       expect(Math.abs(poles[0] - (g.correctAnswer as number))).toBeLessThanOrEqual(g.tolerance!);
+      // the worked solution ends with the same rounded value as the key (no double rounding such as 3.6945 → 3.695)
+      expect(g.explanation).toContain(`x_0\\approx ${g.correctAnswer}$`);
     }
   });
 });

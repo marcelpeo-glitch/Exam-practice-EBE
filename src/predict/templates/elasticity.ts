@@ -474,7 +474,7 @@ const valueAtPoint: Template = {
       rng,
       { text: fmt(E), value: E },
       rng.shuffle(mistakes).map((m) => ({ text: fmt(m.value), value: m.value, why: m.why })),
-      { count: optionCount, order: 'ascending', fallback: scaledFallback(E, fmt, 0.3), epsilon: 0.02 },
+      { count: optionCount, order: 'ascending', fallback: scaledFallback(E, fmt, 0.3), epsilon: 0.05 },
     );
     return choiceQuestion(stem, mcq, explanation);
   },
@@ -883,7 +883,7 @@ const percentChange: Template = {
       rng,
       { text: pct(key), value: key },
       mistakes.map((m) => ({ text: pct(m.value), value: m.value, why: m.why })),
-      { count: optionCount, fallback: scaledFallback(key, pct, 0.4), epsilon: 0.01 },
+      { count: optionCount, fallback: scaledFallback(key, pct, 0.4), epsilon: 0.1 },
     );
     return choiceQuestion(stem + ` The percentage change of ${subject} is`, mcq, explanation);
   },
@@ -1261,12 +1261,13 @@ const solveFor: Template = {
       const El = elasticityAt(`x^${n}*exp(-${c}*x)`, 'x', { x: key });
       if (Math.abs(El - kk) > 1e-9) throw new Error('xexp: elasticity check failed');
       keyText = `$x=${num(key, 2)}$`;
+      const cx = c === 1 ? 'x' : `${num(c)}x`; // no "e^{-1x}"
       stem =
-        `The yield of a crop (in tonnes) depends on the amount of fertiliser $x>0$ (in 100 kg) as $f(x)=x^{${n}}e^{-${num(c)}x}$. ` +
+        `The yield of a crop (in tonnes) depends on the amount of fertiliser $x>0$ (in 100 kg) as $f(x)=x^{${n}}e^{-${cx}}$. ` +
         `For which amount of fertiliser is the elasticity of the yield with respect to $x$ equal to $${num(kk)}$?`;
       explanation =
-        `$f'(x)=${n}x^{${n - 1}}e^{-${num(c)}x}-${num(c)}x^{${n}}e^{-${num(c)}x}$, so $$El_x f(x)=\\frac{x\\,f'(x)}{f(x)}=${n}-${num(c)}x.$$` +
-        `Setting $${n}-${num(c)}x=${num(kk)}$ gives $x=\\frac{${sumTex([[n, ''], [-kk, '']])}}{${num(c)}}=${num(key, 4)}$.`;
+        `$f'(x)=${n}${powTex('x', n - 1)}e^{-${cx}}-${cx}^{${n}}e^{-${cx}}$, so $$El_x f(x)=\\frac{x\\,f'(x)}{f(x)}=${n}-${cx}.$$` +
+        `Setting $${n}-${cx}=${num(kk)}$ gives $x=\\frac{${sumTex([[n, ''], [-kk, '']])}}{${num(c)}}=${num(key, 4)}$.`;
       mistakes = [
         { value: (n + kk) / c, why: 'a sign error when moving $k$ to the other side.' },
         { value: (n - kk) * c, why: 'multiplying by $c$ instead of dividing.' },

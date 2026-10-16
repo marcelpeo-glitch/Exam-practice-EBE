@@ -25,14 +25,14 @@ function finish(
   type: GenType,
   rng: Rng,
   optionCount: number,
-  q: { stem: string; key: number; dp: number; explanation: string; mistakes: Mistake[]; fmt: (v: number) => string; intervals?: boolean },
+  q: { stem: string; key: number; dp: number; explanation: string; mistakes: Mistake[]; fmt: (v: number) => string; intervals?: boolean; epsilon?: number },
 ): Generated {
   if (type === 'numeric') return numericQuestion(q.stem, q.key, q.dp, q.explanation);
   if (q.intervals) {
     const mcq = intervalMcq(rng, q.key, q.mistakes, optionCount, { format: amountIntervals((x) => euro(x, 0)), kind: 'amount' });
     if (mcq) return choiceQuestion(q.stem, mcq, q.explanation);
   }
-  const mcq = valueMcq(rng, q.key, q.mistakes, optionCount, q.fmt, { positive: true, fallback: slip(q.key, q.fmt) });
+  const mcq = valueMcq(rng, q.key, q.mistakes, optionCount, q.fmt, { positive: true, fallback: slip(q.key, q.fmt), epsilon: q.epsilon });
   return choiceQuestion(q.stem, mcq, q.explanation);
 }
 
@@ -81,7 +81,7 @@ const equilibrium: Template = {
       stem = `On the market for ${good}, demand and supply (both in ${unit}) depend on the price $p$ in euros: $$d(p)=${a}-${coefTex(b)}\\sqrt{p}$$ $$s(p)=${coefTex(c)}\\sqrt{p}$$ ${ask}`;
       explanation =
         `Equilibrium means $d(p)=s(p)$: $$${a}-${coefTex(b)}\\sqrt{p}=${coefTex(c)}\\sqrt{p} \\;\\Rightarrow\\; ${a}=${numTex(b + c)}\\sqrt{p} \\;\\Rightarrow\\; \\sqrt{p}=\\frac{${a}}{${b + c}}=${s0} \\;\\Rightarrow\\; p=${s0}^2=${key}$$` +
-        `Check: $d(${key})=${a}-${times(b)}${s0}=${num(d(key))}$ and $s(${key})=${times(c)}${s0}=${num(c * s0)}$.`;
+        `Check: $d(${key})=${a}-${times(b)}${s0}=${num(d(key))}$ and $s(${key})=${c === 1 ? s0 : `${times(c)}${s0}=${num(c * s0)}`}$.`;
       mistakes = [
         { value: s0, why: 'solves for $\\sqrt{p}$ but forgets to square.' },
         { value: (a / Math.abs(c - b)) ** 2, why: 'subtracts the coefficients of $\\sqrt{p}$ instead of adding them (sign error when moving a term).' },
@@ -105,12 +105,12 @@ const equilibrium: Template = {
         k === 0.5
           ? `so $\\sqrt{p}=${u0}$ and $p=${u0}^2=${key}$.`
           : k === 1
-            ? `so $p=${u0}$.`
+            ? ''
             : `so $p\\sqrt{p}=p^{3/2}=${u0}$ and $p=${u0}^{2/3}=\\left(\\sqrt[3]{${u0}}\\right)^2=${Math.cbrt(u0)}^2=${key}$.`;
       explanation =
         (k === 1 ? '' : `Write $u=${uTex}$ (so $u>0$). `) +
         `Equilibrium: $$\\frac{${A}}{${v}}=${v}-${B} \\;\\Rightarrow\\; ${A}=${v}^2-${B}${v} \\;\\Rightarrow\\; ${v}^2-${B}${v}-${A}=0 \\;\\Rightarrow\\; (${v}-${u0})(${v}+${w})=0$$` +
-        `Since $${v}>0$, $${v}=${u0}$, ${back} Check: $d(${key})=\\frac{${A}}{${u0}}=${w}$ and $s(${key})=${u0}-${B}=${w}$.`;
+        `Since $${v}>0$, $${v}=${u0}$${k === 1 ? '.' : `, ${back}`} Check: $d(${key})=\\frac{${A}}{${u0}}=${w}$ and $s(${key})=${u0}-${B}=${w}$.`;
       mistakes = [
         ...(k !== 1 ? [{ value: u0, why: `solves for $u=${uTex}$ but forgets to turn $u=${u0}$ back into a price.` }] : []),
         { value: toP(w), why: `sign error in the quadratic equation ($${v}^2+${B}${v}-${A}=0$), which gives $${v}=${w}$.` },
@@ -340,14 +340,15 @@ const optimum: Template = {
 // 3. Inventory: ordering costs vs holding costs (EOQ)
 // =====================================================================================================================
 
+/** Shop, item (plural) and a realistic range for the value of one unit in euros. */
 const SHOPS = [
-  ['A bicycle shop', 'e-bikes'],
-  ['A music store', 'pianos'],
-  ['A kitchen-appliance retailer', 'espresso machines'],
-  ['An electronics store', 'gaming laptops'],
-  ['A garden centre', 'garden sheds'],
-  ['A scooter dealer', 'electric scooters'],
-  ['A furniture store', 'leather sofas'],
+  ['A bicycle shop', 'e-bikes', 1000, 3000],
+  ['A music store', 'digital pianos', 500, 2500],
+  ['A kitchen-appliance retailer', 'espresso machines', 200, 1500],
+  ['An electronics store', 'gaming laptops', 800, 3000],
+  ['A garden centre', 'garden sheds', 300, 2500],
+  ['A scooter dealer', 'electric scooters', 300, 1500],
+  ['A furniture store', 'leather sofas', 800, 3000],
 ] as const;
 const RATES = [0.04, 0.05, 0.08, 0.1, 0.12, 0.15, 0.2, 0.25];
 const VALUES = [200, 250, 300, 400, 500, 600, 800, 1000, 1200, 1500, 2000, 2400, 2500, 3000];
@@ -360,7 +361,8 @@ const inventory: Template = {
   types: ['single-choice', 'numeric'],
   difficulty: 2,
   generate({ rng, type, optionCount }) {
-    const [shop, item] = rng.pick(SHOPS);
+    const [shop, item, vLo, vHi] = rng.pick(SHOPS);
+    const values = VALUES.filter((x) => x >= vLo && x <= vHi);
     let D = 0,
       K = 0,
       r = 0,
@@ -370,7 +372,7 @@ const inventory: Template = {
     for (let tries = 0; !D; tries++) {
       if (tries > 1000) throw new Error('inventory: no suitable numbers');
       r = rng.pick(RATES);
-      v = rng.pick(VALUES);
+      v = rng.pick(values);
       h = round(r * v, 6);
       xs = rng.int(4, 16);
       const ks = ORDER_COSTS.filter((k) => {
@@ -413,7 +415,7 @@ const inventory: Template = {
       const stem = `${intro} Suppose the shop orders $x=${x}$ ${item} each time. What are its yearly ordering costs and its yearly holding costs?`;
       const explanation =
         `With $x=${x}$ there are $\\frac{${D}}{${x}}=${D / x}$ orders per year, costing $${D / x}\\cdot ${K}=${num(o)}$ euros. ` +
-        `The average stock is $\\frac{${x}}{2}=${num(x / 2)}$ ${item}, worth $${num(x / 2)}\\cdot ${v}=${num((x * v) / 2)}$ euros; ${pct}% of that is $${num(hc)}$ euros. ` +
+        `The average stock is $\\frac{${x}}{2}=${num(x / 2)}$ ${x === 2 ? item.slice(0, -1) : item}, worth $${num(x / 2)}\\cdot ${v}=${num((x * v) / 2)}$ euros; ${pct}% of that is $${num(hc)}$ euros. ` +
         `In general, ${model.replace('There are', 'there are')}`;
       if (type === 'numeric')
         return {
@@ -480,6 +482,7 @@ const inventory: Template = {
       dp: 2,
       explanation,
       fmt: (n) => euro(n, 2),
+      epsilon: 0.05,
       mistakes: [
         { value: total / 2, why: 'gives only the ordering costs (or only the holding costs) at the optimum.' },
         { value: (K * D) / xs + h * xs, why: 'takes the whole order as the average stock when computing the holding costs.' },

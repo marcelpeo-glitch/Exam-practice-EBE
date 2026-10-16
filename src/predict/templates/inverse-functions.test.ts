@@ -114,6 +114,9 @@ describe('inverse functions: numeric answers solve f(x) = y0 for the printed fun
       const g = gen('inverse-functions.inverse-demand', seed, 'numeric');
       const maths = inlineMath(g.stem);
       checkNumeric(g, texFn(maths[maths.length - 1])({}), 1e-9, 200, 'p');
+      // a realistic price for everyday goods
+      expect(g.correctAnswer as number, g.stem).toBeGreaterThan(0);
+      expect(g.correctAnswer as number, g.stem).toBeLessThanOrEqual(40);
     }
   });
 });

@@ -74,6 +74,8 @@ describe('elasticity.partial-power', () => {
       const g = gen('elasticity.partial-power', seed, 'numeric');
       const { el, pts } = read(g);
       for (const p of pts) expect(Math.abs((g.correctAnswer as number) - el(p.x, p.y)), `seed ${seed}`).toBeLessThanOrEqual(g.tolerance! + 1e-6);
+      // never a 1-decimal tolerance (0.06 would also accept a neighbouring exponent, e.g. 0.25 for 0.2)
+      expect(g.tolerance!, `seed ${seed}`).toBeLessThan(0.01);
     }
   });
 });
@@ -116,6 +118,7 @@ describe('elasticity.value-at-point', () => {
       const g = gen('elasticity.value-at-point', seed);
       const { E } = read(g);
       expect(E).toBeLessThan(0);
+      expect(-E, `seed ${seed}: implausible elasticity`).toBeLessThanOrEqual(4 + 1e-6);
       for (const o of optionTexts(g)) {
         const iv = o.tex.match(/^\((\d+(?:\.\d+)?),\\ (\d+(?:\.\d+)?|\\infty)[\])]$/);
         let ok: boolean;
@@ -133,6 +136,14 @@ describe('elasticity.value-at-point', () => {
       const g = gen('elasticity.value-at-point', seed, 'numeric');
       const { E } = read(g);
       expect(Math.abs((g.correctAnswer as number) - E), `seed ${seed}`).toBeLessThanOrEqual(0.005 + 1e-5);
+      expect(-E, `seed ${seed}: implausible elasticity`).toBeLessThanOrEqual(4 + 1e-6);
+      // an exact half (e.g. −0.625) may be rounded either way: both neighbours must be accepted
+      const r = Math.round(E * 1000);
+      if (Math.abs(E * 1000 - r) < 1e-6 && Math.abs(r % 10) === 5) {
+        expect(g.acceptRange, `seed ${seed}`).toBeDefined();
+        expect(g.acceptRange![0]).toBeLessThanOrEqual(E - 0.005 + 1e-9);
+        expect(g.acceptRange![1]).toBeGreaterThanOrEqual(E + 0.005 - 1e-9);
+      }
     }
   });
 });
@@ -146,6 +157,8 @@ describe('elasticity.formula', () => {
       const F = (p: number) => f({ p });
       const ps = [0.3, 0.7, 1.2, 1.9, 3.3, 5.1, 8.2].filter((p) => Number.isFinite(F(p)) && Math.abs(F(p)) > 1e-3);
       expect(ps.length).toBeGreaterThanOrEqual(3);
+      // a demand function that rises with the price is only used for status goods, and the stem says so
+      if (name === 'd(p)=' && numDiff(F, 2) > 0) expect(g.stem, `seed ${seed}`).toContain('demand rises with the price');
       const el = (p: number) => (p * numDiff(F, p, 1e-6)) / F(p);
       for (const o of optionTexts(g)) {
         const of = texFn(o.tex);
@@ -189,6 +202,7 @@ describe('elasticity.percent-change', () => {
     for (let seed = 1; seed <= SEEDS; seed++) {
       const g = gen('elasticity.percent-change', seed);
       const { exact, first } = read(g);
+      expect(Math.abs(first), `seed ${seed}: implausible percentage change`).toBeLessThan(60);
       const key = value(g.options!.find((o) => o.id === g.correctAnswer)!.text!);
       expect(Math.abs(key - first), `seed ${seed}`).toBeLessThanOrEqual(0.005 + 1e-9);
       for (const o of g.options!) {
