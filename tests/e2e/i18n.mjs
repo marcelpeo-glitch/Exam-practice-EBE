@@ -51,7 +51,7 @@ const watch = (page) => {
 const uiText = (page) =>
   page.evaluate(() => {
     const root = document.body.cloneNode(true);
-    root.querySelectorAll('[lang="en"], .katex, select option').forEach((n) => n.remove());
+    root.querySelectorAll('[lang="en"], .katex, select option, script, style, noscript').forEach((n) => n.remove());
     return root.innerText;
   });
 
