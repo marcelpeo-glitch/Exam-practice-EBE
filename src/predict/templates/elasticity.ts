@@ -242,7 +242,9 @@ const partialPower: Template = {
     const explanation = `The partial elasticity with respect to $${v}$ is $El_{${v}}${fName}=\\dfrac{${v}}{${fName}}\\cdot\\dfrac{\\partial ${fName}}{\\partial ${v}}$.\n\n${c.steps}`;
     if (type === 'numeric') {
       const key = c.key as number;
-      const dp = dpOf(key);
+      // integers as whole numbers; otherwise at least 2 decimals (a 1-decimal tolerance of 0.06 would also accept a
+      // neighbouring exponent such as 0.25 for 0.2)
+      const dp = Number.isInteger(key) ? 0 : Math.max(2, dpOf(key));
       return numericQuestion(stem, key, dp, explanation);
     }
     const mcq = buildMcq(rng, opt(c.keyTex), c.mistakes, {
@@ -408,9 +410,14 @@ const valueAtPoint: Template = {
   difficulty: 2,
   generate({ rng, type, optionCount }) {
     const fam = rng.pick(DEMAND_FAMS);
+    // a sensible elasticity (not −115 at a demand of 5 units), preferably with at most 3 decimals (2 for numeric
+    // answers, so that no key ends in an exact half); closed form, for speed
+    const sensible = (x: DemandCase) => Math.abs(x.quick) >= 0.05 && Math.abs(x.quick) <= 4;
+    const nd = type === 'numeric' ? 2 : 3;
     let c = demandCase(rng, fam);
-    // prefer parameters that give an elasticity with at most 3 decimals (closed form, for speed)
-    for (let tries = 0; tries < 60 && !isNice(c.quick, 3); tries++) c = demandCase(rng, fam);
+    for (let tries = 0; tries < 150 && !(sensible(c) && isNice(c.quick, nd)); tries++) c = demandCase(rng, fam);
+    for (let tries = 0; tries < 300 && !sensible(c); tries++) c = demandCase(rng, fam);
+    if (!sensible(c)) throw new Error(`value-at-point: no sensible elasticity for ${fam}`);
     // the key: computed with the mathjs derivative (and cross-checked against the closed form)
     const E = elasticityAt(c.expr, 'p', { p: c.p0 });
     if (Math.abs(E - c.quick) > 1e-9 * Math.max(1, Math.abs(E))) throw new Error(`value-at-point: closed form ${c.quick} ≠ ${E}`);
@@ -438,7 +445,9 @@ const valueAtPoint: Template = {
     const mode = type === 'numeric' ? 'value' : rng.pick(['value', 'value', 'interval'] as const);
     if (type === 'numeric') {
       const stem = intro + ` Calculate the price elasticity of demand at $p=${c.p0}$.`;
-      return numericQuestion(stem, E, 2, explanation + ` Rounded to two decimals: $${num(E, 2)}$.`);
+      // an elasticity that ends in an exact half (e.g. −0.625) may be rounded either way
+      const half = Math.abs(Math.abs(E * 100) % 1 - 0.5) < 1e-9;
+      return numericQuestion(stem, E, 2, explanation + ` Rounded to two decimals: $${num(E, 2)}$.`, half ? [E - 0.005, E + 0.005] : undefined);
     }
     if (mode === 'interval') {
       const stem =
@@ -485,6 +494,8 @@ interface FormulaCase {
   /** Prices to check the formula at (where the function is positive). */
   points: number[];
   pre?: string;
+  /** Demand that rises with the price (only sensible for status goods). */
+  luxury?: boolean;
 }
 
 const FORMULA_FAMS = ['lin-sqrt', 'supply-power', 'power-demand', 'log', 'exp', 'linear', 'hyper'] as const;
@@ -587,7 +598,7 @@ function formulaCase(rng: Rng, fam: FormulaFam): FormulaCase {
           opt(numTex(-(k + 1)), "using the exponent of $d'(p)$."),
         ],
         steps:
-          `Write $d(p)=${A}p^{${numTex(-k)}}$, a power function. Then $$El_p\\,d(p)=\\frac{p\\,d'(p)}{d(p)}=\\frac{p\\cdot ${numTex(-k * A)}p^{${numTex(-k - 1)}}}{${A}p^{${numTex(-k)}}}=${numTex(-k)}.$$` +
+          `Write $d(p)=${A}p^{${numTex(-k)}}$, a power function. Then $$El_p\\,d(p)=\\frac{p\\,d'(p)}{d(p)}=\\frac{p\\cdot\\left(${numTex(-k * A)}p^{${numTex(-k - 1)}}\\right)}{${A}p^{${numTex(-k)}}}=${numTex(-k)}.$$` +
           `A power function has constant elasticity equal to its exponent.`,
         points: [0.5, 2, 7],
       };
@@ -613,8 +624,9 @@ function formulaCase(rng: Rng, fam: FormulaFam): FormulaCase {
           opt(sfrac(1, '', '\\ln\\left(p\\right)'), `dropping the constant ${A}.`),
         ],
         steps:
-          `$d'(p)=${sfrac(B, '', 'p')}$, so $$El_p\\,d(p)=\\frac{p\\,d'(p)}{d(p)}=\\frac{p\\cdot ${sfrac(B, '', 'p')}}{${dTex}}=${sfrac(B, '', dTex)}=${sfrac(B, '', 'd(p)')}.$$`,
+          `$d'(p)=${sfrac(B, '', 'p')}$, so $$El_p\\,d(p)=\\frac{p\\,d'(p)}{d(p)}=\\frac{p\\cdot\\left(${sfrac(B, '', 'p')}\\right)}{${dTex}}=${sfrac(B, '', dTex)}=${sfrac(B, '', 'd(p)')}.$$`,
         points: [1.5, 3, 6],
+        luxury: B > 0,
       };
     }
     case 'exp': {
@@ -685,6 +697,8 @@ function formulaCase(rng: Rng, fam: FormulaFam): FormulaCase {
 }
 
 const FORMULA_GOODS = ['rice', 'olive oil', 'concert tickets', 'organic honey', 'bicycle rentals', 'designer handbags', 'fresh mussels', 'museum passes'];
+/** Status goods, for the (unusual) demand functions that rise with the price. */
+const LUXURY_GOODS = ['designer handbags', 'luxury watches', 'vintage champagne', 'limited-edition sneakers'];
 
 const formula: Template = {
   id: 'elasticity.formula',
@@ -701,11 +715,13 @@ const formula: Template = {
       'p',
       c.points.map((p) => ({ p })),
     );
-    const good = rng.pick(FORMULA_GOODS);
+    const good = rng.pick(c.luxury ? LUXURY_GOODS : FORMULA_GOODS);
     const stem =
       c.name === 's'
         ? `For ${good}, the demand and the supply as functions of the price $p>0$ are given by ${c.pre}. What is the price elasticity $El_p\\,s(p)$ of the supply function?`
-        : rng.pick([
+        : c.luxury
+          ? `The market for ${good} is unusual: demand rises with the price. The weekly demand as a function of the price $p$ is $$d(p)=${c.fTex}.$$ Which expression gives the price elasticity $El_p\\,d(p)$ of this demand function?`
+          : rng.pick([
             `The weekly demand for ${good} as a function of the price $p$ is $$d(p)=${c.fTex}.$$ Which expression gives the price elasticity $El_p\\,d(p)$ of this demand function?`,
             `Find the price elasticity $E_d(p)$ of the demand function $$d(p)=${c.fTex}$$ for ${good} (for prices $p>0$ with $d(p)>0$).`,
           ]);
@@ -750,7 +766,7 @@ const percentChange: Template = {
           y: 'L',
           A: rng.int(2, 15),
           intro: (fTex: string) => `A furniture maker's weekly output is $Q(K,L)=${fTex}$, where $K$ is capital and $L$ is labour ($K,L>0$).`,
-          what: (v: string) => (v === 'K' ? 'capital' : 'labour'),
+          what: (v: string) => (v === 'K' ? 'the amount of capital' : 'the amount of labour'),
           subj: 'output',
         },
         {
@@ -759,7 +775,7 @@ const percentChange: Template = {
           y: 'b',
           A: 1,
           intro: (fTex: string) => `A student's utility from $c$ cups of coffee and $b$ pieces of cake per week is $U(c,b)=${fTex}$ ($c,b>0$).`,
-          what: (v: string) => (v === 'c' ? 'coffee' : 'cake'),
+          what: (v: string) => (v === 'c' ? 'the number of cups of coffee' : 'the number of pieces of cake'),
           subj: 'utility',
         },
         {
@@ -768,7 +784,7 @@ const percentChange: Template = {
           y: 'W',
           A: rng.int(3, 30),
           intro: (fTex: string) => `The harvest of a vineyard is modelled as $Y(T,W)=${fTex}$, where $T$ is the number of tractor hours and $W$ the number of workers ($T,W>0$).`,
-          what: (v: string) => (v === 'T' ? 'tractor hours' : 'workers'),
+          what: (v: string) => (v === 'T' ? 'the number of tractor hours' : 'the number of workers'),
           subj: 'the harvest',
         },
       ]);
@@ -783,7 +799,7 @@ const percentChange: Template = {
       const change = dir > 0 ? `increases by ${k}%` : `decreases by ${k}%`;
       stem =
         ctx.intro(fTex) +
-        ` Suppose the amount of ${ctx.what(v)} ${change} while the other input stays the same. Use the partial elasticity of $${ctx.f}$ with respect to $${v}$ to approximate the percentage change of ${subject}.`;
+        ` Suppose ${ctx.what(v)} ${change} while the other input stays the same. Use the partial elasticity of $${ctx.f}$ with respect to $${v}$ to approximate the percentage change of ${subject}.`;
       explanation =
         `For a Cobb–Douglas function the partial elasticity with respect to $${v}$ is its exponent: $El_{${v}}${ctx.f}=${expTex(ev)}$. ` +
         `Then $$\\frac{\\Delta ${ctx.f}}{${ctx.f}}\\approx El_{${v}}${ctx.f}\\cdot\\frac{\\Delta ${v}}{${v}}=${expTex(ev)}\\cdot(${dir * k}\\%)=${num(key, 2)}\\%.$$`;
@@ -803,7 +819,8 @@ const percentChange: Template = {
       let dTex = '';
       let p0 = 0;
       let El = 0;
-      for (let tries = 0; tries < 80; tries++) {
+      const sensible = (e: number) => Math.abs(e) >= 0.1 && Math.abs(e) <= 3 && Math.abs(e * k) < 60;
+      for (let tries = 0; tries < 400; tries++) {
         if (sub === 'linear') {
           const B = rng.pick([1, 2, 4, 5, 0.5]);
           p0 = rng.int(4, 40);
@@ -831,8 +848,9 @@ const percentChange: Template = {
           dTex = `\\dfrac{${A}}{p+${B}}`;
         }
         El = elasticityAt(expr, 'p', { p: p0 });
-        if (isNice(El, 2) && Math.abs(El) > 0.05) break;
+        if (isNice(El, 2) && sensible(El)) break;
       }
+      if (!(isNice(El, 2) && sensible(El))) throw new Error(`percent-change: no sensible ${sub} demand found`);
       const d0 = evalAt(expr, { p: p0 });
       const d1 = evalAt(diff(expr, 'p'), { p: p0 });
       key = El * dir * k;
@@ -926,11 +944,11 @@ export function ruleStatements(p: RuleParams): RuleStatement[] {
       key: 'power-const',
       text: `The elasticity of $f(x)=${A}x^{${n}}$ equals $${n}$ for every $x>0$.`,
       correct: true,
-      why: `$\\frac{x\\cdot ${A * n}x^{${n - 1}}}{${A}x^{${n}}}=${n}$: a power function has constant elasticity equal to its exponent.`,
+      why: `$\\frac{x\\cdot ${n < 0 ? `\\left(${A * n}${powTex('x', n - 1)}\\right)` : `${A * n}${powTex('x', n - 1)}`}}{${A}x^{${n}}}=${n}$: a power function has constant elasticity equal to its exponent.`,
     },
     {
       key: 'power-deriv',
-      text: `The elasticity of $f(x)=${A}x^{${n}}$ equals $${A * n}x^{${n - 1}}$.`,
+      text: `The elasticity of $f(x)=${A}x^{${n}}$ equals $${A * n}${powTex('x', n - 1)}$.`,
       correct: false,
       why: 'that is the derivative $f\'(x)$, not the elasticity (which is the constant exponent).',
     },
@@ -962,7 +980,7 @@ export function ruleStatements(p: RuleParams): RuleStatement[] {
       key: 'exp',
       text: `The elasticity of $f(x)=e^{${coefTex(k)}x}$ equals $${coefTex(k)}x$.`,
       correct: true,
-      why: `$\\frac{x\\cdot ${numTex(k)}e^{${coefTex(k)}x}}{e^{${coefTex(k)}x}}=${coefTex(k)}x$.`,
+      why: `$\\frac{x\\cdot ${k < 0 ? `\\left(${numTex(k)}\\right)` : numTex(k)}e^{${coefTex(k)}x}}{e^{${coefTex(k)}x}}=${coefTex(k)}x$.`,
     },
     {
       key: 'exp-wrong',
@@ -1077,7 +1095,7 @@ const rules: Template = {
         ...(c < 0 ? [opt('E_g(x)=-E_f(x)', 'thinking that a negative factor flips the sign of the elasticity; it cancels in the ratio.')] : []),
         opt('E_g(x)=0', 'thinking that a constant factor has elasticity 0 and therefore makes $E_g$ zero.'),
       ];
-      steps = `$g'(x)=${c}f'(x)$, so $$E_g(x)=\\frac{x\\,g'(x)}{g(x)}=\\frac{x\\cdot ${c}f'(x)}{${c}f(x)}=E_f(x).$$ A constant factor (positive or negative) does not change the elasticity.`;
+      steps = `$g'(x)=${c}f'(x)$, so $$E_g(x)=\\frac{x\\,g'(x)}{g(x)}=\\frac{x\\cdot ${c < 0 ? `(${c})` : c}f'(x)}{${c}f(x)}=E_f(x).$$ A constant factor (positive or negative) does not change the elasticity.`;
     } else if (variant === 'power') {
       const kk = rng.pick([2, 3, 4, 0.5]);
       gTex = kk === 0.5 ? '\\sqrt{f(x)}' : `\\left(f(x)\\right)^{${kk}}`;
@@ -1089,7 +1107,8 @@ const rules: Template = {
         opt(`E_g(x)=E_f(x)+${numTex(kk)}`, 'adding the exponent instead of multiplying by it.'),
         opt(`E_g(x)=\\dfrac{E_f(x)}{${numTex(kk)}}`, 'dividing by the exponent instead of multiplying.'),
       ];
-      steps = `Chain rule: $g'(x)=${numTex(kk)}\\left(f(x)\\right)^{${numTex(kk - 1)}}f'(x)$, so $$E_g(x)=\\frac{x\\,g'(x)}{g(x)}=\\frac{x\\cdot ${numTex(kk)}\\left(f(x)\\right)^{${numTex(kk - 1)}}f'(x)}{\\left(f(x)\\right)^{${numTex(kk)}}}=${numTex(kk)}\\cdot\\frac{x f'(x)}{f(x)}=${numTex(kk)}E_f(x).$$`;
+      const fPow = (e: number) => (e === 1 ? 'f(x)' : `\\left(f(x)\\right)^{${numTex(e)}}`);
+      steps = `Chain rule: $g'(x)=${numTex(kk)}${fPow(kk - 1)}f'(x)$, so $$E_g(x)=\\frac{x\\,g'(x)}{g(x)}=\\frac{x\\cdot ${numTex(kk)}${fPow(kk - 1)}f'(x)}{${fPow(kk)}}=${numTex(kk)}\\cdot\\frac{x f'(x)}{f(x)}=${numTex(kk)}E_f(x).$$`;
     } else if (variant === 'xpow') {
       const m = rng.int(1, 4);
       gTex = `${powTex('x', m)}f(x)`;
@@ -1100,6 +1119,7 @@ const rules: Template = {
         ...(m > 1 ? [opt(`E_g(x)=${m}${powTex('x', m - 1)}E_f(x)`, 'multiplying the elasticity by the derivative of the power factor.')] : []),
         opt(`E_g(x)=${powTex('x', m)}E_f(x)`, 'multiplying the elasticity by the power factor.'),
         opt(`E_g(x)=E_f(x)-${m}`, 'subtracting instead of adding the exponent.'),
+        opt(`E_g(x)=${powTex('x', m)}+E_f(x)`, `adding the factor $${powTex('x', m)}$ itself instead of its elasticity $${m}$.`),
       ];
       steps = `The elasticity of a product is the sum of the elasticities: $E_g(x)=El_x\\left(${powTex('x', m)}\\right)+E_f(x)=${m}+E_f(x)$. ` +
         `(Directly: $g'=${m === 1 ? '' : m}${powTex('x', m - 1)}f+${powTex('x', m)}f'$, so $\\frac{x g'}{g}=${m}+\\frac{x f'}{f}$.)`;
@@ -1142,7 +1162,7 @@ const solveFor: Template = {
     let dp = 2;
     let fmt = (x: number) => `$${num(x, 2)}$`;
     if (fam === 'base') {
-      const t0 = rng.pick([1, 2, 3, 4, 5]);
+      const t0 = rng.pick([2, 3, 4, 5]);
       const r = rng.pick([1, 2, 0.5, 3, -1]);
       const target = r * t0;
       // E(t) = t·ln(b) for g(t) = b^t, so b = e^{target/t0}; computed numerically via mathjs below.
