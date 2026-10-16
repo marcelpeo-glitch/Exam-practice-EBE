@@ -313,6 +313,48 @@ export function valueMcq(
   );
 }
 
+/**
+ * Like valueMcq, but the key lands at a uniformly random position among the ascending options: first a rank r is
+ * drawn (among the ranks that enough candidates allow), then r distractors are taken from below the key and the rest
+ * from above (modelled mistakes first, then `near(dir, i)`, the i-th extra value in direction dir, or null when there
+ * are no more). Without this, modelled mistakes that mostly lie on one side of the key give the answer away by its
+ * place in the list (e.g. "never the smallest option").
+ */
+export function rankedValueMcq(
+  rng: Rng,
+  key: number,
+  mistakes: { value: number; why: string }[],
+  count: number,
+  fmt: (v: number) => string,
+  near: (dir: -1 | 1, i: number) => number | null,
+  o: { epsilon?: number; positive?: boolean } = {},
+): Mcq {
+  const eps = o.epsilon ?? 0.01;
+  const same = (a: number, b: number) => Math.abs(a - b) <= eps * Math.max(Math.abs(a), Math.abs(b)) + 1e-12;
+  const pool = (dir: -1 | 1) => {
+    const out: Choice[] = [];
+    const add = (v: number, why?: string) => {
+      if (!Number.isFinite(v) || (o.positive && !(v > 0)) || dir * (v - key) <= 0 || same(v, key)) return;
+      const text = fmt(v);
+      if (text === fmt(key) || out.some((c) => same(c.value!, v) || c.text === text)) return;
+      out.push({ text, value: v, ...(why ? { why } : {}) });
+    };
+    mistakes.forEach((m) => add(m.value, m.why));
+    for (let i = 0; i < 60; i++) {
+      const v = near(dir, i);
+      if (v === null) break;
+      add(v);
+    }
+    return out;
+  };
+  const lo = pool(-1);
+  const hi = pool(1);
+  const ranks = Array.from({ length: count }, (_, r) => r).filter((r) => lo.length >= r && hi.length >= count - 1 - r);
+  if (!ranks.length) throw new Error(`rankedValueMcq: only ${lo.length} + ${hi.length} distractors for ${count} options`);
+  const r = rng.pick(ranks);
+  return buildMcq(rng, { text: fmt(key), value: key }, [...lo.slice(0, r), ...hi.slice(0, count - 1 - r)], { count, order: 'ascending', epsilon: eps });
+}
+
 /** Throw when a computed optimum/equilibrium fails its own check (a template bug must never reach students). */
 export function ensure(ok: boolean, what: string): void {
   if (!ok) throw new Error(`template self-check failed: ${what}`);

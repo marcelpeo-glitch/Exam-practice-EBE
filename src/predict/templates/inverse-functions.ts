@@ -3,7 +3,7 @@
 // numerically (f⁻¹(f(x)) = x on sample points, assertInverse); wrong options come from modelled algebra mistakes and are
 // dropped when they happen to be the same function as the key. See inverse-functions.test.ts for the independent checks.
 import { INSTRUCTION, mistakesNote, num, numericField, sgn } from '../build';
-import { frac } from '../mathx';
+import { frac, gcd } from '../mathx';
 import type { Rng } from '../rng';
 import type { Generated, Template } from '../types';
 import { assertInverse, coef, formulaMcq, imagePts, lin, linE, realFn, recipCoef, termsTex, type FormulaChoice } from './_fnderiv';
@@ -48,6 +48,18 @@ function finish(
 // 1. Linear fractional function (ax + b)/(cx + d)
 // =====================================================================================================================
 
+/** Worked substitution x = (b − d·y0)/(c·y0 − a): the fraction, reduced, and its decimal value ("=" when exact). */
+function numericLF(name: string, a: number, b: number, c: number, d: number, y0: number, x0: number, fExpr: string): string {
+  const N = b - d * y0;
+  const Dn = c * y0 - a;
+  const exact = Math.abs(x0 * 1e4 - Math.round(x0 * 1e4)) < 1e-6;
+  const steps = [`\\dfrac{${b}-(${d})(${y0})}{(${c})(${y0})-(${a})}`, `\\dfrac{${N}}{${Dn}}`];
+  const g = gcd(N, Dn);
+  if (g > 1 && Math.abs(Dn / g) !== 1) steps.push(frac(N, Dn));
+  const value = exact ? `=${num(x0, 4)}` : `\\approx ${num(x0, 4)}`;
+  return `With $y=${y0}$: $$${name}^{-1}(${y0})=${steps.join('=')}${value}$$ Check: $${name}(${num(x0, 4)})${exact ? '=' : '\\approx '}${num(realFn(fExpr)(x0), 4)}$.`;
+}
+
 const linearFractional: Template = {
   id: 'inverse-functions.linear-fractional',
   topic: 'Inverse functions',
@@ -82,7 +94,7 @@ const linearFractional: Template = {
       ratio(d, b, c, -a, 'sign error when moving the term with $y$ to the other side.'),
       ratio(d, -b, c, -a, 'sign error when dividing by the factor in front of $x$.'),
       ...(b !== d ? [ratio(0, b - d, c, -a, `forgets to multiply $${d}$ by $y$ when expanding the brackets.`)] : []),
-      ratio(-a, b, c, -d, 'mixes up the coefficients $a$ and $d$.'),
+      ratio(-a, b, c, -d, `mixes up the coefficient of $x$ in the numerator ($${a}$) and the constant in the denominator ($${d}$).`),
       ratio(c, -a, -d, b, 'turns the correct fraction upside down.'),
     ];
     const pts = imagePts(fExpr, xs);
@@ -106,7 +118,7 @@ const linearFractional: Template = {
       stem,
       numericStem: `The function $$${name}(x)=${fTex}$$ is invertible on its domain. Calculate $${name}^{-1}(${y0})$, i.e. the value of $x$ for which $${name}(x)=${y0}$.`,
       explanation: named,
-      numericExplanation: `With $y=${y0}$: $$${name}^{-1}(${y0})=\\dfrac{${b}-(${d})(${y0})}{(${c})(${y0})-(${a})}=\\dfrac{${b - d * y0}}{${c * y0 - a}}\\approx ${num(x0, 4)}$$ Check: $${name}(${num(x0, 4)})\\approx ${num(realFn(fExpr)(x0), 4)}$.`,
+      numericExplanation: numericLF(name, a, b, c, d, y0, x0, fExpr),
       key,
       distractors,
       pts,
@@ -167,7 +179,7 @@ const expLog: Template = {
         ]),
         numericStem: `On the domain $x>1$ the function $$${name}(x)=${fTex}$$ is invertible. Calculate $${name}^{-1}\\left(${frac(c, a + b * t)}\\right)$.`,
         explanation,
-        numericExplanation: `With $y=${frac(c, a + b * t)}$: $$\\frac{${c}}{y}-${a}=${a + b * t}-${a}=${b * t}, \\quad \\ln(x)=\\frac{${b * t}}{${b}}=${t}, \\quad x=e^{${t}}\\approx ${num(Math.exp(t), 4)}$$`,
+        numericExplanation: `With $y=${frac(c, a + b * t)}$: $$\\frac{${c}}{y}-${a}=${a + b * t}-${a}=${b * t}, \\quad \\ln(x)=${b === 1 ? '' : `\\frac{${b * t}}{${b}}=`}${t}, \\quad x=${t === 1 ? 'e' : `e^{${t}}`}\\approx ${num(Math.exp(t), 4)}$$`,
         key,
         distractors,
         pts: imagePts(fExpr, xs),
@@ -193,7 +205,7 @@ const expLog: Template = {
       assertInverse(fExpr, key.expr, xs);
       const explanation =
         `For $x>0$ the function is increasing, so it has an inverse. Solve $y=${fTex}$ for $x$:\n` +
-        `$$e^{y}=${inner} \\;\\Rightarrow\\; ${coef(a)}x^2=e^{y}-${b} \\;\\Rightarrow\\; x^2=${over(`e^{y}-${b}`)}$$` +
+        `$$e^{y}=${inner} \\;\\Rightarrow\\; ${coef(a)}x^2=e^{y}-${b}${a === 1 ? '' : ` \\;\\Rightarrow\\; x^2=${over(`e^{y}-${b}`)}`}$$` +
         `Since $x>0$ we take the positive root: $$${name}^{-1}(y)=${key.tex}$$`;
       const y0 = Math.ceil(Math.log(b + 1)) + rng.int(0, 1);
       const x0 = Math.sqrt((Math.exp(y0) - b) / a);
@@ -477,18 +489,11 @@ const inverseDemand: Template = {
       ps = [1, 3, 7, 12, 20];
       p0 = 0;
       q0 = 0;
-      for (const cand of rng.shuffle([2, 3, 4, 5, 6, 8, 10, 12, 13, 15, 18, 20])) {
-        const qq = A / (cand + c);
-        if (Math.abs(qq * 100 - Math.round(qq * 100)) < 1e-9) {
-          p0 = cand;
-          q0 = qq;
-          break;
-        }
-      }
-      if (!q0) {
-        p0 = A / 10 - c > 0 ? A / 10 - c : 10 - c;
-        q0 = A / (p0 + c);
-      }
+      // A price whose quantity is a whole number of units (exists for every A and c used here); else 2 decimals.
+      const cands = rng.shuffle([2, 3, 4, 5, 6, 8, 10, 12, 13, 15, 18, 20]);
+      const pick = cands.find((v) => Number.isInteger(A / (v + c))) ?? cands.find((v) => Math.abs((A / (v + c)) * 100 - Math.round((A / (v + c)) * 100)) < 1e-9) ?? cands[0];
+      p0 = pick;
+      q0 = A / (p0 + c);
       dp = 2;
       numExpl = `With $q=${num(q0)}$: $$p=\\dfrac{${A}}{${num(q0)}}-${c}=${num(A / q0, 4)}-${c}=${num(p0, 4)}$$`;
       fallback = (i) => ({ tex: `\\dfrac{${A}}{q}-${c + i + 1}`, expr: `${A}/q - ${c + i + 1}`, why: 'an arithmetic slip.' });
@@ -528,7 +533,7 @@ const inverseDemand: Template = {
         { tex: `\\left(${A}-\\dfrac{q}{${B}}\\right)^2`, expr: `(${A} - q/${B})^2`, why: `divides only $q$ by $${B}$.` },
         { tex: `\\left(\\dfrac{${A}+q}{${B}}\\right)^2`, expr: `((${A} + q)/${B})^2`, why: 'sign error when isolating the root.' },
         { tex: `\\sqrt{\\dfrac{${A}-q}{${B}}}`, expr: `sqrt((${A} - q)/${B})`, why: 'takes a root instead of squaring to undo $\\sqrt{p}$.' },
-        { tex: `\\dfrac{\\left(${A}-q\\right)^2}{${B}}`, expr: `(${A} - q)^2/${B}`, why: `forgets to square the ${B} as well.` },
+        { tex: `\\dfrac{\\left(${A}-q\\right)^2}{${B}}`, expr: `(${A} - q)^2/${B}`, why: `forgets to square the $${B}$ in the denominator as well.` },
         { tex: `\\left(\\dfrac{${B}}{${A}-q}\\right)^2`, expr: `(${B}/(${A} - q))^2`, why: 'turns the fraction upside down.' },
       ];
       ps = [1, 4, 9, 16, 25];

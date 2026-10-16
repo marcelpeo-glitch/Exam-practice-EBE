@@ -63,7 +63,7 @@ const quadratic: Template = {
       const t: [number, string][] = [[sg * a, 'x^2'], [-sg * a * (p + q), 'x'], [sg * a * p * q, '']];
       argTex = termsTex(t);
       argExpr = termsExpr(t);
-      factorTex = `${kind === 'sqrt-in' ? `${a === 1 ? '' : a}\\left(${lin(1, -p)}\\right)\\left(${termsTex([[q, ''], [-1, 'x']])}\\right)` : `${a === 1 ? '' : a}\\left(${lin(1, -p)}\\right)\\left(${lin(1, -q)}\\right)`}`;
+      factorTex = `${kind === 'sqrt-in' ? `-${a === 1 ? '' : a}` : a === 1 ? '' : a}\\left(${lin(1, -p)}\\right)\\left(${lin(1, -q)}\\right)`;
     }
     const numer = rng.pick(['1', 'x', `${rng.int(2, 9)}`]);
     const outer = kind.startsWith('ln') ? 'ln' : kind === 'recip-sqrt' ? 'recip' : 'sqrt';
@@ -135,7 +135,9 @@ const quadratic: Template = {
       d.push(
         { set: [iv(p, q)], why: 'between the zeros the argument is negative: this is where the function is *not* defined (the inequality was solved the wrong way round).' },
         { set: [iv(q, null, !strict, false)], why: `keeps only the values to the right of the larger zero and forgets $x${strict ? '<' : '\\le '}${p}$.` },
-        { set: [iv(p, q, true, true)], why: 'the complement of the correct set.' },
+        strict
+          ? { set: [iv(p, q, true, true)], why: 'the complement of the correct set (the zeros themselves are not allowed either).' }
+          : { set: [iv(p, q, true, true)], why: `solves $${argTex}\\le 0$ instead of $\\ge 0$: this is where the argument is negative or zero.` },
         { set: [iv(0, null)], why: `${outer === 'ln' ? 'a logarithm' : 'a square root'} puts a condition on its *argument*, not on $x$ itself.` },
         { set: [iv(null, null)], why: 'assumes the argument is always positive.' },
       );
@@ -147,7 +149,10 @@ const quadratic: Template = {
         strict
           ? { set: [iv(p, q, true, true)], why: 'includes the end points, but there the argument is $0$ and $\\ln(0)$ is not defined.' }
           : { set: [iv(p, q)], why: 'excludes the end points, but $\\sqrt{0}=0$ is defined.' },
-        { set: [iv(0, q, !strict, !strict)], why: 'forgets the negative values of $x$ (a condition on the argument, not on $x$).' },
+        // [0, q] is only a "forgot the negative x" mistake when p < 0; otherwise the mirror mistake of (−∞, q].
+        p < 0
+          ? { set: [iv(0, q, !strict, !strict)], why: 'forgets the negative values of $x$ (a condition on the argument, not on $x$).' }
+          : { set: [iv(p, null, !strict, false)], why: `only uses the lower bound $x${strict ? '>' : '\\ge '}${p}$.` },
         { set: [iv(null, q, false, !strict)], why: `only uses the upper bound $x${strict ? '<' : '\\le '}${q}$.` },
         { set: [iv(null, null)], why: 'assumes the argument is always positive.' },
       );
@@ -201,7 +206,7 @@ const excludedPoint: Template = {
       key = [iv(0, [x0, x0Tex]), iv([x0, x0Tex], null)];
       where = '$x>0$';
       explanation =
-        `Two conditions. The logarithm needs a positive argument: $${axTex}>0$, so $x>0$. The denominator must not be zero: ` +
+        `Two conditions. The logarithm needs a positive argument: $${axTex}>0$${a === 1 ? '' : ', so $x>0$'}. The denominator must not be zero: ` +
         `$$\\ln(${axTex})${c > 0 ? '+' : '-'}${Math.abs(c)}=0 \\iff \\ln(${axTex})=${-c} \\iff ${axTex}=${expTex(-c)}${a === 1 ? '' : ` \\iff x=\\frac{${expTex(-c)}}{${a}}`}$$` +
         `So $x=${x0Tex}\\approx ${num(x0, 3)}$ must be left out. The domain is $${setTex(key)}$.`;
       const xs = Math.exp(c) / a;

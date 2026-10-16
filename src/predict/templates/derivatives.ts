@@ -21,15 +21,21 @@ const productExpAtZero: Template = {
     const a = rng.sign() * rng.int(2, 9);
     const b = rng.sign() * rng.int(1, 9);
     let c = rng.sign() * rng.int(2, 6);
-    if (a + c * b === 0) c += 1; // keep the answer non-zero
+    if (a + c * b === 0) c = -c; // keep the answer non-zero (then a + cb = −2cb ≠ 0) and |c| ≥ 2
     const expr = `(${a}*x + ${b}) * exp(${c}*x)`;
     // The answer, computed symbolically by mathjs (not by hand): f'(0).
     const answer = evalAt(diff(expr), { x: 0 });
     const fTex = `f(x)=\\left(${a}x ${sgn(b)}\\right)e^{${c}x}`;
-    const stem = `A firm's cost per unit (in euros) depends on a production setting $x$ according to $$${fTex}$$ Calculate the rate of change $f'(0)$.`;
+    // A plain function (no context): with negative coefficients a "cost" or "price" would become negative.
+    const stem = rng.pick([
+      `Consider the function $$${fTex}$$ Calculate $f'(0)$.`,
+      `Let $$${fTex}$$ What is the value of the derivative $f'(0)$?`,
+      `Determine the slope of the graph of $$${fTex}$$ at $x=0$, that is, $f'(0)$.`,
+    ]);
+    const vp = c < 0 ? `\\left(${c}e^{${c}x}\\right)` : `${c}e^{${c}x}`;
     const explanation =
       `Use the product rule with $u=${a}x ${sgn(b)}$ and $v=e^{${c}x}$, so $u'=${a}$ and (chain rule) $v'=${c}e^{${c}x}$:\n` +
-      `$$f'(x)=${a}e^{${c}x}+\\left(${a}x ${sgn(b)}\\right)\\cdot ${c}e^{${c}x}$$` +
+      `$$f'(x)=${a}e^{${c}x}+\\left(${a}x ${sgn(b)}\\right)\\cdot ${vp}$$` +
       `At $x=0$, $e^{0}=1$, so $$f'(0)=${a}+(${b})(${c})=${num(answer)}$$`;
 
     if (type === 'numeric') {
@@ -95,7 +101,8 @@ function finishFormula({ rng, type, optionCount }: GenContext, q: FormulaQ): Gen
       `Find the slope of the graph of $$${q.name}(x)=${q.fTex}$$ at the point where $x=${q.x0}$, that is, the value of $${q.name}'(${q.x0})$.`,
       `How fast does $$${q.name}(x)=${q.fTex}$$ change at $x=${q.x0}$? Give $${q.name}'(${q.x0})$.`,
     ]);
-    const explanation = `${q.steps}\nSubstitute $x=${q.x0}$: $$${q.name}'(${q.x0})=${q.atX0}\\approx ${num(ans, dp)}$$`;
+    const exact = Math.abs(ans * 10 ** dp - Math.round(ans * 10 ** dp)) < 1e-9;
+    const explanation = `${q.steps}\nSubstitute $x=${q.x0}$: $$${q.name}'(${q.x0})=${q.atX0}${exact ? '=' : '\\approx '}${num(ans, dp)}$$`;
     return { type, stem, instruction: INSTRUCTION.numeric(dp), correctAnswer: f.answer, tolerance: f.tolerance, explanation };
   }
   const mcq = formulaMcq(rng, q.key, rng.shuffle(q.distractors), { count: optionCount, pts: q.pts, label: `${q.name}'(x)=`, fallback: q.fallback });
@@ -396,7 +403,7 @@ function recipLnQ(rng: Rng, name: string): FormulaQ {
       fc(`\\dfrac{${k * b}}{x\\left(${den}\\right)^2}`, `${k * b}/(x*${denE}^2)`, 'loses the minus sign of $\\frac{d}{du}u^{-1}=-u^{-2}$.'),
       fc(`-\\dfrac{${k * b}}{x\\left(${den}\\right)}`, `-${k * b}/(x*${denE})`, 'does not square the denominator (uses $-u^{-1}$ instead of $-u^{-2}$).'),
       fc(`-\\dfrac{${k * b}}{\\left(${den}\\right)^2}`, `-${k * b}/${denE}^2`, `forgets the factor $\\frac1x$ from the derivative of $\\ln(x)$.`),
-      fc(`\\dfrac{${k}x}{${b}}`, `${k}*x/${b}`, `divides $${k}$ by the derivative of the denominator.`),
+      fc(b === 1 ? `${k}x` : `\\dfrac{${k}x}{${b}}`, `${k}*x/${b}`, `divides $${k}$ by the derivative $\\frac{${b}}{x}$ of the denominator.`),
       ...(b !== 1 ? [fc(`-\\dfrac{${k}}{x\\left(${den}\\right)^2}`, `-${k}/(x*${denE}^2)`, `forgets the factor $${b}$ in front of $\\ln(x)$.`)] : []),
     ],
     pts: pts([1.1, 1.6, 2.5, 4, 7]),
@@ -404,7 +411,7 @@ function recipLnQ(rng: Rng, name: string): FormulaQ {
       `Write $${name}(x)=${coef(k)}u^{-1}$ with $u=${den}$ and $u'=\\frac{${b}}{x}$. Chain rule: ` +
       `$$${name}'(x)=-${coef(k)}u^{-2}\\cdot u'=-\\frac{${k}}{\\left(${den}\\right)^2}\\cdot\\frac{${b}}{x}=-\\frac{${k * b}}{x\\left(${den}\\right)^2}$$`,
     x0,
-    atX0: `-\\frac{${k * b}}{${x0}\\left(${a}+${b}\\ln(${x0})\\right)^2}`,
+    atX0: x0 === 1 ? `-\\frac{${k * b}}{1\\cdot\\left(${a}+${coef(b)}\\ln(1)\\right)^2}=-\\frac{${k * b}}{${a * a}}` : `-\\frac{${k * b}}{${x0}\\left(${a}+${coef(b)}\\ln(${x0})\\right)^2}`,
     fallback: (i) => {
       const n = k * b + offset(i, k * b);
       return fc(`-\\dfrac{${n}}{x\\left(${den}\\right)^2}`, `-${n}/(x*${denE}^2)`, 'an arithmetic slip in the constant.');
@@ -513,12 +520,12 @@ function tangentLine({ rng, type, optionCount }: GenContext): Generated {
     let b = rng.sign() * rng.int(1, 6);
     if (a + b === 0) b += rng.sign() * 2; // f(1) = a + b ≠ 0 (a tangent through the origin is too degenerate)
     const c = rng.sign() * rng.int(1, 3);
-    const ex = `${coef(c)}(x-1)`;
+    const ex = c === 1 ? 'x-1' : c === -1 ? '-(x-1)' : `${c}(x-1)`;
     fTex = `\\left(${lin(a, b)}\\right)e^{${ex}}`;
     fExpr = `(${linE(a, b)})*exp(${c}*(x-1))`;
     [x0, y0, m] = [1, a + b, a + c * (a + b)];
     deriv =
-      `Product rule and chain rule: $$${name}'(x)=${a}e^{${ex}}+${par(c)}\\left(${lin(a, b)}\\right)e^{${ex}}$$` +
+      `Product rule and chain rule: $$${name}'(x)=${a}e^{${ex}}${c === 1 ? '+' : c === -1 ? '-' : `+${par(c)}`}\\left(${lin(a, b)}\\right)e^{${ex}}$$` +
       `Since $e^{0}=1$: $${name}(1)=${a + b}$ and $${name}'(1)=${a}+${par(c)}\\cdot ${par(a + b)}=${m}$.`;
     wrong = [
       { m: a, why: `forgets to differentiate the factor $e^{${ex}}$, giving slope $${a}$.` },
@@ -588,7 +595,7 @@ function tangentParameter({ rng, type, optionCount }: GenContext): Generated {
   const xsign = (m + p) / (2 * k);
   const mistakes = [
     { value: q, why: `sets the constant terms equal ($a=${q}$) without using the slope.` },
-    { value: at(xv), why: `solves $${name}'(x)=0$ (the top of the parabola) instead of $${name}'(x)=${m}$.` },
+    { value: at(xv), why: `solves $${name}'(x)=0$ (the vertex of the parabola) instead of $${name}'(x)=${m}$.` },
     { value: at(xsign), why: `a sign error when solving $${lin(2 * k, p)}=${m}$ (gets $x=${numTex(xsign)}$).` },
     { value: ys, why: 'takes the $y$-coordinate of the touching point as $a$.' },
     { value: q - fAt(xs), why: `uses the intercept $${q}$ of the line instead of its value at $x=${xs}$.` },

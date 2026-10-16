@@ -6,7 +6,7 @@
 // forgotten chain-rule factor, wrong number of steps, ...). See exponential-logistic.test.ts for the independent checks.
 import { buildMcq, INSTRUCTION, mistakesNote, num, numericField, type Choice } from '../build';
 import type { GenContext, Generated, Template } from '../types';
-import { choiceQuestion, coefTex, integerFallback, isNice, numericQuestion, scaledFallback, valueMcq } from './_econ';
+import { choiceQuestion, coefTex, isNice, numericQuestion, rankedValueMcq, scaledFallback, valueMcq } from './_econ';
 
 const ln = Math.log;
 const frac1 = (x: number) => x - Math.floor(x);
@@ -17,17 +17,18 @@ const expNeg = (r: number) => `e^{-${r === 1 ? '' : num(r)}t}`;
 // 1. Constant percentage growth or decline: during which year is a factor reached?
 // =====================================================================================================================
 
+// Each context: the opening sentence and the quantity that changes (the subject of the question).
 const GROW = [
-  (p: number, y: number) => `On 1 January ${y} a streaming platform had a certain number of subscribers. From then on, this number grows by ${p}% per year.`,
-  (p: number, y: number) => `The yearly turnover of a bicycle-courier company is expected to grow by ${p}% per year, starting from its level on 1 January ${y}.`,
-  (p: number, y: number) => `The number of public charging points for electric cars in a province grows by ${p}% per year, counted from 1 January ${y}.`,
-  (p: number, y: number) => `Money deposited on 1 January ${y} in an investment fund earns ${p}% per year, compounded once a year.`,
+  { text: (p: number, y: number) => `On 1 January ${y} a streaming platform had a certain number of subscribers. From then on, this number grows by ${p}% per year.`, noun: 'the number of subscribers' },
+  { text: (p: number, y: number) => `The number of customers of a bicycle-courier company is expected to grow by ${p}% per year, starting from its level on 1 January ${y}.`, noun: 'the number of customers' },
+  { text: (p: number, y: number) => `The number of public charging points for electric cars in a province grows by ${p}% per year, counted from 1 January ${y}.`, noun: 'the number of charging points' },
+  { text: (p: number, y: number) => `The value of an investment fund grows by ${p}% per year, starting from its value on 1 January ${y}.`, noun: 'the value of the fund' },
 ];
 const SHRINK = [
-  (p: number, y: number) => `A delivery van bought on 1 January ${y} loses value at a rate of ${p}% per year.`,
-  (p: number, y: number) => `Thanks to a recycling campaign that starts on 1 January ${y}, the amount of household waste in a town falls by ${p}% per year.`,
-  (p: number, y: number) => `The number of cheques written in a country decreases by ${p}% per year, measured from 1 January ${y}.`,
-  (p: number, y: number) => `A melting glacier loses ${p}% per year of its remaining ice volume, starting from its volume on 1 January ${y}.`,
+  { text: (p: number, y: number) => `A delivery van bought on 1 January ${y} loses value at a rate of ${p}% per year.`, noun: 'the value of the van' },
+  { text: (p: number, y: number) => `Thanks to a recycling campaign that starts on 1 January ${y}, the amount of household waste in a town falls by ${p}% per year.`, noun: 'the amount of household waste' },
+  { text: (p: number, y: number) => `The number of letters posted in a country decreases by ${p}% per year, measured from 1 January ${y}.`, noun: 'the number of letters posted' },
+  { text: (p: number, y: number) => `A melting glacier loses ${p}% per year of its remaining ice volume, starting from its volume on 1 January ${y}.`, noun: 'the ice volume of the glacier' },
 ];
 
 const percentageGrowth: Template = {
@@ -50,7 +51,8 @@ const percentageGrowth: Template = {
     const n = Math.floor(t);
     const year = Y0 + n;
     const pct = num(k * 100);
-    const intro = rng.pick(grow ? GROW : SHRINK)(p, Y0);
+    const ctx = rng.pick(grow ? GROW : SHRINK);
+    const intro = ctx.text(p, Y0);
     const target = grow ? `${num(k)} times as large as on 1 January ${Y0}` : `below ${pct}% of its level on 1 January ${Y0}`;
     const explanation =
       `Each year the level is multiplied by $g=1${grow ? '+' : '-'}${num(r)}=${num(g)}$, so after $t$ years it equals $N_0\\cdot ${num(g)}^{t}$. ` +
@@ -59,9 +61,10 @@ const percentageGrowth: Template = {
       `Check: after ${n} years the factor is $${num(g)}^{${n}}\\approx ${num(g ** n, 3)}$ and after ${n + 1} years $${num(g)}^{${n + 1}}\\approx ${num(g ** (n + 1), 3)}$, so it happens during **${year}**.`;
     if (type === 'numeric') {
       const q = grow ? `be ${num(k)} times as large as on that date` : `have dropped to ${pct}% of its level on that date`;
-      return numericQuestion(`${intro} After how many years (counted from 1 January ${Y0}) will it ${q}?`, t, 2, explanation);
+      return numericQuestion(`${intro} After how many years (counted from 1 January ${Y0}) will ${ctx.noun} ${q}?`, t, 2, explanation);
     }
-    const stem = `${intro} During which year will it for the first time be ${target}?`;
+    // the change is gradual (N0·g^t for every t ≥ 0, as in the course); with yearly steps the answer could be a year later
+    const stem = `${intro} The change takes place gradually over each year. During which year will ${ctx.noun} for the first time be ${target}?`;
     const tLin = grow ? (k - 1) / r : (1 - k) / r;
     const mistakes = [
       { value: Y0 + Math.ceil(t), why: `rounds $t\\approx ${num(t, 2)}$ up to ${Math.ceil(t)} years; but ${num(t, 2)} years after 1 January ${Y0} still falls in ${year}.` },
@@ -70,7 +73,8 @@ const percentageGrowth: Template = {
       { value: Y0 + Math.floor(Math.log10(k) / ln(g)), why: 'mixes $\\log_{10}$ (numerator) and $\\ln$ (denominator).' },
       ...(grow ? [] : [{ value: Y0 + Math.floor(ln(1 / k) / ln(1 + r)), why: `uses the factor $1+${num(r)}$ instead of $1-${num(r)}$.` }]),
     ];
-    const mcq = valueMcq(rng, year, mistakes, optionCount, (v) => String(v), { fallback: integerFallback(year, (v) => String(v), Y0), epsilon: 0 });
+    const near = (dir: -1 | 1, i: number) => (year + dir * (i + 1) >= Y0 ? year + dir * (i + 1) : null);
+    const mcq = rankedValueMcq(rng, year, mistakes, optionCount, (v) => String(v), near, { epsilon: 0 });
     return choiceQuestion(stem, mcq, explanation);
   },
 };
