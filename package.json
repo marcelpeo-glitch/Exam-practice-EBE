@@ -1,8 +1,8 @@
 {
-  "name": "mock-testvision",
+  "name": "pregame",
   "private": true,
   "version": "1.0.0",
-  "description": "Local mock TestVision for practising past SBE exams (QM1 included).",
+  "description": "PreGame: practise past SBE exams in a TestVision-like environment (QM1 included).",
   "type": "module",
   "scripts": {
     "start": "npm install --no-audit --no-fund --loglevel=error && vite --open",

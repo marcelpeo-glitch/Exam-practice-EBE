@@ -2,7 +2,7 @@
 // image are inlined, so it needs no internet, no login and no Node.js. Open it by double-clicking
 // (Chrome, Chromebook, Edge, Firefox, Safari).
 //
-//   npm run build:standalone      ->  standalone/mock-testvision.html
+//   npm run build:standalone      ->  standalone/pregame.html
 //
 // Run it again after adding or changing an exam in data/exams/.
 import react from '@vitejs/plugin-react';
@@ -13,7 +13,7 @@ import { build } from 'vite';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const tmp = path.join(root, 'node_modules/.cache/standalone');
-const outFile = path.join(root, 'standalone', 'mock-testvision.html');
+const outFile = path.join(root, 'standalone', 'pregame.html');
 
 fs.rmSync(tmp, { recursive: true, force: true });
 await build({
@@ -58,7 +58,7 @@ const html = [
   '<meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width, initial-scale=1">',
   '<meta name="description" content="Practise past exams in a TestVision-like environment, marked at the end.">',
-  '<title>Mock TestVision</title>',
+  '<title>PreGame</title>',
   '<style>',
   css,
   '</style>',

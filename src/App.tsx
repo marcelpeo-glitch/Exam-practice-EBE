@@ -46,7 +46,7 @@ function NotFound({ what }: { what: 'notFound.exam' | 'notFound.attempt' | 'notF
     <>
       <div className="topbar">
         <div className="topbar-inner">
-          <span className="brand">Mock TestVision</span>
+          <span className="brand">PreGame</span>
           <div className="spacer" />
           <LanguageSwitcher />
         </div>
@@ -91,10 +91,10 @@ export default function App() {
     return () => window.removeEventListener('storage', on);
   }, []);
 
-  // Page title in the active language, e.g. "Results · Mock TestVision".
+  // Page title in the active language, e.g. "Results · PreGame".
   const titleKey = PAGE_TITLE[parts[0] ?? ''] ?? 'meta.notFound';
   useEffect(() => {
-    document.title = `${t(titleKey)} · Mock TestVision`;
+    document.title = `${t(titleKey)} · PreGame`;
   }, [t, titleKey]);
 
   // The exam route always works from what is saved right now, never from this tab's in-memory copy.

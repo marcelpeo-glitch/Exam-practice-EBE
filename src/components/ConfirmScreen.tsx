@@ -32,7 +32,7 @@ export function ConfirmScreen({ exam, questionIds, durationMinutes, mode, otherS
     <>
       <div className="topbar">
         <div className="topbar-inner">
-          <span className="brand">Mock TestVision</span>
+          <span className="brand">PreGame</span>
           <div className="spacer" />
           <LanguageSwitcher />
           <a className="btn small" href="#/">

@@ -1,4 +1,4 @@
-// Checks the single-file build (standalone/mock-testvision.html) opened straight from disk (file://)
+// Checks the single-file build (standalone/pregame.html) opened straight from disk (file://)
 // with the network switched off: it must load, render maths and images, keep progress over a reload
 // and mark an exam without a single network request.
 //   npm run build:standalone && node tests/e2e/standalone.mjs
@@ -7,7 +7,7 @@ const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ?? 'playwright')
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const FILE = path.resolve(new URL('../../standalone/mock-testvision.html', import.meta.url).pathname);
+const FILE = path.resolve(new URL('../../standalone/pregame.html', import.meta.url).pathname);
 const URL_ = pathToFileURL(FILE).href;
 let failures = 0;
 const check = (cond, msg) => {
