@@ -47,7 +47,7 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
       <div className="topbar">
         <div className="topbar-inner">
           <span className="brand">
-            Mock TestVision<small>{t('start.tagline')}</small>
+            PreGame<small>{t('start.tagline')}</small>
           </span>
           <div className="spacer" />
           <LanguageSwitcher />
