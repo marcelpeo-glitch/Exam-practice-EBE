@@ -6,7 +6,7 @@
 // options come from modelled student mistakes. Independent checks: confidence-intervals.test.ts.
 import { buildMcq, buildMulti, fixed, INSTRUCTION, mistakesNote, num, numericField, type Choice } from '../build';
 import type { Rng } from '../rng';
-import { normInv, round, T_TABLE_DF, tInv, tStar, tTableDf, zStar, type TableLevel } from '../stats';
+import { normInv, round, T_TABLE_DF, tInv, tStar, tTableDf, zStar, zTable, type TableLevel } from '../stats';
 import type { Generated, Template } from '../types';
 import { acceptAround } from './_normal';
 
@@ -15,6 +15,25 @@ const pc = (c: number) => String(Math.round(c * 100));
 const LEVELS: TableLevel[] = [0.9, 0.95, 0.95, 0.99];
 const tExact = (conf: number, df: number) => tInv(1 - (1 - conf) / 2, df);
 const zExact = (conf: number) => normInv(1 - (1 - conf) / 2);
+/**
+ * z* as a student may read it from Table Z in reverse: the 2-decimal entry whose printed probability is closest to
+ * 1 − (1 − C)/2, or both neighbours when they are equally close (90%: 1.64/1.65, 99%: 2.57/2.58; 95%: 1.96, 98%: 2.33).
+ */
+function zTableZ(conf: number): number[] {
+  const q = 1 - (1 - conf) / 2;
+  const z = normInv(q);
+  const nb = [Math.floor(z * 100 + 1e-9) / 100, Math.ceil(z * 100 - 1e-9) / 100];
+  const d = (c: number) => Math.abs(zTable(c) - q);
+  const best = Math.min(...nb.map(d));
+  return [...new Set(nb.filter((c) => d(c) <= best + 1e-9))];
+}
+/** Every z* a student may use: Table T (row ∞, the key), the exact quantile and the Table Z reading(s). */
+const zRoutes = (conf: TableLevel) => [zStar(conf), zExact(conf), ...zTableZ(conf)];
+/** Note for a worked solution when Table Z in reverse gives a different z* than the ∞ row of Table T. */
+function zNote(conf: TableLevel): string {
+  const zs = zTableZ(conf).filter((z) => Math.abs(z - zStar(conf)) > 1e-9);
+  return zs.length ? ` (Reading Table Z in reverse gives $z^*\\approx ${zs.map((z) => fixed(z, 2)).join('$ or $')}$; answers based on that are accepted too.)` : '';
+}
 /** Rounded up, ignoring floating-point noise (600.0000000001 → 600). */
 const ceil = (x: number) => Math.ceil(x - 1e-9);
 
@@ -135,6 +154,8 @@ const tInterval: Template = {
         `What is the **${C}% confidence interval** for the mean ${s.measure} of ${s.pop}?`,
       ]);
     const [Lx, Ux] = [d.ybar - d.tx * d.se, d.ybar + d.tx * d.se];
+    // a student who rounds SE to 3 decimals (and the margin of error to 3) may end one unit away in the 2nd decimal
+    const me3 = d.ts * round(d.se, 3);
     const exactNote = Math.abs(d.tx - d.ts) >= 0.0005 ? ` (The exact critical value for $df=${d.df}$ is ${fixed(d.tx, 3)}; answers based on it are accepted too.)` : '';
     const how =
       `**Conditions.** The ${s.ind} were sampled at random, and ${d.n >= 30 ? `with $n=${d.n}$ the sample is large enough for the Central Limit Theorem` : 'the data are unimodal and roughly symmetric (Nearly Normal condition)'}. ` +
@@ -151,8 +172,8 @@ const tInterval: Template = {
           'Instruction: round the degrees of freedom down to the nearest row of Table T and fill in the critical value $t^*$ (3 decimals). Then fill in the lower and upper bound of the interval (2 decimals). To separate decimals, use a dot and not a comma (example: 0.51 instead of 0,51)!',
         fields: [
           numericField('t', 'Critical t-value $t^*$', d.ts, 3, acceptAround(3, d.ts, d.tx)),
-          numericField('lo', 'Lower bound of the confidence interval', d.L, 2, acceptAround(2, d.L, Lx)),
-          numericField('hi', 'Upper bound of the confidence interval', d.U, 2, acceptAround(2, d.U, Ux)),
+          numericField('lo', 'Lower bound of the confidence interval', d.L, 2, acceptAround(2, d.L, Lx, d.ybar - me3)),
+          numericField('hi', 'Upper bound of the confidence interval', d.U, 2, acceptAround(2, d.U, Ux, d.ybar + me3)),
         ],
         explanation: how,
       };
@@ -237,10 +258,9 @@ const proportion: Template = {
     }
     const me = zt * se;
     const [L, U] = [ph - me, ph + me];
-    const mx = zExact(conf) * se;
     const how =
       setup +
-      `**Critical value.** For ${C}% confidence, $z^*=${fixed(zt, 3)}$ (Table T, row $\\infty$).\n` +
+      `**Critical value.** For ${C}% confidence, $z^*=${fixed(zt, 3)}$ (Table T, row $\\infty$).${type === 'numeric' ? zNote(conf) : ''}\n` +
       `**Interval.** $$\\hat p\\pm z^*\\cdot SE(\\hat p)=${num(ph, 3)}\\pm ${fixed(zt, 3)}\\times ${num(se, 4)}=${num(ph, 3)}\\pm ${num(me, 4)}=[${fixed(L, 3)},\\ ${fixed(U, 3)}]$$\n` +
       `**Conclusion.** We are ${C}% confident that between ${num(100 * L, 1)}% and ${num(100 * U, 1)}% of ${s.pop} ${asked}.`;
     if (type === 'numeric')
@@ -249,8 +269,8 @@ const proportion: Template = {
         stem,
         instruction: INSTRUCTION.numericFields(3),
         fields: [
-          numericField('lo', 'Lower bound of the confidence interval', L, 3, acceptAround(3, L, ph - mx)),
-          numericField('hi', 'Upper bound of the confidence interval', U, 3, acceptAround(3, U, ph + mx)),
+          numericField('lo', 'Lower bound of the confidence interval', L, 3, acceptAround(3, ...zRoutes(conf).map((z) => ph - z * se))),
+          numericField('hi', 'Upper bound of the confidence interval', U, 3, acceptAround(3, ...zRoutes(conf).map((z) => ph + z * se))),
         ],
         explanation: how,
       };
@@ -262,20 +282,20 @@ const proportion: Template = {
       at(1 - ph, me, `gives the interval for the proportion that ${other}, not for the proportion that ${asked}.`),
       at(ph, z1 * se, `uses $z^*=${fixed(z1, 3)}$, which puts the whole ${num(1 - conf, 2)} in one tail.`),
       at(ph, zStar(oc) * se, `uses $z^*=${fixed(zStar(oc), 3)}$, the critical value for ${pc(oc)}% confidence.`),
+      at(ph, se, 'takes $\\hat p\\pm SE$: forgets to multiply by $z^*$.'),
       ...(kind === 'se'
-        ? [at(ph, se, 'takes $\\hat p\\pm SE$: forgets to multiply by $z^*$.'), at(ph, 2 * se, `uses the 68–95–99.7 rule ($\\pm 2\\,SE$) instead of $z^*=${fixed(zt, 3)}$.`)]
+        ? [at(ph, 2 * se, `uses the 68–95–99.7 rule ($\\pm 2\\,SE$) instead of $z^*=${fixed(zt, 3)}$.`)]
         : [
-            at(ph, (zt * ph * (1 - ph)) / n, 'forgets the square root in the standard error.'),
-            at(ph, (zt * Math.sqrt(ph * (1 - ph))) / n, 'divides $\\sqrt{\\hat p(1-\\hat p)}$ by $n$ instead of by $\\sqrt n$.'),
             at(ph, zt * Math.sqrt(0.25 / n), 'uses $p=0.5$ in the standard error (as in the sample-size formula) instead of $\\hat p$.'),
-            at(1 - ph, (zt * ph * (1 - ph)) / n, `forgets the square root and gives the interval for the proportion that ${other}.`),
+            at(1 - ph, zStar(oc) * se, `gives the interval for the proportion that ${other}, and uses $z^*=${fixed(zStar(oc), 3)}$ (the value for ${pc(oc)}% confidence).`),
           ]),
       ...[1.5, 0.5, 2, 0.3, 2.5].map((f) => at(ph, f * me, 'an arithmetic slip in the margin of error.')),
     ];
     const dist = (a: Iv, b: Iv) => Math.max(Math.abs(a.lo - b.lo), Math.abs(a.hi - b.hi));
+    // No near-degenerate intervals (e.g. [0.816, 0.816] from forgetting the square root): nobody would pick them.
     const ok = distinct(
-      cands.filter((c) => c.lo >= 0 && c.hi <= 1),
-      [at(ph, me, ''), at(ph, mx, '')],
+      cands.filter((c) => c.lo >= 0 && c.hi <= 1 && c.hi - c.lo >= 0.25 * 2 * me),
+      [at(ph, me, ''), ...zRoutes(conf).map((z) => at(ph, z * se, ''))],
       dist,
       0.005,
     );
@@ -348,7 +368,7 @@ const sampleSize: Template = {
         pText = `A pilot study suggests that about ${pct}% of them ${s.yes}; use this as the guess for $p$.`;
       } else pText = rng.pick(['There is no earlier estimate of this proportion, so assume $p=0.5$ (the worst case).', 'Nothing is known in advance about this proportion; use the conservative guess $p=0.5$.']);
       nOf = (z) => (z * z * p * (1 - p)) / (E * E);
-      stem = `${s.org} wants to estimate the proportion of ${s.pop} that ${s.yes} with a ${C}% confidence interval and ${meText}. ${pText}\nWhat is the minimum sample size $n$ needed?`;
+      stem = `${s.org} wants to estimate, with a ${C}% confidence interval and ${meText}, the proportion of ${s.pop} that ${s.yes}. ${pText}\nWhat is the minimum sample size $n$ needed?`;
       how =
         `The margin of error of a one-proportion interval is $ME=z^*\\sqrt{\\dfrac{p(1-p)}{n}}$, with $z^*=${fixed(zt, 3)}$ for ${C}% confidence (Table T, row $\\infty$)` +
         (kind === 'pilot' ? ` and the pilot estimate $p=${num(p, 2)}$` : ' and $p=0.5$, which gives the largest possible $p(1-p)=0.25$ and so a sample size that is large enough whatever the true $p$') +
@@ -362,13 +382,16 @@ const sampleSize: Template = {
         ...(kind === 'pilot' ? [[(z: number) => (z * z * 0.25) / (E * E), 'ignores the pilot estimate and uses $p=0.5$.'] as [(z: number) => number, string]] : []),
       ];
     }
-    const nT = nOf(zt);
-    const nX = nOf(zExact(conf));
-    const key = ceil(nT);
-    const range: [number, number] = [Math.floor(Math.min(nT, nX) + 1e-9), ceil(Math.max(nT, nX))];
+    const key = ceil(nOf(zt));
+    // accepted: rounding down (as the official solutions allow), the exact z*, or z* read from Table Z in reverse
+    const ns = zRoutes(conf).map(nOf);
+    const range: [number, number] = [Math.floor(Math.min(...ns) + 1e-9), ceil(Math.max(...ns))];
+    const zz = zTableZ(conf).filter((z) => Math.abs(z - zt) > 1e-9);
     how +=
       `\nAlways round **up**: with fewer observations the margin of error would be larger than required. So $n=${key}$.` +
-      (range[0] < range[1] ? ` (Answers from ${range[0]} to ${range[1]} are accepted: rounding down, as the official solutions allow, or using the exact $z^*$ changes the result only slightly.)` : '');
+      (type === 'numeric' && range[0] < range[1]
+        ? ` (Answers from ${range[0]} to ${range[1]} are accepted: rounding down, as the official solutions allow, ${zz.length ? `taking $z^*\\approx ${zz.map((z) => fixed(z, 2)).join('$ or $')}$ from Table Z in reverse, ` : ''}or using the exact $z^*$ changes the result only slightly.)`
+        : '');
     if (type === 'numeric') {
       const f = numericField('n', undefined, key, 0, range);
       return { type, stem, instruction: INSTRUCTION.numeric(0), correctAnswer: f.answer, tolerance: f.tolerance, acceptRange: range, explanation: how };

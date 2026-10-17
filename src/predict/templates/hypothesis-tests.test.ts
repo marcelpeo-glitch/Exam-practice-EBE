@@ -95,6 +95,16 @@ function interval(t: string): [number, number] {
   return [Number(m[1]), Number(m[2])];
 }
 const within = (p: number, [a, b]: [number, number]) => p > a && p < b;
+/** The options of a "which interval contains P" question cover [0, 1] without gaps or overlaps; returns the edges. */
+function partition(g: Generated, msg: string): number[] {
+  const iv = g.options!.map((o) => interval(o.text!)).sort((a, b) => a[0] - b[0]);
+  expect(iv[0][0], msg).toBe(0);
+  expect(iv[iv.length - 1][1], msg).toBe(1);
+  for (let i = 1; i < iv.length; i++) expect(iv[i][0], `${msg}\ngap or overlap in the options`).toBe(iv[i - 1][1]);
+  return iv.slice(1).map((x) => x[0]);
+}
+const accepts = (f: { answer: number; tolerance?: number; acceptRange?: [number, number] }, v: number) =>
+  Math.abs(v - f.answer) <= (f.tolerance ?? 0) + 1e-9 || (!!f.acceptRange && v >= f.acceptRange[0] - 1e-9 && v <= f.acceptRange[1] + 1e-9);
 
 /** Evaluates "$z=\dfrac{…}{\sqrt{\dfrac{a\cdot b}{n}}}$" numerically. */
 function evalTex(tex: string): number {
@@ -192,12 +202,18 @@ describe('hypothesis-tests.proportion-z: z from the counts, P from Table Z (as p
           expect(Math.abs(fz.answer - z), msg).toBeLessThanOrEqual(fz.tolerance! + 1e-9);
           expect(fp.answer, msg).toBeCloseTo(Pt, 9);
           expect(Px >= fp.acceptRange![0] && Px <= fp.acceptRange![1], msg).toBe(true);
+          // the student route "SD rounded to 4 decimals, z to 2 decimals, P from Table Z" is accepted in both boxes
+          const zR = rnd((x / n - c.v) / rnd(Math.sqrt((c.v * (1 - c.v)) / n), 4), 2);
+          expect(accepts(fz, zR) && accepts(fp, rnd(zP(zR, c.dir, tableZ), 4)), `${msg}\nrounded SD gives z=${zR}`).toBe(true);
+          // but not much else: a mistake such as using p̂ in the SD stays wrong
+          expect(accepts(fz, rnd(z + 0.03, 2)) || accepts(fz, rnd(z - 0.03, 2)), msg).toBe(false);
           continue;
         }
         if (/Which expression/.test(g.stem)) {
           expect(evalTex(keyOf(g).text!), msg).toBeCloseTo(z, 9);
           for (const o of others(g)) expect(Math.abs(evalTex(o.text!) - z), `${msg}\n${o.text}`).toBeGreaterThan(1e-3);
         } else if (/Which interval/.test(g.stem)) {
+          partition(g, msg);
           expect(within(Pt, interval(keyOf(g).text!)) && within(Px, interval(keyOf(g).text!)), msg).toBe(true);
           for (const o of others(g)) expect(within(Px, interval(o.text!)), `${msg}\n${o.text}`).toBe(false);
         } else {
@@ -296,6 +312,9 @@ describe('hypothesis-tests.mean-t: t from the printed data, P by integrating the
         for (const o of others(g)) expect(Math.abs(val(o.text!) - want), `${msg}\n${o.text}`).toBeGreaterThan(1e-5);
       } else {
         expect(/Using Table T, which interval/.test(g.stem), msg).toBe(true);
+        // contiguous options whose edges are tail areas printed in Table T (doubled for a two-sided test)
+        const tails = [0.1, 0.05, 0.025, 0.01, 0.005].map((a) => rnd(q.dir === '!=' ? 2 * a : a, 3));
+        for (const e of partition(g, msg)) expect(tails, msg).toContain(e);
         expect(within(P, interval(keyOf(g).text!)), `${msg}\nP=${P}`).toBe(true);
         for (const o of others(g)) expect(within(P, interval(o.text!)), `${msg}\n${o.text}`).toBe(false);
       }
@@ -312,6 +331,14 @@ describe('hypothesis-tests.mean-t: t from the printed data, P by integrating the
       const a = grab(g.stem, /\$\\alpha=([\d.]+)\$/);
       const [ft, fs] = g.fields!;
       expect(Math.abs(ft.answer - q.t), msg).toBeLessThanOrEqual(ft.tolerance! + 1e-9);
+      // raw data: rounding ȳ and s to 2 or 3 decimals before computing t is accepted, other mistakes are not
+      if (/are:\n/.test(g.stem)) {
+        for (const k of [2, 3]) {
+          const tk = rnd((rnd(q.ybar, k) - q.v) / (rnd(q.s, k) / Math.sqrt(q.n)), 2);
+          expect(accepts(ft, tk), `${msg}\nrounded to ${k} decimals: t=${tk}`).toBe(true);
+        }
+        expect(accepts(ft, rnd(((q.ybar - q.v) * Math.sqrt(q.n - 1)) / q.s, 2)), `${msg}\ns/sqrt(n-1) accepted`).toBe(false);
+      }
       expect(Math.abs(fs.answer - tQuant(q.dir === '!=' ? a / 2 : a, df)), msg).toBeLessThan(0.002);
       const reject = tP(q.t, df, q.dir) < a;
       expect(g.explanation.includes('so we reject $H_0$'), msg).toBe(reject);

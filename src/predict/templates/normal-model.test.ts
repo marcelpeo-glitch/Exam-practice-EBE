@@ -233,6 +233,8 @@ describe('normal-model.shaded-area: region read from the SVG polygon, probabilit
           expect(same(keyText(g)), msg).toBe(true);
           for (const o of others(g)) expect(same(o.text!), `${msg}\n${o.text}`).toBe(false);
           const zOf = (x: number) => (Number.isFinite(x) ? Math.round((x - mu) / sd) : x);
+          // sensible values: no option with a boundary of 0 (or less) hours, points, ml, ...
+          for (const o of g.options!) for (const x of interval(s, o.text!)) if (Number.isFinite(x)) expect(x, `${msg}\n${o.text}`).toBeGreaterThan(0);
           for (const o of others(g)) {
             const [lo, hi] = interval(s, o.text!);
             expect(open(zOf(lo)) === open(a) && open(zOf(hi)) === open(b), `${msg}\nlooks the same as the key: ${o.text}`).toBe(false);

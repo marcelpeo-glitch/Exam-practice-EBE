@@ -37,6 +37,8 @@ export interface Scn {
   who: string;
   /** The parameter in words. */
   what: string;
+  /** The actor at a second mention, when "A …" → "The …" does not read well. */
+  again?: string;
   dirs: Dir[];
   v0s: number[];
   items: string;
@@ -56,7 +58,7 @@ export const PS: Scn[] = [
   { kind: 'prop', intro: (v) => `A board-game café uses a spinner with four equally large sectors, so a fair spinner stops on the red sector ${v} of the time.`, who: 'A regular player', what: 'the proportion of spins that stop on red', dirs: ['!=', '>'], v0s: [0.25], items: 'spins', act: 'stopped on red' },
   { kind: 'prop', intro: (v) => `A tulip grower states that ${v} of its bulbs produce a flower.`, who: 'A garden centre', what: 'the proportion of the bulbs that flower', dirs: ['<'], v0s: [0.85, 0.9], items: 'bulbs', act: 'flowered' },
   { kind: 'prop', intro: (v) => `Nationally, ${v} of first-year students switch to another programme after their first year.`, who: 'A faculty board', what: "the proportion of the faculty's first-year students who switch programme", dirs: ['!=', '<'], v0s: [0.2, 0.25, 0.3], items: 'first-year students of the faculty', act: 'switched programme' },
-  { kind: 'prop', intro: (v) => `According to a trade magazine, ${v} of coffee drinkers prefer plant-based milk.`, who: 'The owner of a campus café', what: 'the proportion of her customers who prefer plant-based milk', dirs: ['>', '!='], v0s: [0.2, 0.25, 0.3], items: 'customers', act: 'preferred plant-based milk' },
+  { kind: 'prop', intro: (v) => `According to a trade magazine, ${v} of coffee drinkers prefer plant-based milk.`, who: 'The owner of a campus café', again: 'The café owner', what: 'the proportion of her customers who prefer plant-based milk', dirs: ['>', '!='], v0s: [0.2, 0.25, 0.3], items: 'customers', act: 'preferred plant-based milk' },
   { kind: 'prop', intro: (v) => `A courier company used to deliver ${v} of its parcels in the city centre too late. It now delivers them with electric cargo bikes.`, who: 'The operations manager', what: 'the proportion of parcels delivered too late', dirs: ['<'], v0s: [0.08, 0.1, 0.12], items: 'parcels', act: 'were delivered too late' },
 ];
 
@@ -72,7 +74,7 @@ export const MS: Scn[] = [
 ];
 const ALL = [...PS, ...MS];
 /** The actor at a second mention ("A test magazine" → "The test magazine"). */
-const again = (sc: Scn) => sc.who.replace(/^A /, 'The ');
+const again = (sc: Scn) => sc.again ?? sc.who.replace(/^A /, 'The ');
 
 const v0Text = (sc: Scn, v0: number) => (sc.kind === 'prop' ? pct(v0) : `${num(v0, 2)} ${sc.unit}`);
 const claimOf = (rng: Rng, sc: Scn, d: Dir, v0: number) =>
@@ -337,12 +339,18 @@ const propZ: Template = {
       `$$z=\\frac{\\hat p-p_0}{SD(\\hat p)}=\\frac{${num(ph, 4)}-${P0}}{${num(sd0, 5)}}=${num(z, 4)}\\approx ${fixed(z, 2)}$$` +
       `**P-value** (Table Z): $P=${zPvalTex(z, dir)}$. (Without rounding $z$: ${fixed(Px, 4)}.)`;
     if (variant === 'numeric') {
+      // a student who first rounds SD(p̂) to 4 decimals can end 0.01 away in z (and so read another Table Z entry)
+      const zAlt = (ph - p0) / round(sd0, 4);
+      const altNote =
+        round(zAlt, 2) !== round(z, 2)
+          ? `\n(With $SD(\\hat p)$ rounded to ${fixed(sd0, 4)} first: $z\\approx ${fixed(zAlt, 2)}$ and $P=${fixed(zPval(zAlt, dir), 4)}$; these answers are accepted too.)`
+          : '';
       return {
         type,
         stem: `${head}\n${again(sc)} tests ${hyp}. Compute the test statistic $z$ and the P-value (use Table Z).`,
         instruction: 'Instruction: fill in every box: $z$ with 2 decimals and the P-value with 4 decimals. To separate decimals, use a dot and not a comma (example: 0.51 instead of 0,51)!',
-        fields: [numericField('z', 'Test statistic $z$', z, 2), numericField('p', 'P-value', P, 4, acceptAround(4, P, Px))],
-        explanation: `${work}\nAt $\\alpha=0.05$, ${conclusion(P < 0.05, sc, dir, p0)}`,
+        fields: [numericField('z', 'Test statistic $z$', z, 2, acceptAround(2, z, zAlt)), numericField('p', 'P-value', P, 4, acceptAround(4, P, Px, zPval(zAlt, dir)))],
+        explanation: `${work}${altNote}\nAt $\\alpha=0.05$, ${conclusion(P < 0.05, sc, dir, p0)}`,
       };
     }
     if (variant === 'formula') {
@@ -511,13 +519,21 @@ const meanT: Template = {
       const lvl = levelFor(alpha, two);
       const ts = tcrit(df);
       const rej = two ? Math.abs(t) > ts : dir === '>' ? t > ts : t < -ts;
+      // raw data: a student who rounds ȳ and s to 2 (or 3) decimals before computing t may end a little away
+      const tAlt = [2, 3].map((k) => (round(ybar, k) - v0) / (round(s, k) / Math.sqrt(n)));
+      const tRange = d.data ? acceptAround(2, t, ...tAlt) : undefined;
+      const altNote =
+        tRange && round(tAlt[0], 2) !== tr
+          ? `\n(With $\\bar y$ and $s$ rounded to 2 decimals first, $t\\approx ${fixed(tAlt[0], 2)}$; answers from ${fixed(Math.ceil(tRange[0] * 100 - 1e-9) / 100, 2)} to ${fixed(Math.floor(tRange[1] * 100 + 1e-9) / 100, 2)} are accepted.)`
+          : '';
       return {
         type,
         stem: `${head}\n${again(sc)} tests ${hyp} at significance level $\\alpha=${alpha}$. Give the test statistic $t$ and the critical value $t^*$ from Table T (as a positive number).`,
         instruction: 'Instruction: fill in every box: $t$ with 2 decimals and $t^*$ with 3 decimals. To separate decimals, use a dot and not a comma (example: 0.51 instead of 0,51)!',
-        fields: [numericField('t', 'Test statistic $t$', t, 2), numericField('tstar', 'Critical value $t^*$', ts, 3)],
+        fields: [numericField('t', 'Test statistic $t$', t, 2, tRange), numericField('tstar', 'Critical value $t^*$', ts, 3)],
         explanation:
           work +
+          altNote +
           `\n**Critical value.** ${two ? `Two-sided, $\\alpha=${alpha}$: ${alpha / 2} in each tail` : `One-sided, $\\alpha=${alpha}$ in one tail`}, so the column for ${Math.round(lvl * 100)}% confidence; row $df=${df}$: $t^*=${fixed(ts, 3)}$.\n` +
           `**Decision.** ${two ? `$|t|=${fixed(Math.abs(tr), 2)}$ ${rej ? '>' : '<'} ${fixed(ts, 3)}` : `$t=${fixed(tr, 2)}$ ${rej ? 'lies' : 'does not lie'} beyond $${dir === '>' ? '' : '-'}${fixed(ts, 3)}$`}, so ${conclusion(rej, sc, dir, v0)}`,
       };
@@ -531,15 +547,28 @@ const meanT: Template = {
       [two ? 2 * (1 - normCdf(Math.abs(t))) : dir === '>' ? 1 - normCdf(t) : normCdf(t), 'uses the standard Normal model (the $\\infty$ row) instead of $df=n-1$.'],
       [two ? 1 - P / 2 : 1 - P, 'takes the area on the wrong side of $t$.'],
     ];
-    const mcq = binMcq(rng, P, ms, edges, optionCount, `would need $|t|$ in another place between the critical values of the row $df=${df}$.`);
+    // Table T gives 5 edges (6 intervals); the options use optionCount − 1 consecutive edges, so that they cover every
+    // possible P-value without gaps (as in the past exams). Prefer the window that keeps most mistakes apart from the key,
+    // then one in which the key is the exact bracket between two adjacent columns of Table T.
+    const windows = Array.from({ length: edges.length - optionCount + 2 }, (_, i) => edges.slice(i, i + optionCount - 1));
+    const exact = binText(binOf(P, edges), edges);
+    const score = (w: number[]) => 2 * new Set([P, ...ms.map(([p]) => p)].map((p) => binOf(p, w))).size + (binText(binOf(P, w), w) === exact ? 1 : 0);
+    const best = Math.max(...windows.map(score));
+    const win = rng.pick(windows.filter((w) => score(w) === best));
+    const mcq = binMcq(rng, P, ms, win, optionCount, `would need $|t|$ in another place between the critical values of the row $df=${df}$.`);
     const showHyp = rng.chance(0.5);
     const cols = cr.map((c, i) => `${fixed(c, 3)} (${two ? 'two' : 'one'}-sided ${round(two ? 2 * TAILS[i] : TAILS[i], 3)})`).join(', ');
     const where =
-      k === 0 ? `smaller than ${fixed(cr[0], 3)}, so $P>${edges[4]}$` : k === 5 ? `larger than ${fixed(cr[4], 3)}, so $P<${edges[0]}$` : `between ${fixed(cr[k - 1], 3)} and ${fixed(cr[k], 3)}, so $${edges[4 - k]}<P<${edges[5 - k]}$`;
+      k === 0
+        ? `is smaller than ${fixed(cr[0], 3)}, so $P>${edges[4]}$`
+        : k === 5
+          ? `is larger than ${fixed(cr[4], 3)}, so $P<${edges[0]}$`
+          : `lies between ${fixed(cr[k - 1], 3)} and ${fixed(cr[k], 3)}, so $${edges[4 - k]}<P<${edges[5 - k]}$`;
+    const keyText = binText(binOf(P, win), win);
     return choice(
       `${head}\n${showHyp ? `${again(sc)} tests ${hyp}. ` : 'Carry out the appropriate test. '}Using Table T, which interval contains the P-value?`,
       mcq,
-      `${work}\n**Table T**, row $df=${tTableDf(df)}$: ${cols}. $|t|=${fixed(Math.abs(tr), 2)}$ lies ${where}.`,
+      `${work}\n**Table T**, row $df=${tTableDf(df)}$: ${cols}. $|t|=${fixed(Math.abs(tr), 2)}$ ${where}${keyText !== exact ? `, which lies in the option ${keyText}` : ''}.`,
     );
   },
 };

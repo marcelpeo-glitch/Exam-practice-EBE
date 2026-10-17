@@ -140,7 +140,7 @@ const probability: Template = {
         `$$${zStep('z_a', A, M, S, za)}\\qquad ${zStep('z_b', num(b, 2), M, S, zb)}$$ Table Z: $${phiTex(zb)}$ and $${phiTex(za)}$, so ` +
         `$$${ineq}=P(Z<z_b)-P(Z<z_a)=${p4(zTable(zb))}-${p4(zTable(za))}=${p4(P)}$$`;
     const key = count ? Math.round(N * P) : P;
-    if (count) how += `\nExpected number: $$${N}\\times ${p4(P)}=${num(N * P, 2)}\\approx ${key}\\text{ ${s.items}}$$`;
+    if (count) how += `\nExpected number: $$${N}\\times ${p4(P)}=${Math.abs(N * P - key) < 1e-9 ? key : `${num(N * P, 2)}\\approx ${key}`}\\text{ ${s.items}}$$`;
     const exactNote = `\n(Software, which does not round $z$, gives ${p4(Px)}${count ? `, i.e. ${num(N * Px, 1)} ${s.items}` : ''}; answers based on that value are accepted too.)`;
 
     if (type === 'numeric')
@@ -403,7 +403,8 @@ const shaded: Template = {
   generate({ rng, type, optionCount }) {
     const s = rng.pick(SCENARIOS);
     const mu = rng.pick(s.mus);
-    const sd = rng.pick(s.sds);
+    // the options use boundaries down to μ − 3σ: keep that positive (no "takes between 0 and 20 hours to arrive")
+    const sd = rng.pick(s.sds.filter((d) => mu - 3 * d > 0));
     // a boundary at μ ± 3σ is invisible (the curve is practically on the axis there), so the size of such an area is
     // only asked when the region is read from the options (single choice), never as a number
     const [a, b] = rng.pick(type === 'numeric' ? INTERVALS.filter(([lo, hi]) => Math.abs(lo) !== 3 && Math.abs(hi) !== 3) : INTERVALS);

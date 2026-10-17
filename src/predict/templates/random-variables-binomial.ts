@@ -330,10 +330,13 @@ const expectedGain: Template = {
         `$$E(\\text{prize})=${prizes.map((w, i) => `${w}\\cdot\\frac{${cnt(conds[i].f)}}{${total}}`).join('+')}${eq(gross)}${num(gross, 4)}$$` +
         `The stake of ${euro(cost)} is paid in every game, so $$E(\\text{net gain})=${num(gross, 4)}-${num(cost, 2)}${eq(net)}${num(net, 4)}$$` +
         `${net < 0 ? `On average the player **loses** about €${fixed(-net, 2)} per game.` : `On average the player **gains** about €${fixed(net, 2)} per game.`}`;
-      // an exact half cent (e.g. −2.375) may be rounded either way by students: accept both neighbours
+      // an exact half cent (e.g. −2.375) may be rounded either way by students: accept both neighbours. The key itself
+      // is rounded half away from zero, like the "about €2.38" in the worked solution (floating-point rounding of
+      // −2.375 would otherwise give −2.37 there).
       const cents = net * 100;
       const halfCent = Math.abs(cents - Math.floor(cents) - 0.5) < 1e-6;
       const acceptRange: [number, number] | undefined = halfCent ? [Math.floor(cents) / 100, Math.ceil(cents) / 100] : undefined;
+      const key = halfCent ? (Math.sign(net) * Math.round(Math.abs(cents) + 1e-6)) / 100 : net;
       const wrong: Wrong[] = [
         { value: gross, why: 'forgets to subtract the cost of playing.' },
         { value: -net, why: 'mixes up gain and loss (wrong sign).' },
@@ -342,7 +345,7 @@ const expectedGain: Template = {
         { value: -cost, why: 'ignores the prizes and expects to lose the whole stake.' },
       ];
       return valueQuestion({
-        type, rng, optionCount, stem, numericStem, key: net, dp: 2, explanation,
+        type, rng, optionCount, stem, numericStem, key, dp: 2, explanation,
         wrong: wrong.filter((w) => Math.abs(w.value) >= 0.01),
         range: [-100, 100], gap: 3, fmt: gainText, acceptRange,
       });
@@ -403,8 +406,9 @@ const COMBS: readonly ((rng: Rng) => Comb)[] = [
     kind: 'diff', unit: 'minutes', target: 'D', formula: 'A - B', coef: [1, -1], c: 0, what: 'The difference in finishing times',
     intro: 'Two cyclists ride a time trial independently of each other.',
     vars: [
-      { name: 'A', meaning: 'time of cyclist A (minutes)', mean: rng.int(31, 35), sd: rng.step(0.6, 1.4, 0.1) },
-      { name: 'B', meaning: 'time of cyclist B (minutes)', mean: rng.int(29, 32), sd: rng.step(0.5, 1.2, 0.1) },
+      // cyclist A is clearly slower on average, so the mean difference is a positive number of minutes (not 0 or −1)
+      { name: 'A', meaning: 'time of cyclist A (minutes)', mean: rng.int(33, 36), sd: rng.step(0.6, 1.4, 0.1) },
+      { name: 'B', meaning: 'time of cyclist B (minutes)', mean: rng.int(29, 31), sd: rng.step(0.5, 1.2, 0.1) },
     ],
   }),
   (rng) => ({
@@ -534,7 +538,10 @@ const sumOfVariables: Template = {
       ds.push(pair(mean, Math.sqrt(Math.abs(X.sd ** 2 - Y.sd ** 2)), 'subtracts the variances.'));
       ds.push(pair(mean / 2, Math.sqrt(X.sd ** 2 + Y.sd ** 2) / 2, 'averages the two variables instead of adding them.'));
     }
-    const distinct = (d: { m: number; d: number }) => Math.abs(d.m - mean) > 0.01 * Math.max(1, Math.abs(mean)) || Math.abs(d.d - sd) > 0.03 * sd;
+    // a modelled mistake must differ from the key, and must not give an absurd standard deviation of 0.00 (subtracting
+    // two equal variances)
+    const distinct = (d: { m: number; d: number }) =>
+      d.d >= 0.005 && (Math.abs(d.m - mean) > 0.01 * Math.max(1, Math.abs(mean)) || Math.abs(d.d - sd) > 0.03 * sd);
     const mcq = buildMcq(rng, pair(mean, sd), ds.filter(distinct), {
       count: optionCount,
       fallback: (i) => pair(mean, sd * (1 + 0.2 * (i + 1)), 'an arithmetic slip in the variance.'),
@@ -608,7 +615,7 @@ function exactBinomial(rng: Rng, type: GenType, optionCount: number): Generated 
       `${twist ? ` (careful: the question is about the ${sc.items} that ${plain}, so $p=1-${num(pp / 100, 2)}=${pT}$)` : ''}, with $P(X=j)=\\binom{n}{j}p^j(1-p)^{n-j}$.\n` +
       `$$${parts}$$` +
       (direct
-        ? `Adding ${list.length > 1 ? 'these' : 'this'}: $P(\\text{${BIN_WORD[kind]} ${k}})\\approx ${fixed(key, 3)}$.`
+        ? `${list.length > 1 ? 'Adding these: ' : 'So '}$P(\\text{${BIN_WORD[kind]} ${k}})\\approx ${fixed(key, 3)}$.`
         : `These are the outcomes **not** in the event, so use the complement: $P(\\text{${BIN_WORD[kind]} ${k}})=1-(${list.map((j) => num(binomPmf(j, n, p), 4)).join('+')})\\approx ${fixed(key, 3)}$.`);
     const swapKind: Record<BinKind, BinKind> = { eq: 'atMost', atMost: 'fewer', fewer: 'atMost', atLeast: 'more', more: 'atLeast' };
     const wrong: Wrong[] = [

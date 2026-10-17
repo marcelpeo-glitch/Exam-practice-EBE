@@ -47,7 +47,7 @@ const MSCN: MScn[] = [
   { pop: 'the number of steps employees of a large firm take on a working day', unit: 'steps', item: 'employee', items: 'employees', mus: [6000, 7000, 7500, 8000], sds: [1800, 2000, 2400], shape: 'right-skewed' },
   { pop: 'the waiting time at the helpdesk of an internet provider', unit: 'minutes', item: 'caller', items: 'callers', mus: [6, 8, 10, 12], sds: [5, 6, 8], shape: 'strongly right-skewed' },
   { pop: 'the monthly phone bill of students', unit: 'euros', item: 'student', items: 'students', mus: [22, 25, 28], sds: [8, 9, 10, 12], shape: 'right-skewed' },
-  { pop: 'the battery life of a model of wireless earbuds', unit: 'hours', item: 'pair of earbuds', items: 'pairs of earbuds', mus: [5.5, 6, 6.5, 7], sds: [0.6, 0.8, 1, 1.2], shape: 'Normal' },
+  { pop: 'the battery life of a model of wireless earbuds', unit: 'hours', item: 'pair of earbuds', items: 'pairs of earbuds', mus: [5.5, 6, 6.5, 7], sds: [0.6, 0.8, 0.9, 1.2], shape: 'Normal' },
   {
     pop: 'the weight of adult passengers of a ferry company',
     unit: 'kg',
@@ -85,17 +85,26 @@ const gridFor = (sd: number) => (sd >= 50 ? 10 : sd >= 5 ? 1 : sd >= 0.5 ? 0.1 :
 const shownSd = (sd: number) => round(sd, 4);
 
 /**
+ * The standard deviations a student may go on with: as printed (4 decimals), or rounded by hand to 2 decimals from 1
+ * upwards (2.2222 → 2.22) and to 3 decimals below 1 (0.1667 → 0.167); an SD(p̂) below 0.1 keeps 4 decimals.
+ */
+const handSds = (sd: number) => [shownSd(sd), round(sd, sd >= 1 ? 2 : sd >= 0.1 ? 3 : 4)];
+
+/**
  * True when z is an unambiguous 2-decimal Table Z entry, also for a student who works with the printed (rounded)
  * standard deviation: zs, computed from the rounded numbers, must round to the same entry.
  */
 const sameEntry = (z: number, zs: number) => clearZ(z) && clearZ(zs) && round(z, 2) === round(zs, 2);
+
+/** zStep for z computed from the printed numbers; a z that equals a Table Z entry up to that rounding is shown as such. */
+const zShow = (name: string, x: string, mu: string, sd: string, z: number) => zStep(name, x, mu, sd, Math.abs(z - round(z, 2)) < 5e-5 ? round(z, 2) : z);
 
 /** A value centre + zΣ on a grid with zmin ≤ |z| ≤ zmax, the given sign, and an unambiguous 2-decimal z. */
 function cutAt(rng: Rng, centre: number, sd: number, step: number, sign: number, zmin: number, zmax: number): number {
   for (let i = 0; i < 300; i++) {
     const x = round(centre + sign * Math.round((rng.step(zmin, zmax, 0.01) * sd) / step) * step, 6);
     const z = (x - centre) / sd;
-    if (Math.abs(z) >= zmin - 1e-9 && Math.abs(z) <= zmax + 1e-9 && sameEntry(z, (x - centre) / shownSd(sd))) return x;
+    if (Math.abs(z) >= zmin - 1e-9 && Math.abs(z) <= zmax + 1e-9 && handSds(sd).every((s) => sameEntry(z, (x - centre) / s))) return x;
   }
   throw new Error('sampling-distributions: no suitable cut-off');
 }
@@ -130,7 +139,7 @@ const PSCN: PScn[] = [
   { intro: (p) => `At a large university, ${p} of the students live with their parents.`, who: 'students', act: 'live with their parents', ps: [0.3, 0.35, 0.4, 0.45, 0.55] },
   { intro: (p) => `Of all passengers who book a flight with a budget airline, ${p} do not show up.`, who: 'passengers', act: 'do not show up', ps: [0.06, 0.08, 0.1, 0.12] },
   { intro: (p) => `In a large city, ${p} of the households own a cargo bike.`, who: 'households', act: 'own a cargo bike', ps: [0.1, 0.12, 0.15, 0.18, 0.22] },
-  { intro: (p) => `Of all visitors of a news website, ${p} click on at least one advertisement.`, who: 'visitors', act: 'click on an advertisement', ps: [0.08, 0.12, 0.15, 0.2] },
+  { intro: (p) => `Of all visitors of a news website, ${p} click on at least one advertisement.`, who: 'visitors', act: 'click on at least one advertisement', ps: [0.08, 0.12, 0.15, 0.2] },
   { intro: (p) => `In a large country, ${p} of the adults are left-handed.`, who: 'adults', act: 'are left-handed', ps: [0.1, 0.12, 0.14] },
 ];
 const pctText = (p: number) => `${num(100 * p, 2)}%`;
@@ -185,12 +194,24 @@ const standardError: Template = {
       ];
     } else {
       const s = rng.pick(MSCN);
-      const c = rng.pick([2, 2, 3, 4, 1.5]);
-      const n1 = c === 1.5 ? rng.pick([20, 40, 60, 80, 100]) : rng.pick([20, 25, 30, 40, 50, 60, 80, 100]);
+      // the standard errors must fit the population: s = SE·√n within the scenario's range of standard deviations
+      // (no standard error of 7.20 euros for the mean phone bill of 50 students, i.e. s ≈ 51 euros), on a grid that
+      // suits the scale, and never exactly 1 ("1 minutes")
+      const unit = s.sds[0] >= 50 ? 10 : s.sds[0] >= 5 ? 0.1 : 0.01;
+      let c: number;
+      let n1: number;
+      let se1: number;
+      let se2: number;
+      for (;;) {
+        c = rng.pick([2, 2, 3, 4, 1.5]);
+        n1 = c === 1.5 ? rng.pick([20, 40, 60, 80, 100]) : rng.pick([20, 25, 30, 40, 50, 60, 80, 100]);
+        // with c = 1.5 an even multiple of the grid keeps SE₁ = 1.5·SE₂ on the grid
+        se2 = round((c === 1.5 ? 2 * rng.int(2, 10) : rng.int(3, 20)) * unit, 2);
+        se1 = round(c * se2, 2);
+        const implied = se1 * Math.sqrt(n1);
+        if (implied >= 0.5 * Math.min(...s.sds) && implied <= 1.5 * Math.max(...s.sds) && se1 !== 1 && se2 !== 1) break;
+      }
       const n2 = c * c * n1;
-      const k = rng.int(3, 20);
-      const se2 = round(k * (s.sds[0] >= 50 ? 10 : 0.1), 2);
-      const se1 = round(c * se2, 2);
       const head = `In a pilot study of ${s.pop}, a random sample of $n=${n1}$ ${s.items} gave a standard error of the mean of ${num(se1, 2)} ${s.unit}.`;
       if (rng.chance(0.5)) {
         key = se2;
@@ -254,7 +275,9 @@ const meanProbability: Template = {
       for (;;) {
         L = Math.round((n * (mu + rng.step(0.3, 2.2, 0.01) * se)) / st) * st;
         const z = (L / n - mu) / se;
-        if (z >= 0.3 && z <= 2.4 && sameEntry(z, (round(L / n, 4) - mu) / shownSd(se))) break;
+        // also via the mean L/n rounded to 4 or 2 decimals and a hand-rounded SD(ȳ): the same Table Z entry
+        const viaMean = [round(L / n, 4), round(L / n, 2)].flatMap((m) => handSds(se).map((sv) => (m - mu) / sv));
+        if (z >= 0.3 && z <= 2.4 && viaMean.every((zz) => sameEntry(z, zz))) break;
       }
       a = L / n;
     } else if (kind === 'between') {
@@ -288,9 +311,9 @@ const meanProbability: Template = {
     const zs = (x: number) => (round(x, 4) - mu) / shownSd(se);
     const es = kind === 'between' ? { kind, za: zs(a), zb: zs(b) } : { kind: e.kind, z: zs(a) } as Ev;
     if (e.kind === 'between')
-      how += `$$${zStep('z_a', num(a, 4), M, S, zs(a))}\\qquad ${zStep('z_b', num(b, 4), M, S, zs(b))}$$ Table Z: $${phiTex(e.zb)}$ and $${phiTex(e.za)}$, so $$P(${num(a, 4)}<\\bar y<${num(b, 4)})=${p4(zTable(e.zb))}-${p4(zTable(e.za))}=${p4(P)}$$`;
-    else if (e.kind === 'below') how += `$$${zStep('z', num(a, 4), M, S, zs(a))}$$ $$P(\\bar y<${num(a, 4)})=${phiTex(e.z)}$$`;
-    else how += `$$${zStep('z', num(a, 4), M, S, zs(a))}$$ Table Z: $${phiTex(e.z)}$; we need the right tail: $$P(\\bar y>${num(a, 4)})=1-${p4(zTable(e.z))}=${p4(P)}$$`;
+      how += `$$${zShow('z_a', num(a, 4), M, S, zs(a))}\\qquad ${zShow('z_b', num(b, 4), M, S, zs(b))}$$ Table Z: $${phiTex(e.zb)}$ and $${phiTex(e.za)}$, so $$P(${num(a, 4)}<\\bar y<${num(b, 4)})=${p4(zTable(e.zb))}-${p4(zTable(e.za))}=${p4(P)}$$`;
+    else if (e.kind === 'below') how += `$$${zShow('z', num(a, 4), M, S, zs(a))}$$ $$P(\\bar y<${num(a, 4)})=${phiTex(e.z)}$$`;
+    else how += `$$${zShow('z', num(a, 4), M, S, zs(a))}$$ Table Z: $${phiTex(e.z)}$; we need the right tail: $$P(\\bar y>${num(a, 4)})=1-${p4(zTable(e.z))}=${p4(P)}$$`;
     if (type === 'numeric') return numeric(stem, P, 4, how + `\n(Without rounding $z$: ${p4(Px)}; accepted too.)`, acceptAround(4, P, Px, exactP(es)));
     const wrong: [number, string][] = [
       [sd, kind === 'total' ? 'uses $n\\sigma$ instead of $\\sqrt n\\,\\sigma$ as the standard deviation of the total (this is the probability for a single item).' : 'uses $\\sigma$ instead of $\\sigma/\\sqrt n$: the probability for one individual, not for the mean.'],
@@ -342,9 +365,9 @@ const proportion: Template = {
       `Conditions: the sample is random, $n$ is less than 10% of the population, and $np=${num(n * p, 2)}\\ge 10$ and $n(1-p)=${num(n * (1 - p), 2)}\\ge 10$. ` +
       `So $\\hat p$ is approximately Normal with mean $p=${Pp}$ and standard deviation $$SD(\\hat p)=\\sqrt{\\frac{p(1-p)}{n}}=\\sqrt{\\frac{${Pp}\\times ${num(1 - p, 2)}}{${n}}}=${S}$$`;
     if (e.kind === 'between')
-      how += `$$${zStep('z_a', num(a, 3), Pp, S, zs(a))}\\qquad ${zStep('z_b', num(b, 3), Pp, S, zs(b))}$$ Table Z: $${phiTex(e.zb)}$ and $${phiTex(e.za)}$, so $$P(${num(a, 3)}<\\hat p<${num(b, 3)})=${p4(zTable(e.zb))}-${p4(zTable(e.za))}=${p4(P)}$$`;
-    else if (e.kind === 'below') how += `$$${zStep('z', num(a, 3), Pp, S, zs(a))}$$ $$P(\\hat p<${num(a, 3)})=${phiTex(e.z)}$$`;
-    else how += `$$${zStep('z', num(a, 3), Pp, S, zs(a))}$$ Table Z: $${phiTex(e.z)}$; we need the right tail: $$P(\\hat p>${num(a, 3)})=1-${p4(zTable(e.z))}=${p4(P)}$$`;
+      how += `$$${zShow('z_a', num(a, 3), Pp, S, zs(a))}\\qquad ${zShow('z_b', num(b, 3), Pp, S, zs(b))}$$ Table Z: $${phiTex(e.zb)}$ and $${phiTex(e.za)}$, so $$P(${num(a, 3)}<\\hat p<${num(b, 3)})=${p4(zTable(e.zb))}-${p4(zTable(e.za))}=${p4(P)}$$`;
+    else if (e.kind === 'below') how += `$$${zShow('z', num(a, 3), Pp, S, zs(a))}$$ $$P(\\hat p<${num(a, 3)})=${phiTex(e.z)}$$`;
+    else how += `$$${zShow('z', num(a, 3), Pp, S, zs(a))}$$ Table Z: $${phiTex(e.z)}$; we need the right tail: $$P(\\hat p>${num(a, 3)})=1-${p4(zTable(e.z))}=${p4(P)}$$`;
     if (type === 'numeric') return numeric(stem, P, 4, how + `\n(Without rounding $z$: ${p4(Px)}; accepted too.)`, acceptAround(4, P, Px, exactP(es)));
     const ds = probMistakes(e, at, [
       [Math.sqrt(p * (1 - p)), 'forgets to divide by $n$: uses $\\sqrt{p(1-p)}$, the standard deviation for a single person.'],
@@ -450,7 +473,7 @@ const clt: Template = {
       const stem = `${pop.story} The histogram below shows the population distribution: ${desc}.\nConsider the sampling distribution of the sample mean $\\bar y$ for random samples of size $n=${n}$ from this population. Which statements are correct?`;
       const how =
         `The sampling distribution of $\\bar y$ has mean $\\mu=${num(mu, 2)}$ and standard deviation $\\sigma/\\sqrt n=${num(sigma, 2)}/\\sqrt{${n}}=${num(se, 2)}$. ` +
-        (small ? `Its shape: $n=${n}$ is too small for the Central Limit Theorem, so the ${pop.shape} shape of the population still shows.` : `Its shape: by the Central Limit Theorem ($n=${n}$ is large) it is approximately Normal.`) +
+        (small ? `Its shape: $n=${n}$ is too small for the Central Limit Theorem, so the shape of the ${pop.shape} population still shows.` : `Its shape: by the Central Limit Theorem ($n=${n}$ is large) it is approximately Normal.`) +
         '\n\n**Option by option**\n' +
         m.reasons.map((r) => `- **${r.id}** ${r.correct ? '(correct)' : '(wrong)'}: ${r.why}`).join('\n');
       return { type, stem, images: [popImg], instruction: INSTRUCTION.multi, options: m.options, correctAnswer: m.correctAnswer, explanation: how };

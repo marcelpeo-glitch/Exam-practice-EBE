@@ -8,7 +8,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../rng';
 import type { GenType, Generated } from '../types';
-import { PhiInv } from './_normal-check';
+import { PhiInv, tableZ } from './_normal-check';
 import { TEMPLATES } from './confidence-intervals';
 
 const SEEDS = 250;
@@ -71,6 +71,15 @@ function crit(conf: number, df: number): number {
     qCache.set(key, q);
   }
   return qCache.get(key)!;
+}
+
+/** z* read from the printed Table Z in reverse: the 2-decimal entry closest to 1 − (1 − C)/2 (both when tied). */
+function zFromTableZ(conf: number): number[] {
+  const q = 1 - (1 - conf) / 2;
+  const cands = Array.from({ length: 400 }, (_, k) => k / 100);
+  const d = (z: number) => Math.abs(tableZ(z) - q);
+  const best = Math.min(...cands.map(d));
+  return cands.filter((z) => d(z) <= best + 1e-9);
 }
 
 // =====================================================================================================================
@@ -156,6 +165,9 @@ describe('confidence-intervals.proportion: p̂ and SE from the 0/1 data (or the 
           expect(Math.abs(fl.answer - lo), msg).toBeLessThan(0.0007);
           expect(Math.abs(fh.answer - hi), msg).toBeLessThan(0.0007);
           expect(accepts(fl, Math.round(lo * 1000) / 1000) && accepts(fh, Math.round(hi * 1000) / 1000), msg).toBe(true);
+          // a student who reads z* from Table Z in reverse (e.g. 2.57 or 2.58 for 99%) is accepted too
+          for (const zz of zFromTableZ(conf))
+            expect(accepts(fl, Math.round((ph - zz * se) * 1000) / 1000) && accepts(fh, Math.round((ph + zz * se) * 1000) / 1000), `${msg}\nTable Z z*=${zz}`).toBe(true);
         } else {
           const [a, b] = bounds(keyText(g));
           expect(Math.abs(a - lo), msg).toBeLessThan(0.0007);
@@ -163,6 +175,9 @@ describe('confidence-intervals.proportion: p̂ and SE from the 0/1 data (or the 
           for (const o of others(g)) {
             const [c, d] = bounds(o.text!);
             expect(Math.max(Math.abs(c - lo), Math.abs(d - hi)), `${msg}\n${o.text} is also correct`).toBeGreaterThan(0.003);
+            for (const zz of zFromTableZ(conf)) expect(Math.max(Math.abs(c - (ph - zz * se)), Math.abs(d - (ph + zz * se))), `${msg}\n${o.text} matches Table Z`).toBeGreaterThan(0.003);
+            // plausible: not a near-degenerate interval
+            expect(d - c, `${msg}\n${o.text} is implausibly narrow`).toBeGreaterThan(0.25 * (hi - lo));
           }
         }
       }
@@ -196,10 +211,13 @@ describe('confidence-intervals.sample-size: brute force over n with z* from the 
         }
         const nTab = brute(me(zTab), E);
         const nEx = brute(me(zEx), E);
-        const accepted = (v: number) => v >= Math.min(nTab, nEx) - 1 && v <= Math.max(nTab, nEx);
+        // z* read from Table Z in reverse (e.g. 2.57 or 2.58 for 99%) is a legitimate route as well
+        const nZ = zFromTableZ(conf).map((zz) => brute(me(zz), E));
+        const all = [nTab, nEx, ...nZ];
+        const accepted = (v: number) => v >= Math.min(...all) - 1 && v <= Math.max(...all);
         if (type === 'numeric') {
           expect(g.correctAnswer, msg).toBe(nTab);
-          expect(accepts({ answer: g.correctAnswer as number, tolerance: g.tolerance, acceptRange: g.acceptRange }, nEx), msg).toBe(true);
+          for (const v of all) expect(accepts({ answer: g.correctAnswer as number, tolerance: g.tolerance, acceptRange: g.acceptRange }, v), `${msg}\nroute gives ${v}`).toBe(true);
           for (const v of [g.acceptRange![0], g.acceptRange![1]]) expect(accepted(v), `${msg}\naccepted ${v}`).toBe(true);
         } else {
           expect(Number(keyText(g)), msg).toBe(nTab);

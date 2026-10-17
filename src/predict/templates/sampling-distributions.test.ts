@@ -70,6 +70,7 @@ describe('sampling-distributions.standard-error: √(Var of the sum)/n, binomial
           const p = Number(/(\d+(?:\.\d+)?)%/.exec(g.stem)![1]) / 100;
           want = Math.sqrt(varPhat(ns[0], p));
         } else if (g.stem.includes('pilot study')) {
+          expect(g.stem, msg).not.toMatch(/ of 1 [a-z]/); // "a standard error of 1 minutes"
           const se1 = after(g.stem, /standard error of the mean of /)!;
           const sigma = se1 * Math.sqrt(ns[0]);
           if (ns.length === 2) want = Math.sqrt((sigma * sigma) / ns[1]);
@@ -119,21 +120,25 @@ describe('sampling-distributions.mean-probability: N(μ, σ/√n) for ȳ (or N(n
         expect(normal || n >= 30, msg).toBe(true);
         const total = /total weight of the \d+ [a-z ]+ is more than ([\d.]+)/.exec(g.stem);
         let r: { table: number; exact: number };
-        // the same with SD(ȳ) rounded to 4 decimals, as a student writes it down before computing z
-        let r4: { table: number; exact: number };
-        if (total) r = r4 = probs(Number(total[1]), Infinity, n * mu, Math.sqrt(n * sigma * sigma));
-        else {
-          const se = Math.sqrt((sigma * sigma) / n);
-          const se4 = rnd(se, 4);
+        // the same as a student computes it: SD(ȳ) rounded to 4 decimals (as printed in the solution) or by hand to 2
+        // decimals (3 below 1), and for a total the cut-off L/n rounded to 4 or 2 decimals
+        const se = Math.sqrt((sigma * sigma) / n);
+        const seHand = [rnd(se, 4), rnd(se, se >= 1 ? 2 : 3)];
+        let rounded: { table: number }[];
+        if (total) {
+          const L = Number(total[1]);
+          r = probs(L, Infinity, n * mu, Math.sqrt(n * sigma * sigma));
+          rounded = [rnd(L / n, 4), rnd(L / n, 2)].flatMap((c) => seHand.map((sv) => probs(c, Infinity, mu, sv)));
+        } else {
           const b = /\\bar y\$ is between ([\d.]+) and ([\d.]+)/.exec(g.stem);
           const m = /\\bar y\$ is (more|less) than ([\d.]+)/.exec(g.stem);
           const at = (sd: number) =>
             b ? probs(Number(b[1]), Number(b[2]), mu, sd) : m![1] === 'more' ? probs(Number(m![2]), Infinity, mu, sd) : probs(-Infinity, Number(m![2]), mu, sd);
           r = at(se);
-          r4 = at(se4);
+          rounded = seHand.map(at);
         }
         checkProb(g, r.table, r.exact, msg);
-        expect(r4.table, `${msg}\nrounded SD gives another Table Z entry`).toBe(r.table);
+        for (const x of rounded) expect(x.table, `${msg}\nrounded SD gives another Table Z entry`).toBe(r.table);
         if (type === 'single-choice' && g.options!.some((o) => /cannot be calculated/.test(o.text!))) expect(!normal && n >= 30, msg).toBe(true);
       }
     });

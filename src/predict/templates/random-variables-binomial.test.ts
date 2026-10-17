@@ -175,7 +175,11 @@ describe('random-variables-binomial.expected-gain: the game replayed over all ou
         }
         const exact = total / outcomes.length;
         expect(Math.max(...rules.map((r) => r.prize)), 'the main prize exceeds the stake').toBeGreaterThan(cost);
-        if (type === 'numeric') expect(accepts(g, handRound(exact, 2)), `${handRound(exact, 2)} not accepted (key ${g.correctAnswer})`).toBe(true);
+        if (type === 'numeric') {
+          expect(accepts(g, handRound(exact, 2)), `${handRound(exact, 2)} not accepted (key ${g.correctAnswer})`).toBe(true);
+          // the key shown to the student is the hand-rounded value ("loses about €2.38" for −2.375, not −2.37)
+          expect(g.correctAnswer, `seed ${seed}: exact ${exact}`).toBe(handRound(exact, 2));
+        }
         checkValue(g, exact, (text) => {
           const m = /^The player (gains|loses) about €([\d.]+) per game\.$/.exec(text)!;
           return (m[1] === 'gains' ? 1 : -1) * Number(m[2]);
@@ -228,6 +232,8 @@ describe('random-variables-binomial.sum-of-variables: two-point distributions μ
         }
         const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
         const sd = Math.sqrt(vals.reduce((a, x) => a + (x - mean) ** 2, 0) / vals.length);
+        // sensible numbers: totals, differences, bills and revenues all have a positive mean here
+        expect(mean, `seed ${seed}: ${formula}`).toBeGreaterThan(1);
         if (type === 'numeric') {
           const [fm, fs] = g.fields!;
           expect(Math.abs(fm.answer - mean)).toBeLessThanOrEqual(fm.tolerance! + 1e-9);
@@ -236,6 +242,7 @@ describe('random-variables-binomial.sum-of-variables: two-point distributions μ
         }
         for (const o of g.options!) {
           const m = /^mean (-?[\d.]+) .+?, standard deviation ([\d.]+) /.exec(o.text!)!;
+          expect(Number(m[2]), `seed ${seed}: a standard deviation of 0 is not a plausible option: ${o.text}`).toBeGreaterThan(0);
           const right = Math.abs(Number(m[1]) - mean) <= half(m[1]) && Math.abs(Number(m[2]) - sd) <= half(m[2]);
           expect(right, `${o.id} ${o.text}: mean ${mean}, sd ${sd}`).toBe(o.id === g.correctAnswer);
         }
