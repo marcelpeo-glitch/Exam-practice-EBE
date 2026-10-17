@@ -2,7 +2,7 @@
 // x²/(x²+1), and once a function of two variables). Every key is a set built from the zeros/poles found in code and is
 // checked against where the function is actually defined (assertDomain); wrong options come from modelled mistakes.
 // See functions-domains.test.ts for the independent checks.
-import { buildMcq, buildMulti, INSTRUCTION, mistakesNote, num, numericField } from '../build';
+import { buildMcq, buildMulti, fixed, INSTRUCTION, mistakesNote, num, numericField } from '../build';
 import { evalAt } from '../mathx';
 import type { Rng } from '../rng';
 import type { Template } from '../types';
@@ -129,7 +129,7 @@ const quadratic: Template = {
         { set: [iv(p, q)], why: 'between the zeros the argument is negative: this is where the function is *not* defined (the inequality was solved the wrong way round).' },
         { set: [iv(q, null, !strict, false)], why: `keeps only the values to the right of the larger zero and forgets $x${strict ? '<' : '\\le '}${p}$.` },
         strict
-          ? { set: [iv(p, q, true, true)], why: 'the complement of the correct set (the zeros themselves are not allowed either).' }
+          ? { set: [iv(p, q, true, true)], why: `solves $${argTex}\\le 0$ instead of $>0$: this is exactly where the function is *not* defined.` }
           : { set: [iv(p, q, true, true)], why: `solves $${argTex}\\le 0$ instead of $\\ge 0$: this is where the argument is negative or zero.` },
         { set: [iv(0, null)], why: `${outer === 'ln' ? 'a logarithm' : 'a square root'} puts a condition on its *argument*, not on $x$ itself.` },
         { set: [iv(null, null)], why: 'assumes the argument is always positive.' },
@@ -269,7 +269,7 @@ const excludedPoint: Template = {
       const stem = `The function $$${name}(x)=${fTex}$$ is defined for ${where} except for exactly one value $x_0$. Calculate $x_0$.`;
       const f = numericField('x0', undefined, x0, dp);
       // The worked solution shows x0 to 4 decimals; state the rounded answer explicitly (no double rounding).
-      const rounded = `\nRounded to ${dp} decimals: $x_0\\approx ${num(x0, dp)}$.`;
+      const rounded = `\nRounded to ${dp} decimals: $x_0\\approx ${fixed(x0, dp)}$.`;
       return { type, stem, instruction: INSTRUCTION.numeric(dp), correctAnswer: f.answer, tolerance: f.tolerance, explanation: explanation + rounded };
     }
     const mcq = setMcq(rng, key, rng.shuffle(d), optionCount);

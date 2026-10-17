@@ -119,15 +119,21 @@ describe('sampling-distributions.mean-probability: N(μ, σ/√n) for ȳ (or N(n
         expect(normal || n >= 30, msg).toBe(true);
         const total = /total weight of the \d+ [a-z ]+ is more than ([\d.]+)/.exec(g.stem);
         let r: { table: number; exact: number };
-        if (total) r = probs(Number(total[1]), Infinity, n * mu, Math.sqrt(n * sigma * sigma));
+        // the same with SD(ȳ) rounded to 4 decimals, as a student writes it down before computing z
+        let r4: { table: number; exact: number };
+        if (total) r = r4 = probs(Number(total[1]), Infinity, n * mu, Math.sqrt(n * sigma * sigma));
         else {
           const se = Math.sqrt((sigma * sigma) / n);
+          const se4 = rnd(se, 4);
           const b = /\\bar y\$ is between ([\d.]+) and ([\d.]+)/.exec(g.stem);
           const m = /\\bar y\$ is (more|less) than ([\d.]+)/.exec(g.stem);
-          if (b) r = probs(Number(b[1]), Number(b[2]), mu, se);
-          else r = m![1] === 'more' ? probs(Number(m![2]), Infinity, mu, se) : probs(-Infinity, Number(m![2]), mu, se);
+          const at = (sd: number) =>
+            b ? probs(Number(b[1]), Number(b[2]), mu, sd) : m![1] === 'more' ? probs(Number(m![2]), Infinity, mu, sd) : probs(-Infinity, Number(m![2]), mu, sd);
+          r = at(se);
+          r4 = at(se4);
         }
         checkProb(g, r.table, r.exact, msg);
+        expect(r4.table, `${msg}\nrounded SD gives another Table Z entry`).toBe(r.table);
         if (type === 'single-choice' && g.options!.some((o) => /cannot be calculated/.test(o.text!))) expect(!normal && n >= 30, msg).toBe(true);
       }
     });
@@ -145,12 +151,12 @@ describe('sampling-distributions.proportion: SD(p̂) from binomial enumeration, 
         const sd = Math.sqrt(varPhat(n, p));
         const b = /is between ([\d.]+)% and ([\d.]+)%/.exec(g.stem);
         const m = /is (more|less) than ([\d.]+)%/.exec(g.stem);
-        const r = b
-          ? probs(Number(b[1]) / 100, Number(b[2]) / 100, p, sd)
-          : m![1] === 'more'
-            ? probs(Number(m![2]) / 100, Infinity, p, sd)
-            : probs(-Infinity, Number(m![2]) / 100, p, sd);
+        const at = (s: number) =>
+          b ? probs(Number(b[1]) / 100, Number(b[2]) / 100, p, s) : m![1] === 'more' ? probs(Number(m![2]) / 100, Infinity, p, s) : probs(-Infinity, Number(m![2]) / 100, p, s);
+        const r = at(sd);
         checkProb(g, r.table, r.exact, msg);
+        // a student who rounds SD(p̂) to 4 decimals (0.0134) before computing z must read the same Table Z entry
+        expect(at(rnd(sd, 4)).table, `${msg}\nrounded SD gives another Table Z entry`).toBe(r.table);
       }
     });
 });
@@ -205,6 +211,7 @@ describe('sampling-distributions.clt: sampling distribution of ȳ by enumeration
       }
       const cands = panels(g.images![1].src);
       expect(cands.length, msg).toBe(g.options!.length);
+      expect(g.images![1].alt, msg).toContain(`(a) to (${'abcde'[cands.length - 1]})`);
       const dist = cands.map((c) => {
         let d = 0;
         let covered = 0;

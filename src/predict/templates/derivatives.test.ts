@@ -61,7 +61,10 @@ function checkFormulaOptions(g: Generated) {
     const d = texFn1(rhs(optionTex(text)));
     return xs.every((x) => close(d(x), numDiff(f, x), 1e-4));
   };
-  for (const o of g.options!) expect(isDerivative(o.text!), `${o.id} ${o.text} for ${g.stem}`).toBe(o.id === g.correctAnswer);
+  for (const o of g.options!) {
+    expect(isDerivative(o.text!), `${o.id} ${o.text} for ${g.stem}`).toBe(o.id === g.correctAnswer);
+    expect(o.text, 'a coefficient 1 is not printed').not.toMatch(/(^|[^0-9.])1x/);
+  }
 }
 
 /** The numeric answer is f'(x0) of the printed function, up to the stated rounding. */
@@ -193,6 +196,8 @@ describe('derivatives.tangent-line', () => {
         else {
           const { value, halfUnit } = changeIn(o.text!);
           ok = Math.abs(value - marginalChange(g)) <= halfUnit;
+          // the key is never a rounding tie (0.125 shown as 0.13: a student who writes 0.12 is just as right)
+          if (o.id === g.correctAnswer) expect(Math.abs(value - marginalChange(g)), o.text).toBeLessThan(halfUnit - 1e-6);
         }
         expect(ok, `${kind} seed ${seed} ${o.id} ${o.text}\n${g.stem}`).toBe(o.id === g.correctAnswer);
       }
@@ -212,6 +217,8 @@ describe('derivatives.tangent-line', () => {
           exact = y0 - m * x0;
         } else exact = marginalChange(g);
         expect(Math.abs(ans - exact), g.stem).toBeLessThanOrEqual(g.tolerance! + 1e-7);
+        // no rounding tie at the stated number of decimals (half a unit = 5/6 of the tolerance 0.6·10^-dp)
+        if (kind === 'marginal') expect(Math.abs(ans - exact), g.stem).toBeLessThan((g.tolerance! * 5) / 6 - 1e-6);
       }
       if (kind === 'marginal') {
         // the modelled quantity stays meaningful: at least 1 unit at both points and after the approximation

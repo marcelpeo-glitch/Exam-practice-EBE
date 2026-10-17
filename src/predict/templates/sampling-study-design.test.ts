@@ -284,6 +284,8 @@ describe('sampling-study-design.study-anatomy', () => {
       expect(lists).toHaveLength(2);
       const combos: string[][] = [];
       for (const a of lists[0]) for (const b of lists[1]) combos.push([a, b]);
+      // adding the numbers of levels (a typical slip) must not give the right number of treatments
+      expect(combos.length, `seed ${seed}: ${g.stem}`).not.toBe(lists[0].length + lists[1].length);
       const r = Number(/each on (\d+) /.exec(g.stem)![1]);
       const bm = /in each of (\d+) /.exec(g.stem);
       const k = bm ? Number(bm[1]) : 1;

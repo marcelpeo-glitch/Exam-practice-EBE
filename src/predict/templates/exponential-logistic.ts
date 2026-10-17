@@ -5,11 +5,17 @@
 // model (logarithms, the derivative at 0); wrong options come from modelled mistakes (linear instead of exponential,
 // forgotten chain-rule factor, wrong number of steps, ...). See exponential-logistic.test.ts for the independent checks.
 import { buildMcq, INSTRUCTION, mistakesNote, num, numericField, type Choice } from '../build';
+import { round } from '../stats';
 import type { GenContext, Generated, Template } from '../types';
-import { choiceQuestion, coefTex, isNice, numericQuestion, rankedValueMcq, scaledFallback, valueMcq } from './_econ';
+import { choiceQuestion, coefTex, isNice, numericQuestion, rankedValueMcq } from './_econ';
 
 const ln = Math.log;
 const frac1 = (x: number) => x - Math.floor(x);
+/** Extra values on one side of the key for rankedValueMcq: key·(1 ± step), key·(1 ± 2·step), ... (2 decimals, positive). */
+const nearScaled = (key: number, step: number) => (dir: -1 | 1, i: number) => {
+  const v = round(key * (1 + dir * step * (i + 1)), 2);
+  return v > 0 ? v : null;
+};
 /** "e^{-t}", "e^{-0.5t}", "e^{-3t}". */
 const expNeg = (r: number) => `e^{-${r === 1 ? '' : num(r)}t}`;
 
@@ -53,14 +59,15 @@ const percentageGrowth: Template = {
     const pct = num(k * 100);
     const ctx = rng.pick(grow ? GROW : SHRINK);
     const intro = ctx.text(p, Y0);
-    const target = grow ? `${num(k)} times as large as on 1 January ${Y0}` : `below ${pct}% of its level on 1 January ${Y0}`;
+    const times = k === 2 ? 'twice' : k === 3 ? 'three times' : k === 4 ? 'four times' : `${num(k)} times`;
+    const target = grow ? `${times} as large as on 1 January ${Y0}` : `below ${pct}% of its level on 1 January ${Y0}`;
     const explanation =
       `Each year the level is multiplied by $g=1${grow ? '+' : '-'}${num(r)}=${num(g)}$, so after $t$ years it equals $N_0\\cdot ${num(g)}^{t}$. ` +
       `Solve $${num(g)}^{t}=${num(k)}$: $$t=\\frac{\\ln(${num(k)})}{\\ln(${num(g)})}=\\frac{${num(ln(k), 6)}}{${num(ln(g), 6)}}\\approx ${num(t, 2)}$$` +
       `So the level is reached about ${num(t, 2)} years after 1 January ${Y0}. ` +
       `Check: after ${n} years the factor is $${num(g)}^{${n}}\\approx ${num(g ** n, 3)}$ and after ${n + 1} years $${num(g)}^{${n + 1}}\\approx ${num(g ** (n + 1), 3)}$, so it happens during **${year}**.`;
     if (type === 'numeric') {
-      const q = grow ? `be ${num(k)} times as large as on that date` : `have dropped to ${pct}% of its level on that date`;
+      const q = grow ? `be ${times} as large as on that date` : `have dropped to ${pct}% of its level on that date`;
       return numericQuestion(`${intro} After how many years (counted from 1 January ${Y0}) will ${ctx.noun} ${q}?`, t, 2, explanation);
     }
     // the change is gradual (N0·g^t for every t ≥ 0, as in the course); with yearly steps the answer could be a year later
@@ -84,7 +91,7 @@ const percentageGrowth: Template = {
 // =====================================================================================================================
 
 const DOWN = [
-  { intro: 'A sports centre counts the participants of its Monday spinning class every week.', unit: 'week', item: 'participants' },
+  { intro: 'A city museum counts the visitors of a temporary exhibition every week.', unit: 'week', item: 'visitors' },
   { intro: 'The weekly number of streams of a newly released album is going down; the numbers below are in thousands.', unit: 'week', item: 'streams' },
   { intro: 'A pop-up shop counts its visitors every month.', unit: 'month', item: 'visitors' },
   { intro: 'A charity counts the donations it receives by post every month.', unit: 'month', item: 'donations' },
@@ -160,11 +167,10 @@ const twoObservations: Template = {
       { value: Math.round(s) + 1, why: `rounds $n-1>${num(s, 2)}$ to the nearest whole number instead of taking the next whole ${c.unit}.` },
     ];
     const fmt = (v: number) => `${c.unit} ${v}`;
-    // fallback: the other periods 2 … w + 1, nearest to the key first
     const options = mistakes.filter((m) => m.value >= 2); // period 1 is the starting level itself
-    const near = Array.from({ length: w }, (_, i) => i + 2).filter((v) => v !== n).sort((a, b) => Math.abs(a - n) - Math.abs(b - n) || a - b);
-    const fallback = (i: number) => ({ text: fmt(near[i % near.length]), value: near[i % near.length] });
-    const mcq = valueMcq(rng, n, options, optionCount, fmt, { fallback, epsilon: 0 });
+    // extra options: the neighbouring periods 2 … w + 2; the key lands at a random place among the ascending options
+    const near = (dir: -1 | 1, i: number) => (n + dir * (i + 1) >= 2 && n + dir * (i + 1) <= w + 2 ? n + dir * (i + 1) : null);
+    const mcq = rankedValueMcq(rng, n, options, optionCount, fmt, near, { epsilon: 0 });
     return { ...choiceQuestion(stem, mcq, explanation), table };
   },
 };
@@ -189,7 +195,7 @@ function logisticOne({ rng, type, optionCount }: GenContext): Generated {
     r = rng.pick([1, 2, 3, 4, 0.5]);
     c = rng.int(2, 60);
     B = (c * r * m) / (k + m) ** 2;
-  } while (!isNice(B, 2) || B < 0.25 || B === c);
+  } while (!isNice(B, 2) || B < 0.25 || B === c || r * m === k + m); // r·m = k + m: confusing f(0) with f'(0) gives c too
   const S = (k + m) ** 2;
   const den = `${k}+${coefTex(m)}${expNeg(r)}`;
   const rm = r * m;
@@ -208,7 +214,7 @@ function logisticOne({ rng, type, optionCount }: GenContext): Generated {
     ...(m !== 1 ? [{ value: (B * S) / r, why: `forgets the factor $${m}$ in front of the exponential.` }] : []),
     { value: (B * (k * k + m * m)) / rm, why: `squares the sum term by term: $${k}^2+${m}^2$ instead of $(${k}+${m})^2$.` },
   ];
-  const mcq = valueMcq(rng, c, mistakes, optionCount, (v) => `$${num(v, 2)}$`, { positive: true });
+  const mcq = rankedValueMcq(rng, c, mistakes, optionCount, (v) => `$${num(v, 2)}$`, nearScaled(c, 0.25), { positive: true });
   return choiceQuestion(stem, mcq, explanation);
 }
 
@@ -263,9 +269,9 @@ const logisticConstants: Template = {
 // =====================================================================================================================
 
 const LEARN = [
-  { intro: 'A new nature reserve keeps a list of the bird species seen there. After $t$ years the list contains', note: 'New species are added quickly at first and more slowly later.', item: 'new species', per: 'year' },
+  { intro: 'Volunteers record the insect species found in a large national park. After $t$ years their list contains', note: 'New species are added quickly at first and more slowly later.', item: 'new species', per: 'year' },
   { intro: 'An online dictionary of a regional dialect is written by volunteers. After $t$ years it contains', note: 'The dictionary grows fast at first, but fewer and fewer words are left to add.', item: 'new entries', per: 'year' },
-  { intro: 'A trainee sommelier learns to recognise wines. After $t$ months of training she can recognise', note: 'She learns fast at first and more slowly later.', item: 'new wines', per: 'month' },
+  { intro: 'A retired teacher learns Spanish as a hobby. After $t$ years she knows', note: 'She learns many words at first and fewer later.', item: 'new words', per: 'year' },
 ];
 const SHIFT = [
   { intro: 'The number of followers of a new cooking channel, $t$ months from now, is modelled by', per: 'month' },
@@ -361,7 +367,8 @@ const timeToLevel: Template = {
     }
     if (type === 'numeric') return numericQuestion(stem, t, 2, explanation);
     const fmt = (v: number) => `${num(v, 2)} ${per}${num(v, 2) === '1' ? '' : 's'}`;
-    const mcq = valueMcq(rng, t, mistakes, optionCount, fmt, { positive: true, fallback: scaledFallback(t, fmt, 0.2) });
+    // most mistakes lie on both sides of the key, which would always put it in the middle: place it at random
+    const mcq = rankedValueMcq(rng, t, mistakes, optionCount, fmt, nearScaled(t, 0.2), { positive: true });
     return choiceQuestion(stem, mcq, explanation);
   },
 };

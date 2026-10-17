@@ -96,7 +96,7 @@ const DISTS: readonly DistScenario[] = [
 ];
 
 type Op = '\\ge' | '\\le' | '>' | '<';
-const OP_WORD: Record<Op, string> = { '\\ge': 'at least', '\\le': 'at most', '>': 'more than', '<': 'fewer than' };
+const OP_WORD: Record<Op, string> = { '\\ge': 'at least', '\\le': 'at most', '>': 'more than', '<': 'less than' };
 const holds = (x: number, op: Op, k: number) => (op === '\\ge' ? x >= k : op === '\\le' ? x <= k : op === '>' ? x > k : x < k);
 
 /** Integer percentages (each ≥ 3) summing to 100. */
@@ -161,9 +161,11 @@ const distributionTable: Template = {
         numSlot(`P(X<${kLt})`, P('<', kLt), P('\\le', kLt), `that is $P(X\\le ${kLt})$: it includes $X=${kLt}$.`, `$P(X<${kLt})=${num(P('<', kLt), 4)}$.`),
         (want) => {
           if (want && !uniqueMode) return null;
-          const other = xs.filter((x) => x !== mode);
+          const other = xs.filter((_, i) => pc[i] < Math.max(...pc)); // never a value tied for the largest probability
+          if (!want && !other.length) return null;
           const m = want ? mode : rng.pick(other);
-          return { text: `The most likely value of $X$ is $${m}$.`, correct: want, why: `The largest probability, $${fixed(Math.max(...ps), 2)}$, belongs to $X=${mode}$.` };
+          const modes = xs.filter((_, i) => pc[i] === Math.max(...pc));
+          return { text: `The most likely value of $X$ is $${m}$.`, correct: want, why: `The largest probability, $${fixed(Math.max(...ps), 2)}$, belongs to ${modes.map((x) => `$X=${x}$`).join(' and ')}.` };
         },
       ];
       if (miss >= 0)
@@ -223,7 +225,8 @@ const distributionTable: Template = {
       key = P(op, kk);
       q = `What is the probability that $X$ is ${OP_WORD[op]} ${kk}, i.e. $P(X${op === '>' || op === '<' ? op : `${op} `}${kk})$?`;
       const which = xs.filter((x) => holds(x, op, kk));
-      explanation = `${missText}Add the probabilities of the values that are ${OP_WORD[op]} ${kk}, i.e. $X\\in\\{${which.join(',')}\\}$: $$P(X${op === '>' || op === '<' ? op : `${op} `}${kk})=${which.map((x) => fixed(ps[xs.indexOf(x)], 2)).join('+')}=${fixed(key, 2)}$$`;
+      const sumText = which.length > 1 ? `${which.map((x) => fixed(ps[xs.indexOf(x)], 2)).join('+')}=` : '';
+      explanation = `${missText}Add the probabilities of the values that are ${OP_WORD[op]} ${kk}, i.e. $X\\in\\{${which.join(',')}\\}$: $$P(X${op === '>' || op === '<' ? op : `${op} `}${kk})=${sumText}${fixed(key, 2)}$$`;
       const swap: Record<Op, Op> = { '\\ge': '>', '>': '\\ge', '\\le': '<', '<': '\\le' };
       wrong = [
         { value: P(swap[op], kk), why: `${op === '\\ge' || op === '\\le' ? 'leaves out' : 'includes'} the boundary value $X=${kk}$.` },
@@ -308,6 +311,7 @@ const expectedGain: Template = {
       if (big === undefined) continue;
       const prizes = conds.length === 2 ? [big, rng.pick([1, 2, 3, 4, 5].filter((w) => w < big))] : [big];
       const cost = rng.pick([1, 1.5, 2, 2.5, 3, 4, 5]);
+      if (cost >= big) continue; // the main prize must be worth more than the stake
       const gross = sum(prizes.map((w, i) => w * probs[i]));
       const net = gross - cost;
       if (Math.abs(net) < 0.1 || Math.abs(net) > 4) continue;
@@ -316,14 +320,20 @@ const expectedGain: Template = {
       const intro = `${rng.pick(STORIES)} ${dev.text} ${rules.charAt(0).toUpperCase()}${rules.slice(1)}; otherwise the player wins nothing. Playing one game costs ${euro(cost)}, which is not returned.`;
       const stem = `${intro}\n\n${rng.pick(['What is the expected gain or loss per game for the player?', 'On average, how much does the player gain or lose per game?'])}`;
       const numericStem = `${intro}\n\nWhat is the player's expected net gain per game, in euros? Enter a loss as a negative number.`;
+      /** "=" when the 4-decimal value shown is exact, "≈" otherwise. */
+      const eq = (v: number) => (Math.abs(v - round(v, 4)) < 1e-9 ? '=' : '\\approx ');
       const counting = conds
-        .map((c, i) => `$P(\\text{${c.text}})=\\frac{${cnt(c.f)}}{${total}}$, so this prize contributes $${prizes[i]}\\cdot\\frac{${cnt(c.f)}}{${total}}\\approx ${num(prizes[i] * probs[i], 4)}$`)
+        .map((c, i) => `$P(\\text{${c.text}})=\\frac{${cnt(c.f)}}{${total}}$, so this prize contributes $${prizes[i]}\\cdot\\frac{${cnt(c.f)}}{${total}}${eq(prizes[i] * probs[i])}${num(prizes[i] * probs[i], 4)}$`)
         .join('; ');
       const explanation =
         `There are ${total} equally likely outcomes. ${counting}.\n` +
-        `$$E(\\text{prize})=${prizes.map((w, i) => `${w}\\cdot\\frac{${cnt(conds[i].f)}}{${total}}`).join('+')}\\approx ${num(gross, 4)}$$` +
-        `The stake of ${euro(cost)} is paid in every game, so $$E(\\text{net gain})=${num(gross, 4)}-${num(cost, 2)}\\approx ${fixed(net, 2)}$$` +
+        `$$E(\\text{prize})=${prizes.map((w, i) => `${w}\\cdot\\frac{${cnt(conds[i].f)}}{${total}}`).join('+')}${eq(gross)}${num(gross, 4)}$$` +
+        `The stake of ${euro(cost)} is paid in every game, so $$E(\\text{net gain})=${num(gross, 4)}-${num(cost, 2)}${eq(net)}${num(net, 4)}$$` +
         `${net < 0 ? `On average the player **loses** about €${fixed(-net, 2)} per game.` : `On average the player **gains** about €${fixed(net, 2)} per game.`}`;
+      // an exact half cent (e.g. −2.375) may be rounded either way by students: accept both neighbours
+      const cents = net * 100;
+      const halfCent = Math.abs(cents - Math.floor(cents) - 0.5) < 1e-6;
+      const acceptRange: [number, number] | undefined = halfCent ? [Math.floor(cents) / 100, Math.ceil(cents) / 100] : undefined;
       const wrong: Wrong[] = [
         { value: gross, why: 'forgets to subtract the cost of playing.' },
         { value: -net, why: 'mixes up gain and loss (wrong sign).' },
@@ -334,7 +344,7 @@ const expectedGain: Template = {
       return valueQuestion({
         type, rng, optionCount, stem, numericStem, key: net, dp: 2, explanation,
         wrong: wrong.filter((w) => Math.abs(w.value) >= 0.01),
-        range: [-100, 100], gap: 3, fmt: gainText,
+        range: [-100, 100], gap: 3, fmt: gainText, acceptRange,
       });
     }
   },
@@ -426,7 +436,7 @@ const COMBS: readonly ((rng: Rng) => Comb)[] = [
   (rng) => {
     const n = rng.int(3, 6);
     return {
-      kind: 'copies', unit: 'g', target: 'T', formula: Array.from({ length: n }, (_, i) => `X_${i + 1}`).join(' + '), coef: [1], c: 0, copies: n, what: `The total weight of a box of ${n} bags`,
+      kind: 'copies', unit: 'g', target: 'T', formula: Array.from({ length: n }, (_, i) => `X_${i + 1}`).join(' + '), coef: [1], c: 0, copies: n, what: `The total weight of the ${n} bags in a box`,
       intro: `A roastery packs ${n} bags of coffee beans in a gift box. The weights of the bags are independent and each has the distribution of $X$.`,
       vars: [{ name: 'X', meaning: 'weight of one bag (g)', mean: rng.step(495, 505, 1), sd: rng.step(3, 8, 0.5) }],
     };
@@ -434,7 +444,7 @@ const COMBS: readonly ((rng: Rng) => Comb)[] = [
   (rng) => {
     const n = rng.int(3, 5);
     return {
-      kind: 'copies', unit: 'minutes', target: 'T', formula: Array.from({ length: n }, (_, i) => `X_${i + 1}`).join(' + '), coef: [1], c: 0, copies: n, what: `The total time for ${n} jobs`,
+      kind: 'copies', unit: 'minutes', target: 'T', formula: Array.from({ length: n }, (_, i) => `X_${i + 1}`).join(' + '), coef: [1], c: 0, copies: n, what: `The total loading time of the ${n} vans`,
       intro: `A warehouse worker loads ${n} delivery vans one after another. The loading times are independent and each has the distribution of $X$.`,
       vars: [{ name: 'X', meaning: 'loading time of one van (minutes)', mean: rng.int(8, 15), sd: rng.step(1.5, 4, 0.5) }],
     };
@@ -609,7 +619,13 @@ function exactBinomial(rng: Rng, type: GenType, optionCount: number): Generated 
       { value: sum(js.map((j) => p ** j * q ** (n - j))), why: 'forgets the binomial coefficient $\\binom{n}{j}$.' },
       { value: sum(js.map((j) => choose(n, j) * p ** j)), why: 'forgets the factor $(1-p)^{n-j}$.' },
     ];
-    return valueQuestion({ type, rng, optionCount, stem, key, dp: 3, wrong, explanation });
+    // Students usually round each term to 3 decimals before adding (as in the past solutions), which can move the
+    // third decimal of the result by up to 0.002: accept that, unless a modelled mistake lies that close.
+    const near = wrong.map((w) => Math.abs(w.value - key)).filter((d) => d > 1e-9);
+    const r = Math.min(0.002, ...near.map((d) => d / 2));
+    const acceptRange: [number, number] | undefined = r > 0.0006 ? [round(key - r, 4), round(key + r, 4)] : undefined;
+    const roundNote = type === 'numeric' && acceptRange ? `\n(Rounding every term to 3 decimals before adding can change the last decimal; answers from ${fixed(acceptRange[0], 4)} to ${fixed(acceptRange[1], 4)} are accepted.)` : '';
+    return valueQuestion({ type, rng, optionCount, stem, key, dp: 3, wrong, explanation: explanation + roundNote, acceptRange });
   }
 }
 
@@ -628,6 +644,10 @@ function normalApprox(rng: Rng, type: GenType, optionCount: number): Generated {
     if (k <= 0 || k === Math.round(mu)) continue;
     const z = (k - mu) / sigma;
     const z2 = round(z, 2);
+    // the Table Z entry must be clear-cut, also for a student who rounds σ to 3 or 2 decimals first (as the past
+    // solutions do: σ = √12.8 = 3.58)
+    const zs = [sigma, round(sigma, 3), round(sigma, 2)].map((s) => (k - mu) / s);
+    if (!zs.every((zz) => Math.abs(100 * zz - Math.round(100 * zz)) < 0.4 && round(zz, 2) === z2)) continue;
     const tail = (zz: number) => (kind === 'atLeast' ? 1 - normCdf(zz) : normCdf(zz));
     const tab = kind === 'atLeast' ? round(1 - zTable(z2), 4) : zTable(z2);
     const exactZ = tail(z);
@@ -646,7 +666,7 @@ function normalApprox(rng: Rng, type: GenType, optionCount: number): Generated {
       { value: tabOf(round((k - mu) / (n * p * q), 2)), why: 'divides by the variance $npq$ instead of its square root.' },
       { value: tabOf(round((k - mu) / Math.sqrt(n * p), 2)), why: 'uses $\\sqrt{np}$ as the standard deviation, forgetting the factor $q$.' },
       { value: tabOf(round((k - n * q) / sigma, 2)), why: 'uses $nq$ instead of $np$ as the mean.' },
-      { value: tabOf(round((k - mu) / (sigma * Math.sqrt(n)), 2)), why: 'divides the standard deviation by $\\sqrt{n}$ once more, mixing it up with the SD of a sample proportion.' },
+      { value: tabOf(round((k - mu) / (sigma * Math.sqrt(n)), 2)), why: 'uses $\\sigma=n\\sqrt{pq}$: multiplies the SD of a single trial, $\\sqrt{pq}$, by $n$ instead of by $\\sqrt{n}$.' },
     ];
     return valueQuestion({
       type, rng, optionCount, stem, key: tab, dp: 3, wrong, explanation, gap: 6,

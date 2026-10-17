@@ -66,6 +66,8 @@ describe('elasticity.partial-power', () => {
         const matches = pts.map((p) => close(of({ [a]: p.x, [b]: p.y }), el(p.x, p.y), 1e-4));
         if (o.id === g.correctAnswer) expect(matches.every(Boolean), `seed ${seed} key ${o.tex}`).toBe(true);
         else expect(matches.every(Boolean), `seed ${seed} distractor ${o.tex} is also correct`).toBe(false);
+        // exact values only: a rounded key such as 0.3333 among exact fractions would give it away
+        expect(o.tex, `seed ${seed}`).not.toMatch(/\d\.\d{4}/);
       }
     }
   });

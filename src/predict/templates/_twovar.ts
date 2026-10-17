@@ -118,8 +118,10 @@ const FLIP: Record<Status, Status> = { min: 'max', max: 'min', saddle: 'saddle',
 export function statusMistakes(h: Hess): { status: Status; why: string }[] {
   const { fxx, fyy, fxy, C } = h;
   const right = statusOf(h);
+  // with C = 0 and f''xx = 0 the direction comes from f''yy (see secondOrderTex)
+  const w = C === 0 && fxx === 0 ? 'yy' : 'xx';
   const out: { status: Status; why: string }[] = [
-    { status: FLIP[right], why: `mixes up the sign rule: $f''_{xx}>0$ (the graph curves upwards) belongs to a minimum, $f''_{xx}<0$ to a maximum.` },
+    { status: FLIP[right], why: `mixes up the sign rule: $f''_{${w}}>0$ (the graph curves upwards) belongs to a minimum, $f''_{${w}}<0$ to a maximum.` },
     { status: statusOf({ ...h, C: fxx * fyy }), why: `forgets to subtract $\\left(f''_{xy}\\right)^2$, so gets $C=${fxx * fyy}$.` },
     { status: statusOf({ ...h, C: fxx * fyy + fxy * fxy }), why: `adds $\\left(f''_{xy}\\right)^2$ instead of subtracting it, so gets $C=${fxx * fyy + fxy * fxy}$.` },
   ];

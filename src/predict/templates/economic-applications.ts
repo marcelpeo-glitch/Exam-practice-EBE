@@ -3,22 +3,24 @@
 // inventory problem (ordering vs holding costs, optimal order size) and the cheapest fence around a rectangular plot).
 // Every key is computed in code from the generated numbers and checked by the template itself (ensure); wrong options
 // come from modelled mistakes. See economic-applications.test.ts for the independent checks.
-import { buildMcq, INSTRUCTION, num, numericField, type Choice } from '../build';
-import { numDiff, numDiff2 } from '../mathx';
+import { buildMcq, INSTRUCTION, num, numericField, type Choice, type Mcq } from '../build';
+import { gcd, numDiff, numDiff2 } from '../mathx';
 import type { Rng } from '../rng';
 import { round } from '../stats';
 import type { GenType, Generated, Template } from '../types';
-import { amountIntervals, choiceQuestion, coefTex, ensure, euro, intervalMcq, isNice, numericQuestion, numTex, valueMcq } from './_econ';
+import { amountIntervals, choiceQuestion, coefTex, ensure, euro, intervalMcq, isNice, numericQuestion, numTex, rankedValueMcq } from './_econ';
 
 type Mistake = { value: number; why: string };
 
-/** Extra wrong options when the modelled mistakes coincide: the key ±15 %, ±30 %, ... */
-const slip =
-  (key: number, fmt: (v: number) => string) =>
-  (i: number): Choice => {
-    const v = key * (1 + (i % 2 ? -1 : 1) * 0.15 * (Math.floor(i / 2) + 1));
-    return { text: fmt(v), value: v, why: 'an arithmetic slip somewhere along the way.' };
-  };
+/**
+ * Extra wrong values on one side of the key (dir −1 below, +1 above) when the modelled mistakes are not enough: the key
+ * −20 %, −40 %, ... or +20 %, +40 %, ... (whole numbers for a whole-number key; null when it would not be positive).
+ */
+const nearKey = (key: number) => (dir: -1 | 1, i: number) => {
+  const v = key * (1 + dir * 0.2 * (i + 1));
+  if (v <= 0) return null;
+  return Number.isInteger(key) ? Math.round(v) : round(v, 2);
+};
 
 /** Numeric question, or single choice with value options (or, for amounts, intervals as in the past exams). */
 function finish(
@@ -29,15 +31,32 @@ function finish(
 ): Generated {
   if (type === 'numeric') return numericQuestion(q.stem, q.key, q.dp, q.explanation);
   if (q.intervals) {
-    const mcq = intervalMcq(rng, q.key, q.mistakes, optionCount, { format: amountIntervals((x) => euro(x, 0)), kind: 'amount' });
-    if (mcq) return choiceQuestion(q.stem, mcq, q.explanation);
+    // Redraw the layout (up to 12 times) until at least one modelled mistake lands outside the key's interval;
+    // otherwise every mistake gives the right interval and the options test nothing. (Asking for two or more pushes
+    // the key away from the top interval, which would give it away by its place.)
+    const caught = (m: Mcq) => m.distractors.filter((d) => d.why).length;
+    let best: Mcq | null = null;
+    for (let t = 0; t < 12 && !(best && caught(best) >= 1); t++) {
+      const mcq = intervalMcq(rng, q.key, q.mistakes, optionCount, { format: amountIntervals((x) => euro(x, 0)), kind: 'amount' });
+      if (!mcq) break;
+      if (!best || caught(mcq) > caught(best)) best = mcq;
+    }
+    if (best) return choiceQuestion(q.stem, best, q.explanation);
   }
-  const mcq = valueMcq(rng, q.key, q.mistakes, optionCount, q.fmt, { positive: true, fallback: slip(q.key, q.fmt), epsilon: q.epsilon });
+  // the key at a random place among the ascending options (most modelled mistakes lie on one side of the key)
+  const mcq = rankedValueMcq(rng, q.key, q.mistakes, optionCount, q.fmt, nearKey(q.key), { positive: true, epsilon: q.epsilon });
   return choiceQuestion(q.stem, mcq, q.explanation);
 }
 
 /** "c·" as a factor in a product with a number: 1 → "", otherwise "c\cdot ". */
 const times = (c: number) => (c === 1 ? '' : `${numTex(c)}\\cdot `);
+
+/** −(3b)/(4√v) in lowest terms, the second derivative of a·v − b·v^{3/2}: b = 2 gives "-\frac{3}{2\sqrt{p}}". */
+function d2Tex(b: number, v: string): string {
+  const g = gcd(3 * b, 4);
+  const den = 4 / g;
+  return `-\\frac{${(3 * b) / g}}{${den === 1 ? '' : den}\\sqrt{${v}}}`;
+}
 
 // =====================================================================================================================
 // 1. Market equilibrium / price for a given demand
@@ -185,7 +204,7 @@ const optimum: Template = {
       const explanation =
         `The revenue is $$R(p)=p\\cdot d(p)=${a}p-${coefTex(b)}p\\sqrt{p}=${a}p-${coefTex(b)}p^{3/2}$$` +
         `$$R'(p)=${a}-${numTex(1.5 * b)}\\sqrt{p}=0 \\;\\Rightarrow\\; \\sqrt{p}=\\frac{2\\cdot ${a}}{${3 * b}}=${s} \\;\\Rightarrow\\; p=${s}^2=${pStar}$$` +
-        `$R''(p)=-\\frac{${3 * b}}{4\\sqrt{p}}<0$, so this is a maximum. ` +
+        `$R''(p)=${d2Tex(b, 'p')}<0$, so this is a maximum. ` +
         `The maximal revenue is $$R(${pStar})=${pStar}\\cdot\\left(${a}-${times(b)}${s}\\right)=${pStar}\\cdot ${num(d(pStar))}=${num(Rmax)}$$`;
       if (ask === 'price')
         return finish(type, rng, optionCount, {
@@ -237,8 +256,8 @@ const optimum: Template = {
         (ask === 'quantity' ? 'Which production level $Q$ maximises the weekly profit?' : 'What is the maximal weekly profit (in euros)?');
       const explanation =
         `Profit is revenue minus costs: $$\\pi(Q)=Q\\cdot P(Q)-C(Q)=${a}Q-${coefTex(b)}Q\\sqrt{Q}-${F}-${c}Q=${a - c}Q-${coefTex(b)}Q^{3/2}-${F}$$` +
-        `$$\\pi'(Q)=${a - c}-\\frac{${3 * b}}{2}\\sqrt{Q}=0 \\;\\Rightarrow\\; \\sqrt{Q}=\\frac{2\\cdot ${a - c}}{${3 * b}}=${s} \\;\\Rightarrow\\; Q=${s}^2=${Q0}$$` +
-        `$\\pi''(Q)=-\\frac{${3 * b}}{4\\sqrt{Q}}<0$, so this is a maximum. ` +
+        `$$\\pi'(Q)=${a - c}-${numTex(1.5 * b)}\\sqrt{Q}=0 \\;\\Rightarrow\\; \\sqrt{Q}=\\frac{2\\cdot ${a - c}}{${3 * b}}=${s} \\;\\Rightarrow\\; Q=${s}^2=${Q0}$$` +
+        `$\\pi''(Q)=${d2Tex(b, 'Q')}<0$, so this is a maximum. ` +
         `$$\\pi(${Q0})=${a - c}\\cdot ${Q0}-${times(b)}${s}^3-${F}=${(a - c) * Q0}-${b * s ** 3}-${F}=${num(pmax)}$$`;
       const Qrev = ((2 * a) / (3 * b)) ** 2;
       if (ask === 'quantity')
@@ -318,7 +337,7 @@ const optimum: Template = {
         mistakes: [
           { value: pmax + F, why: 'forgets to subtract the fixed costs.' },
           { value: Q0 * P(Q0), why: 'gives the revenue at the optimum instead of the profit.' },
-          ...wrongQ.map((m) => ({ value: profit(m.value), why: `evaluates the profit at $Q=${num(m.value, 2)}$, which ${m.why}` })),
+          ...wrongQ.map((m) => ({ value: profit(m.value), why: `evaluates the profit at $Q=${num(m.value, 2)}$, the quantity found by a student who ${m.why}` })),
         ],
       });
     return finish(type, rng, optionCount, {
@@ -330,7 +349,7 @@ const optimum: Template = {
       mistakes: [
         { value: c + 2 * d * Q0, why: 'gives the marginal cost at the optimum instead of the price.' },
         { value: Q0, why: 'gives the optimal quantity instead of the price.' },
-        ...wrongQ.map((m) => ({ value: P(m.value), why: `uses $Q=${num(m.value, 2)}$, which ${m.why}` })),
+        ...wrongQ.map((m) => ({ value: P(m.value), why: `uses $Q=${num(m.value, 2)}$, the quantity found by a student who ${m.why}` })),
       ],
     });
   },
@@ -455,20 +474,10 @@ const inventory: Template = {
       ]
         .map((m) => ({ ...m, value: Math.round(m.value) }))
         .filter((m) => m.value >= 1 && m.value !== xs);
-      const mcq = buildMcq(
-        rng,
-        { text: fmt(xs), value: xs },
-        ms.map((m) => ({ text: fmt(m.value), value: m.value, why: m.why })),
-        {
-          count: optionCount,
-          order: 'ascending',
-          epsilon: 1e-9,
-          fallback: (i) => {
-            const n = xs + (i % 2 ? -1 : 1) * (Math.floor(i / 2) + 1);
-            return { text: fmt(n), value: n < 1 ? NaN : n, why: 'close to the optimum, but the total costs there are higher (compare $C(x)$).' };
-          },
-        },
-      );
+      // order sizes next to the optimum come after the modelled mistakes; the key lands at a random place
+      const close = [1, 2, 3].flatMap((j) => [xs - j, xs + j]).filter((n) => n >= 1);
+      ms.push(...close.map((n) => ({ value: n, why: 'close to the optimum, but the total costs there are higher (compare $C(x)$).' })));
+      const mcq = rankedValueMcq(rng, xs, ms, optionCount, fmt, (dir, i) => (xs + dir * (i + 4) >= 1 ? xs + dir * (i + 4) : null), { epsilon: 0 });
       return { ...choiceQuestion(stem, mcq, explanation), table };
     }
     const total = C(xs);
@@ -498,12 +507,13 @@ const inventory: Template = {
 // 4. The cheapest fence around a rectangle with one free side
 // =====================================================================================================================
 
+/** maxArea (m²) keeps the plot a realistic size (no café terrace of 3000 m²). */
 const PLOTS = [
-  { who: 'A farmer', what: 'a rectangular paddock for her goats', wall: 'a river', special: 'facing the road' },
-  { who: 'A café owner', what: 'a rectangular terrace', wall: 'the café wall', special: 'facing the street' },
-  { who: 'A primary school', what: 'a rectangular vegetable garden', wall: 'the gym wall', special: 'facing the playground' },
-  { who: 'A festival organiser', what: 'a rectangular VIP area', wall: 'a canal', special: 'facing the main stage' },
-  { who: 'A dog owner', what: 'a rectangular dog run', wall: 'the back wall of the house', special: 'facing the neighbours' },
+  { who: 'A farmer', what: 'a rectangular paddock for her goats', wall: 'a river', special: 'facing the road', maxArea: 6000 },
+  { who: 'A café owner', what: 'a rectangular terrace', wall: 'the café wall', special: 'facing the street', maxArea: 500 },
+  { who: 'A primary school', what: 'a rectangular vegetable garden', wall: 'the gym wall', special: 'facing the playground', maxArea: 1500 },
+  { who: 'A festival organiser', what: 'a rectangular VIP area', wall: 'a canal', special: 'facing the main stage', maxArea: 5000 },
+  { who: 'A dog owner', what: 'a rectangular dog run', wall: 'the back wall of the house', special: 'facing the neighbours', maxArea: 800 },
 ] as const;
 
 /** A simple sketch of the plot: the free side along the wall/water at the top, prices per metre on the other sides. */
@@ -550,7 +560,7 @@ const fence: Template = {
       B = rng.int(8, 40);
       A = rho * B * B;
       L = rho * B;
-      if (isNice(rho, 2) && Math.abs(A - Math.round(A)) < 1e-9 && isNice(L, 1) && Math.abs(rho - 1) > 0.05 && A <= 6000) break;
+      if (isNice(rho, 2) && Math.abs(A - Math.round(A)) < 1e-9 && isNice(L, 1) && Math.abs(rho - 1) > 0.05 && A <= plot.maxArea) break;
     }
     A = Math.round(A);
     const cost = (b: number) => (alpha * A) / b + beta * b;

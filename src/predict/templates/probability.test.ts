@@ -218,10 +218,14 @@ describe('probability.rules: enumeration of independent trials and counting a po
         if (ps.length === 1) {
           const p = ps[0];
           const ints = [...g.stem.replace(/\d+(?:\.\d+)?%/g, '').matchAll(/(?<![\d.])(\d+)(?![\d.])/g)].map((m) => Number(m[1]));
-          expect(ints.length).toBeGreaterThanOrEqual(2);
+          expect(ints.length).toBeGreaterThanOrEqual(1);
           const n = ints[0];
           for (const x of ints) expect(x).toBe(n);
-          const quant = /\*\*(at least one|none|all)\*\*/.exec(q)![1];
+          // with two trials the question says "both" / "neither" instead of "all 2" / "none of the 2"
+          const word = /\*\*(at least one|none|all|both|neither)\*\*/.exec(q)![1];
+          if (word === 'both' || word === 'neither') expect(n).toBe(2);
+          else if (word !== 'at least one') expect(n, q).toBeGreaterThan(2);
+          const quant = word === 'both' ? 'all' : word === 'neither' ? 'none' : word;
           let s = 0;
           for (let mask = 0; mask < 2 ** n; mask++) {
             let k = 0;

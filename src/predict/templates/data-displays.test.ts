@@ -213,8 +213,9 @@ function asked(g: Generated): number {
   });
   const n = /of all (\d+) /.exec(g.stem);
   if (n) expect(Number(n[1])).toBe(records.length);
-  const bold = [...g.stem.matchAll(/\*\*(.+?)\*\*/g)].map((m) => m[1]);
-  const has = (rec: { r: string; c: string }, label: string) => rec.r === label || rec.c === label;
+  // the stem names the categories in bold, in lower case inside the sentence ("prefer the **indie stage**")
+  const bold = [...g.stem.matchAll(/\*\*(.+?)\*\*/g)].map((m) => m[1].toLowerCase());
+  const has = (rec: { r: string; c: string }, label: string) => rec.r.toLowerCase() === label || rec.c.toLowerCase() === label;
   for (const b of bold) expect(records.some((rec) => has(rec, b)), b).toBe(true);
   const cond = /Among the/.test(g.stem) ? bold[0] : undefined;
   const events = cond ? bold.slice(1) : bold;
@@ -233,7 +234,10 @@ describe('data-displays.two-way-table', () => {
     for (let seed = 1; seed <= SEEDS; seed++) {
       const g = gen('data-displays.two-way-table', seed, 'single-choice');
       const v = asked(g);
-      for (const o of g.options!) expect(Math.abs(parseFloat(o.text!) - v) <= 0.05 + 1e-9, `seed ${seed} ${o.text} vs ${v}`).toBe(o.id === g.correctAnswer);
+      for (const o of g.options!) {
+        expect(Math.abs(parseFloat(o.text!) - v) <= 0.05 + 1e-9, `seed ${seed} ${o.text} vs ${v}`).toBe(o.id === g.correctAnswer);
+        expect(parseFloat(o.text!), `seed ${seed}: a percentage above 100%`).toBeLessThanOrEqual(100);
+      }
       expect(optText(g, g.correctAnswer as string)).toMatch(/^\d+\.\d%$/);
     }
   });

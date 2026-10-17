@@ -33,7 +33,12 @@ function checkInverseQuestion(g: Generated, v: 'x' | 'p') {
     const inv = texFn1(rhs(optionTex(text)), w);
     return xs.every((x) => Math.abs(inv(f(x)) - x) < 1e-6 * (1 + Math.abs(x)));
   };
-  for (const o of g.options!) expect(undoes(o.text!), `${o.id} ${o.text} for ${g.stem}`).toBe(o.id === g.correctAnswer);
+  for (const o of g.options!) {
+    expect(undoes(o.text!), `${o.id} ${o.text} for ${g.stem}`).toBe(o.id === g.correctAnswer);
+    // a factor in front of a fraction gets a \cdot: "2\dfrac{a}{5}" reads as the mixed number 2 + a/5
+    expect(o.text, 'number directly before a fraction').not.toMatch(/[0-9]\\d?frac/);
+    expect(o.text, 'division by 1').not.toMatch(/\}\{1\}/);
+  }
 }
 
 /** All solutions of f(x) = y0 on [lo, hi] found by a scan for sign changes plus bisection (poles are rejected). */

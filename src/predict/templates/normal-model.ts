@@ -3,7 +3,7 @@
 // percentiles, and which probability a shaded area under a Normal curve represents). Keys are computed in code with
 // Table Z (stats.zTable) or the exact quantile (stats.normInv); numeric answers also accept everything between the
 // table-based and the exact value. Wrong options come from modelled mistakes. Independent checks: normal-model.test.ts.
-import { buildMcq, INSTRUCTION, mistakesNote, num, numericField, type Choice } from '../build';
+import { buildMcq, fixed, INSTRUCTION, mistakesNote, num, numericField, type Choice } from '../build';
 import type { Rng } from '../rng';
 import { round, zTable } from '../stats';
 import type { Generated, Template } from '../types';
@@ -216,8 +216,11 @@ const cutoff: Template = {
       `Use Table Z in reverse: find the area closest to $${num(q, 3)}$ inside the table, which gives $z\\approx ${zi.lo.toFixed(2)}$ or $${zi.hi.toFixed(2)}$; more precisely $z=${num(zi.z3, 3)}$` +
       (col ? ` (also in Table T, row $\\infty$, column ${col}%: $z^*=${num(Math.abs(zi.z3), 3)}$)` : '') +
       `.\nSolve $z=\\frac{x-\\mu}{\\sigma}$ for $x$: $$x=\\mu+z\\sigma=${num(mu, 2)}${zi.z3 < 0 ? '-' : '+'}${num(Math.abs(zi.z3), 3)}\\times ${num(sd, 2)}=${num(key, 2)}\\text{ ${s.unit}}$$` +
-      `So the cut-off is about ${num(key, dp)} ${s.unit}: the ${top ? s.hi : s.lo} ${pct(p)} of ${s.items} lie ${top ? 'above' : 'below'} it.`;
-    const range = acceptAround(dp, ...zSpread((z) => mu + z * sd, zi));
+      `So the cut-off is about ${fixed(key, dp)} ${s.unit}: the ${top ? s.hi : s.lo} ${pct(p)} of ${s.items} lie ${top ? 'above' : 'below'} it.`;
+    // every value a student may compute (exact z, 3-decimal z, both Table Z neighbours), and each of them rounded to
+    // the requested number of decimals (for whole numbers the tolerance alone does not cover e.g. 268.2 → 268)
+    const spread = zSpread((z) => mu + z * sd, zi);
+    const range = acceptAround(dp, ...spread, ...spread.map((v) => round(v, dp)));
     if (type === 'numeric') return numeric(stem, key, dp, how + '\n(Answers based on the 2-decimal $z$ from Table Z are accepted too.)', range);
 
     const sg = top ? 1 : -1;
@@ -229,7 +232,7 @@ const cutoff: Template = {
       [mu + sd / zi.z3, 'solves $z=\\frac{x-\\mu}{\\sigma}$ wrongly as $x=\\mu+\\frac{\\sigma}{z}$.'],
       [mu + zFor(top ? 1 - p / 50 : p / 50).z3 * sd, `puts twice the area in the tail: uses the $z$ for ${pct(2 * p)} instead of ${pct(p)}.`],
     ];
-    const mk = (v: number, why?: string): Choice => ({ text: `${num(v, dp)} ${s.unit}`, value: round(v, dp), ...(why ? { why } : {}) });
+    const mk = (v: number, why?: string): Choice => ({ text: `${fixed(v, dp)} ${s.unit}`, value: round(v, dp), ...(why ? { why } : {}) });
     const mcq = buildMcq(
       rng,
       mk(key),
@@ -401,14 +404,16 @@ const shaded: Template = {
     const s = rng.pick(SCENARIOS);
     const mu = rng.pick(s.mus);
     const sd = rng.pick(s.sds);
-    const [a, b] = rng.pick(INTERVALS);
+    // a boundary at μ ± 3σ is invisible (the curve is practically on the axis there), so the size of such an area is
+    // only asked when the region is read from the options (single choice), never as a number
+    const [a, b] = rng.pick(type === 'numeric' ? INTERVALS.filter(([lo, hi]) => Math.abs(lo) !== 3 && Math.abs(hi) !== 3) : INTERVALS);
     const v = (k: number) => (Number.isFinite(k) ? mu + k * sd : k);
     const images = [{ src: normalCurveSvg(a, b), alt: 'Normal curve with a shaded area; the axis is marked at μ − 3σ, μ − 2σ, μ − σ, μ, μ + σ, μ + 2σ and μ + 3σ' }];
     const lab = (k: number) => `\\mu${k === 0 ? '' : `${k < 0 ? '-' : '+'}${Math.abs(k) === 1 ? '' : Math.abs(k)}\\sigma`}`;
     const zr = a === -Infinity ? `Z<${b}` : b === Infinity ? `Z>${a}` : `${a}<Z<${b}`;
     const region = a === -Infinity ? `to the left of $${lab(b)}$` : b === Infinity ? `to the right of $${lab(a)}$` : `between $${lab(a)}$ and $${lab(b)}$`;
     const head = `${intro(rng, s, mu, sd)} The figure shows this Normal model; the shaded area represents a probability.`;
-    const vals = (k: number) => `$${lab(k)}=${num(mu, 2)}${k < 0 ? '-' : '+'}${Math.abs(k) === 1 ? '' : `${Math.abs(k)}\\times `}${num(sd, 2)}=${num(v(k), 2)}$`;
+    const vals = (k: number) => (k === 0 ? `$\\mu=${num(mu, 2)}$` : `$${lab(k)}=${num(mu, 2)}${k < 0 ? '-' : '+'}${Math.abs(k) === 1 ? '' : `${Math.abs(k)}\\times `}${num(sd, 2)}=${num(v(k), 2)}$`);
     if (type === 'numeric') {
       const e: Ev = a === -Infinity ? { kind: 'below', z: b } : b === Infinity ? { kind: 'above', z: a } : { kind: 'between', za: a, zb: b };
       const P = tableP(e);
@@ -424,8 +429,11 @@ const shaded: Template = {
     const opt = (x: Range, why?: string): Choice => ({ text: say(s, s.v1, x), ...(why ? { why } : {}) });
     const ok = (k: number) => k === -Infinity || k === Infinity || (k >= -3 && k <= 3);
     const ds: Choice[] = [];
+    /** Regions that look the same in the figure: an edge at μ ± 3σ is indistinguishable from an open tail. */
+    const open = (k: number) => (k <= -3 ? -Infinity : k >= 3 ? Infinity : k);
+    const looksLikeKey = (lo: number, hi: number) => open(lo) === open(a) && open(hi) === open(b);
     const add = (lo: number, hi: number, why: string) => {
-      if (ok(lo) && ok(hi) && lo < hi && !(lo === -Infinity && hi === Infinity)) ds.push(opt(r(v(lo), v(hi)), why));
+      if (ok(lo) && ok(hi) && lo < hi && !(lo === -Infinity && hi === Infinity) && !looksLikeKey(lo, hi)) ds.push(opt(r(v(lo), v(hi)), why));
     };
     if (Number.isFinite(a) && Number.isFinite(b)) {
       if (sd !== 1) ds.push(opt(r(mu + a, mu + b), `reads $\\mu+k\\sigma$ as $\\mu+k$ (forgets to multiply by $\\sigma=${num(sd, 2)}$).`));
@@ -452,7 +460,9 @@ const shaded: Template = {
       fallback: (i) => {
         const lo = all[(i * 3) % 7];
         const hi = all[(i * 5 + 2) % 7];
-        return lo < hi ? opt(r(v(lo), v(hi)), 'reads the wrong boundaries from the axis.') : opt(r(v(lo), Infinity), 'reads the wrong boundaries from the axis.');
+        const [x0, x1] = lo < hi ? [lo, hi] : [lo, Infinity];
+        // a look-alike of the shaded region is replaced by a region that is clearly different
+        return looksLikeKey(x0, x1) ? opt(r(v(-1), v(1)), 'reads the wrong boundaries from the axis.') : opt(r(v(x0), v(x1)), 'reads the wrong boundaries from the axis.');
       },
     });
     const stem = `${head}\nWhich probability does the shaded area represent? The probability that a randomly chosen ${s.item} ...`;

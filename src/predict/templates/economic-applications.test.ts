@@ -206,3 +206,15 @@ describe('economic-applications.fence: minimise α·A/B + β·B numerically with
       }
     });
 });
+
+it('ascending value options: the key is sometimes the first and sometimes the last option (its place gives nothing away)', () => {
+  for (const id of ['equilibrium', 'optimum', 'inventory', 'fence']) {
+    const places = new Set<string>();
+    for (let seed = 1; seed <= 100; seed++) {
+      const g = gen(id, seed, 'single-choice');
+      const i = g.options!.findIndex((o) => o.id === g.correctAnswer);
+      places.add(i === 0 ? 'first' : i === g.options!.length - 1 ? 'last' : 'middle');
+    }
+    expect([...places].sort(), id).toEqual(['first', 'last', 'middle']);
+  }
+});

@@ -123,6 +123,7 @@ function partialCase(rng: Rng, fam: 'diff' | 'root' | 'cobb' | 'expo'): PartialC
     const ev = v === 'x' ? a : b;
     const ew = v === 'x' ? b : a;
     const key = Math.round(elasticityAt(expr, v, { x: 1.3, y: 2.2 }) * 1e6) / 1e6;
+    if (Math.abs(key - ev / k) > 1e-5) throw new Error('partial elasticity of a root: key check failed');
     const rootWord = k === 2 ? 'square root' : 'cube root';
     return {
       fName: 'f',
@@ -130,15 +131,15 @@ function partialCase(rng: Rng, fam: 'diff' | 'root' | 'cobb' | 'expo'): PartialC
       v,
       fTex,
       key,
-      keyTex: numTex(key),
+      keyTex: frac(ev, k), // exact fractions for key and distractors (numTex printed 1/3 as 0.3333, 2/7 as 0.2857)
       mistakes: rng.shuffle([
         opt(`${ev}`, `forgetting the ${rootWord}: the exponent of $${v}$ inside the root is divided by ${k}.`),
-        opt(numTex(ew / k), `using the exponent of the other variable $${w}$.`),
+        opt(frac(ew, k), `using the exponent of the other variable $${w}$.`),
         opt(numTex(ev * k), `multiplying by the index of the root instead of dividing by it.`),
-        opt(numTex(k / ev), `inverting the elasticity (computing $\\frac{f}{${v}\\,f_{${v}}}$).`),
-        opt(numTex(ev / k - 1), `subtracting 1 from the exponent, as when differentiating.`),
+        opt(frac(k, ev), `inverting the elasticity (computing $\\frac{f}{${v}\\,f_{${v}}}$).`),
+        opt(frac(ev - k, k), `subtracting 1 from the exponent, as when differentiating.`),
         opt(`${coefTex(ev / k)}${v}`, `keeping a factor $${v}$ that cancels in $\\frac{${v}}{f}\\,f_{${v}}$.`),
-        opt(numTex((a + b) / k), `adding the exponents of both variables (that is the sum of the two partial elasticities).`),
+        opt(frac(a + b, k), `adding the exponents of both variables (that is the sum of the two partial elasticities).`),
       ]),
       steps:
         `Write the root as a power: $$f(x,y)=\\left(${inside}\\right)^{${frac(1, k)}}=${powTex('x', a / k)}${powTex('y', b / k)}.$$` +
@@ -180,7 +181,7 @@ function partialCase(rng: Rng, fam: 'diff' | 'root' | 'cobb' | 'expo'): PartialC
         opt(num(1 - ev), `using $1-${num(ev)}$ instead of the exponent.`),
       ]),
       steps:
-        `For fixed $${w}$, $Q$ is a power function of $${v}$: $Q_{${v}}=${num(A * ev, 4)}${v === 'K' ? `K^{${num(a - 1)}}L^{${num(b)}}` : `K^{${num(a)}}L^{${num(b - 1)}}`}$, so ` +
+        `For fixed $${w}$, $Q$ is a power function of $${v}$: $Q_{${v}}=${A * ev === 1 ? '' : num(A * ev, 4)}${v === 'K' ? `K^{${num(a - 1)}}L^{${num(b)}}` : `K^{${num(a)}}L^{${num(b - 1)}}`}$, so ` +
         `$$El_{${v}}Q=\\frac{${v}}{Q}\\,Q_{${v}}=\\frac{${v}\\cdot ${num(ev)}\\cdot ${A}${v === 'K' ? `K^{${num(a - 1)}}L^{${num(b)}}` : `K^{${num(a)}}L^{${num(b - 1)}}`}}{${fTex}}=${num(ev)}.$$` +
         `In a Cobb–Douglas function each partial elasticity is the exponent of that input.`,
     };

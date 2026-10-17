@@ -20,6 +20,12 @@ const gen = (id: string, seed: number, type: GenType) => byId(id).generate({ rng
 const question = (g: Generated) => g.stem.split('\n\n').pop()!;
 const half = (text: string) => 0.5 * 10 ** -((/\.(\d+)/.exec(text)?.[1].length) ?? 0) + 1e-9;
 
+/** Would the app accept this typed numeric answer (tolerance around the key, or the accepted range)? */
+const accepts = (g: Generated, x: number) =>
+  Math.abs(x - (g.correctAnswer as number)) <= g.tolerance! + 1e-12 || (!!g.acceptRange && x >= g.acceptRange[0] - 1e-12 && x <= g.acceptRange[1] + 1e-12);
+/** Round half away from zero, as students do by hand. */
+const handRound = (x: number, dp: number) => (Math.sign(x) * Math.round(Math.abs(x) * 10 ** dp + 1e-9)) / 10 ** dp;
+
 /** Numeric answer within its tolerance; for single-choice, an option is right exactly when it is the key. */
 function checkValue(g: Generated, exact: number, read: (text: string) => number = Number) {
   if (g.type === 'numeric') {
@@ -56,10 +62,11 @@ function population(g: Generated) {
   const counts = xs.map((x) => pop.filter((y) => y === x).length);
   const top = Math.max(...counts);
   const mode = counts.filter((c) => c === top).length === 1 ? xs[counts.indexOf(top)] : NaN;
-  return { mean, vr, sd: Math.sqrt(vr), P, mode, missing: missing / 100, hasMissing: cells.includes('?') };
+  const tops = xs.filter((_, i) => counts[i] === top);
+  return { mean, vr, sd: Math.sqrt(vr), P, mode, tops, missing: missing / 100, hasMissing: cells.includes('?') };
 }
 
-const WORD: Record<string, string> = { '\\ge': 'at least', '\\le': 'at most', '>': 'more than', '<': 'fewer than' };
+const WORD: Record<string, string> = { '\\ge': 'at least', '\\le': 'at most', '>': 'more than', '<': 'less than' };
 
 describe('random-variables-binomial.distribution-table: a population of 100 built from the printed table', () => {
   for (const type of ['single-choice', 'numeric'] as const) {
@@ -107,7 +114,8 @@ describe('random-variables-binomial.distribution-table: a population of 100 buil
         if ((m = /^\$\\text\{Var\}\(X\)=([\d.]+)\$$/.exec(s))) return close(Number(m[1]), d.vr);
         if ((m = /^\$P\(X(\\ge |\\le |>|<)(\d+)\)=([\d.]+)\$$/.exec(s))) return close(Number(m[3]), d.P(m[1].trim(), Number(m[2])));
         if ((m = /^The most likely value of \$X\$ is \$(\d+)\$\.$/.exec(s))) {
-          expect(Number.isNaN(d.mode) && Number(m[1]) !== d.mode).toBe(Number.isNaN(d.mode)); // a tie never gets a "true" statement
+          // with a tie for the largest probability, no statement may name one of the tied values (true or false would be debatable)
+          if (Number.isNaN(d.mode)) expect(d.tops, s).not.toContain(Number(m[1]));
           return Number(m[1]) === d.mode;
         }
         if ((m = /^The missing probability in the table is ([\d.]+)\.$/.exec(s))) {
@@ -166,6 +174,8 @@ describe('random-variables-binomial.expected-gain: the game replayed over all ou
           total += (won[0]?.prize ?? 0) - cost;
         }
         const exact = total / outcomes.length;
+        expect(Math.max(...rules.map((r) => r.prize)), 'the main prize exceeds the stake').toBeGreaterThan(cost);
+        if (type === 'numeric') expect(accepts(g, handRound(exact, 2)), `${handRound(exact, 2)} not accepted (key ${g.correctAnswer})`).toBe(true);
         checkValue(g, exact, (text) => {
           const m = /^The player (gains|loses) about €([\d.]+) per game\.$/.exec(text)!;
           return (m[1] === 'gains' ? 1 : -1) * Number(m[2]);
@@ -278,6 +288,9 @@ describe('random-variables-binomial.binomial: enumeration of all sequences / Sim
           const printed = Math.round(phi(Math.round(z * 100) / 100) * 1e4) / 1e4;
           const table = word === 'at least' ? 1 - printed : printed;
           const exactZ = tail(z);
+          // the course method rounds σ to 2 decimals before computing z: it must give the same Table Z entry
+          const z2dp = (k - mu) / (Math.round(sigma * 100) / 100);
+          expect(Math.round(z2dp * 100), `z with σ to 2 decimals: ${z2dp} vs ${z}`).toBe(Math.round(z * 100));
           // sanity: the Normal model is close to the exact binomial tail (iterative pmf, no stats.ts)
           let pmf = (1 - p) ** n;
           let exactBin = 0;
@@ -304,6 +317,7 @@ describe('random-variables-binomial.binomial: enumeration of all sequences / Sim
           seen.add(`exact ${word}`);
           expect(n).toBeLessThanOrEqual(16);
           let exact = 0;
+          const pj = new Array(n + 1).fill(0);
           for (let mask = 0; mask < 2 ** n; mask++) {
             let j = 0;
             let pr = 1;
@@ -312,9 +326,18 @@ describe('random-variables-binomial.binomial: enumeration of all sequences / Sim
               j += hit;
               pr *= hit ? p : 1 - p;
             }
+            pj[j] += pr;
             if (inEvent(j)) exact += pr;
           }
           checkValue(g, exact);
+          if (type === 'numeric') {
+            // the course method: every term rounded to 3 decimals, over the event or its complement (whichever is shorter)
+            const inside = pj.map((_, j) => j).filter(inEvent);
+            const outside = pj.map((_, j) => j).filter((j) => !inEvent(j));
+            const terms = (js: number[]) => js.reduce((t, j) => t + handRound(pj[j], 3), 0);
+            const hand = handRound(inside.length <= outside.length ? terms(inside) : 1 - terms(outside), 3);
+            expect(accepts(g, hand), `course method ${hand} not accepted (key ${g.correctAnswer}, range ${g.acceptRange})`).toBe(true);
+          }
         }
       }
       expect(seen.size).toBe(7);

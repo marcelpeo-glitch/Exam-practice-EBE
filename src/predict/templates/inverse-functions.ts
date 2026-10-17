@@ -53,7 +53,8 @@ function numericLF(name: string, a: number, b: number, c: number, d: number, y0:
   const N = b - d * y0;
   const Dn = c * y0 - a;
   const exact = Math.abs(x0 * 1e4 - Math.round(x0 * 1e4)) < 1e-6;
-  const steps = [`\\dfrac{${b}-(${d})(${y0})}{(${c})(${y0})-(${a})}`, `\\dfrac{${N}}{${Dn}}`];
+  // (no "\dfrac{14}{1}": with denominator 1 the substitution goes straight to the value)
+  const steps = [`\\dfrac{${b}-(${d})(${y0})}{(${c})(${y0})-(${a})}`, ...(Dn === 1 ? [] : [`\\dfrac{${N}}{${Dn}}`])];
   const g = gcd(N, Dn);
   // reduced fraction (also when only the sign moves to the front, e.g. 7/(−3) → −7/3); integers go straight to the value
   if (Math.abs(Dn / g) !== 1 && (g > 1 || Dn < 0)) steps.push(frac(N, Dn));
@@ -74,7 +75,8 @@ const linearFractional: Template = {
       b = rng.sign() * rng.int(1, 9);
       c = rng.sign() * rng.int(1, 5);
       d = rng.sign() * rng.int(1, 9);
-    } while (a * d - b * c === 0);
+      // (no common factor of all four coefficients: (2x+4)/(2x-6) would be printed unsimplified)
+    } while (a * d - b * c === 0 || gcd(gcd(a, b), gcd(c, d)) > 1);
     const name = pickName(rng);
     const fTex = `\\dfrac{${lin(a, b)}}{${lin(c, d)}}`;
     const fExpr = `(${linE(a, b)})/(${linE(c, d)})`;
@@ -152,7 +154,7 @@ const expLog: Template = {
         a = rng.int(1, 5);
         b = rng.int(1, 3);
         c = rng.int(1, 6);
-      } while (a === 1 && b === 1 && c === 1);
+      } while ((a === 1 && b === 1 && c === 1) || gcd(gcd(a, b), c) > 1); // no common factor such as 2/(2+2ln x)
       const fTex = `\\dfrac{${c}}{${a}+${coef(b)}\\ln(x)}`;
       const fExpr = `${c}/(${a} + ${b}*log(x))`;
       const by = `${coef(b)}y`;
@@ -162,7 +164,7 @@ const expLog: Template = {
       assertInverse(fExpr, key.expr, xs);
       const explanation =
         `For $x>1$ the denominator is positive and $${name}$ is decreasing, so it has an inverse. Solve $y=${fTex}$ for $x$:\n` +
-        `$$${a}+${coef(b)}\\ln(x)=\\frac{${c}}{y} \\;\\Rightarrow\\; ${coef(b)}\\ln(x)=\\frac{${c}}{y}-${a}=\\frac{${numT}}{y} \\;\\Rightarrow\\; \\ln(x)=\\frac{${numT}}{${by}}$$` +
+        `$$${a}+${coef(b)}\\ln(x)=\\frac{${c}}{y} \\;\\Rightarrow\\; ${coef(b)}\\ln(x)=\\frac{${c}}{y}-${a}=\\frac{${numT}}{y}${b === 1 ? '' : ` \\;\\Rightarrow\\; \\ln(x)=\\frac{${numT}}{${by}}`}$$` +
         `Undo the logarithm with the exponential: $$${name}^{-1}(y)=${key.tex}$$`;
       const t = rng.int(1, 3);
       const distractors: FormulaChoice[] = [
@@ -170,7 +172,11 @@ const expLog: Template = {
         { tex: `\\dfrac{${numT}}{${by}}`, expr: `(${c} - ${a}*y)/(${b}*y)`, why: 'forgets to undo the logarithm: this is $\\ln(x)$, not $x$.' },
         { tex: `\\ln\\left(\\dfrac{${numT}}{${by}}\\right)`, expr: `log((${c} - ${a}*y)/(${b}*y))`, why: 'takes the logarithm instead of the exponential to undo $\\ln$.' },
         { tex: `e^{\\frac{${by}}{${numT}}}`, expr: `exp((${b}*y)/(${c} - ${a}*y))`, why: 'turns the fraction in the exponent upside down.' },
-        { tex: `e^{\\frac{${termsTex([[c, 'y'], [-a, '']])}}{${b}}}`, expr: `exp((${c}*y - ${a})/${b})`, why: `writes $${a}+${coef(b)}\\ln(x)=${c}y$ instead of $\\frac{${c}}{y}$.` },
+        {
+          tex: b === 1 ? `e^{${termsTex([[c, 'y'], [-a, '']])}}` : `e^{\\frac{${termsTex([[c, 'y'], [-a, '']])}}{${b}}}`,
+          expr: `exp((${c}*y - ${a})/${b})`,
+          why: `writes $${a}+${coef(b)}\\ln(x)=${coef(c)}y$ instead of $\\frac{${c}}{y}$.`,
+        },
         ...(b !== 1 ? [{ tex: `e^{\\frac{${numT}}{y}}`, expr: `exp((${c} - ${a}*y)/y)`, why: `forgets to divide by $${b}$.` }] : []),
       ];
       return finish(type, rng, optionCount, {
@@ -225,7 +231,7 @@ const expLog: Template = {
         ]),
         numericStem: `Restricted to $x>0$, the function $$${name}(x)=${fTex}$$ has an inverse. Calculate $${name}^{-1}(${y0})$.`,
         explanation,
-        numericExplanation: `With $y=${y0}$: $$x=\\sqrt{${over(`e^{${y0}}-${b}`)}}=\\sqrt{${num((Math.exp(y0) - b) / a, 4)}}\\approx ${num(x0, 4)}$$`,
+        numericExplanation: `With $y=${y0}$: $$x=\\sqrt{${over(`${y0 === 1 ? 'e' : `e^{${y0}}`}-${b}`)}}=\\sqrt{${num((Math.exp(y0) - b) / a, 4)}}\\approx ${num(x0, 4)}$$`,
         key,
         distractors,
         pts: imagePts(fExpr, xs),
@@ -261,9 +267,16 @@ const expLog: Template = {
       { tex: `${pre}\\ln\\left(\\dfrac{y}{${B}}${sgn(-A)}\\right)`, expr: `${preE}*log(y/${B} - (${A}))`, why: `divides $y$ by $${B}$ before removing the constant $${A}$.` },
       { tex: `${pre}\\ln\\left(\\dfrac{${lin(1, A, 'y')}}{${B}}\\right)`, expr: `${preE}*log((y + (${A}))/${B})`, why: `sign error when moving $${A}$ to the other side.` },
       { tex: `${pre}\\ln\\left(\\dfrac{${B}}{${lin(1, -A, 'y')}}\\right)`, expr: `${preE}*log(${B}/(y - (${A})))`, why: 'turns the fraction inside the logarithm upside down.' },
-      { tex: `${pre}\\dfrac{\\ln\\left(${lin(1, -A, 'y')}\\right)}{${B}}`, expr: `${preE}*log(y - (${A}))/${B}`, why: `divides by $${B}$ after taking the logarithm instead of before.` },
+      {
+        // "2\cdot\dfrac{...}{5}", never "2\dfrac{...}{5}" (which reads as the mixed number 2 + .../5)
+        tex: `${pre}${pre === '' || pre === '-' ? '' : '\\cdot '}\\dfrac{\\ln\\left(${lin(1, -A, 'y')}\\right)}{${B}}`,
+        expr: `${preE}*log(y - (${A}))/${B}`,
+        why: `divides by $${B}$ after taking the logarithm instead of before.`,
+      },
       { tex: `${pre}e^{\\frac{${lin(1, -A, 'y')}}{${B}}}`, expr: `${preE}*exp((y - (${A}))/${B})`, why: 'uses the exponential instead of the logarithm.' },
-      ...(k !== 1 ? [{ tex: `\\ln\\left(${inside}\\right)`, expr: `log(${insideE})`, why: `forgets to divide by $${k}$.` }] : []),
+      ...(k !== 1
+        ? [{ tex: `\\ln\\left(${inside}\\right)`, expr: `log(${insideE})`, why: k === -1 ? 'drops the minus sign: $-x=\\ln(\\dots)$ means $x=-\\ln(\\dots)$.' : `forgets to divide by $${k}$.` }]
+        : []),
     ];
     return finish(type, rng, optionCount, {
       stem: rng.pick([
@@ -425,7 +438,7 @@ const logistic: Template = {
     const distractors: FormulaChoice[] = [
       { tex: `-${pre}\\ln\\left(${frac1(`${a}y`, `${K}-y`)}\\right)`, expr: `-${preE}*log(${a}*y/(${K} - y))`, why: `loses the minus sign of the exponent $-${bx}$.` },
       { tex: `${pre}\\ln\\left(${frac1('y', `${a}\\left(${K}-y\\right)`)}\\right)`, expr: `${preE}*log(y/(${a}*(${K} - y)))`, why: `multiplies by $${a}$ where it should divide (or vice versa).` },
-      { tex: `${pre}\\ln\\left(${frac1('y', `${K}-y`)}\\right)`, expr: `${preE}*log(y/(${K} - y))`, why: `loses the factor $${a}$.` },
+      { tex: `${pre}\\ln\\left(${frac1('y', `${K}-y`)}\\right)`, expr: `${preE}*log(y/(${K} - y))`, why: `loses the factor $${a}$ in front of $e^{-${bx}}$.` },
       { tex: `${pre}\\ln\\left(${frac1(`${a}y`, `y-${K}`)}\\right)`, expr: `${preE}*log(${a}*y/(y - ${K}))`, why: `sign error: writes $y-${K}$ instead of $${K}-y$.` },
       { tex: `${pre}\\ln\\left(${frac1(`${a}y`, '1-y')}\\right)`, expr: `${preE}*log(${a}*y/(1 - y))`, why: `forgets the saturation level $${K}$ (as if the curve levelled off at $1$).` },
       ...(b !== 1 ? [{ tex: `${b}\\ln\\left(${frac1(`${a}y`, `${K}-y`)}\\right)`, expr: `${b}*log(${a}*y/(${K} - y))`, why: `multiplies by $${b}$ instead of dividing by it.` }] : []),

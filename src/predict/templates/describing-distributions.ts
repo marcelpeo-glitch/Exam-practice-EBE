@@ -178,11 +178,11 @@ const spreadHistograms: Template = {
 // =====================================================================================================================
 
 const SUMMARY = [
-  { col: 'CommuteTime', intro: 'employees of a logistics company were asked how long their commute to work takes (in minutes)', unit: 'minutes', mu: [20, 45], s: [6, 14], n: [150, 400], one: (x: string) => `One employee needs **${x}** minutes to get to work.`, noun: 'commute time' },
-  { col: 'ScreenTime', intro: 'teenagers kept track of their weekly screen time (in hours)', unit: 'hours', mu: [15, 35], s: [4, 10], n: [120, 300], one: (x: string) => `One teenager reports **${x}** hours.`, noun: 'screen time' },
-  { col: 'EntryScore', intro: 'first-year students took a 60-point entry test', unit: 'points', mu: [28, 40], s: [6, 10], n: [400, 1200], top: 60, one: (x: string) => `One student scores **${x}** points.`, noun: 'test score' },
-  { col: 'Groceries', intro: 'student households reported their monthly grocery spending (in euros)', unit: 'euros', mu: [150, 300], s: [30, 70], n: [100, 250], one: (x: string) => `One household spends **${x}** euros.`, noun: 'grocery spending' },
-  { col: 'PushUps', intro: 'army recruits did as many push-ups as they could in one minute', unit: 'push-ups', mu: [20, 40], s: [5, 12], n: [80, 200], one: (x: string) => `One recruit manages **${x}** push-ups.`, noun: 'number of push-ups' },
+  { col: 'CommuteTime', intro: 'employees of a logistics company were asked how long their commute to work takes (in minutes)', unit: 'minutes', mu: [20, 45], s: [6, 14], n: [150, 400], one: (x: string) => `One employee needs **${x}** minutes to get to work.`, noun: 'commute time', whose: 'an employee’s commute time', thisOne: 'this commute time' },
+  { col: 'ScreenTime', intro: 'teenagers kept track of their weekly screen time (in hours)', unit: 'hours', mu: [15, 35], s: [4, 10], n: [120, 300], one: (x: string) => `One teenager reports **${x}** hours.`, noun: 'screen time', whose: 'a teenager’s screen time', thisOne: 'this screen time' },
+  { col: 'EntryScore', intro: 'first-year students took a 60-point entry test', unit: 'points', mu: [28, 40], s: [6, 10], n: [400, 1200], top: 60, one: (x: string) => `One student scores **${x}** points.`, noun: 'test score', whose: 'a student’s test score', thisOne: 'this test score' },
+  { col: 'Groceries', intro: 'student households reported their monthly grocery spending (in euros)', unit: 'euros', mu: [150, 300], s: [30, 70], n: [100, 250], one: (x: string) => `One household spends **${x}** euros.`, noun: 'grocery spending', whose: 'a household’s grocery spending', thisOne: 'this amount' },
+  { col: 'PushUps', intro: 'army recruits did as many push-ups as they could in one minute', unit: 'push-ups', mu: [20, 40], s: [5, 12], n: [80, 200], one: (x: string) => `One recruit manages **${x}** push-ups.`, noun: 'number of push-ups', whose: 'a recruit’s number of push-ups', thisOne: 'this number of push-ups' },
 ];
 const half = (x: number) => Math.round(x * 2) / 2;
 
@@ -222,7 +222,7 @@ const summaryTable: Template = {
       do x = Math.round(mu + s * (rng.sign() * rng.int(25, 240)) / 100);
       while (Math.abs(x - mu) < 0.2 * s || x < min || x > max);
       key = (x - mu) / s;
-      ask = `${c.one(String(x))} What is the z-score of this ${c.noun}?`;
+      ask = `${c.one(String(x))} What is the z-score of ${c.thisOne}?`;
       how = `$$z=\\dfrac{x-\\bar x}{s}=\\dfrac{${x}-${fixed(mu, 2)}}{${fixed(s, 2)}}\\approx ${fixed(key, 2)}$$`;
       ds = [
         ch((x - med) / s, 'uses the median instead of the mean.'),
@@ -245,11 +245,12 @@ const summaryTable: Template = {
         ch(mu + z / s, 'divides by $s$ instead of multiplying.'),
       ].filter((d) => d.value! >= 0); // a negative value is impossible here, so it would not tempt anyone
     } else {
-      const upper = rng.chance(0.6);
+      // a lower fence below zero (no low outliers possible) would be an odd thing to ask for, so ask for the upper one then
+      const upper = rng.chance(0.6) || q1 - 1.5 * iqr < 0;
       key = upper ? q3 + 1.5 * iqr : q1 - 1.5 * iqr;
       ask = upper
-        ? `Using the 1.5 × IQR rule, above which value is a ${c.noun} flagged as an outlier (the upper fence)?`
-        : `Using the 1.5 × IQR rule, below which value is a ${c.noun} flagged as an outlier (the lower fence)?`;
+        ? `Using the 1.5 × IQR rule, above which value is ${c.whose} flagged as an outlier (the upper fence)?`
+        : `Using the 1.5 × IQR rule, below which value is ${c.whose} flagged as an outlier (the lower fence)?`;
       const q = upper ? q3 : q1;
       const sg = upper ? 1 : -1;
       how =
@@ -318,7 +319,9 @@ const histogramCenter: Template = {
     let n: number;
     let target = -1;
     for (;;) {
-      const peak = rng.int(0, c.k - 1);
+      // the peak is never the last class (nor the first one when the axis does not start at a natural zero), so the
+      // histogram never ends abruptly at its tallest bar
+      const peak = rng.int(c.x0 === 0 ? 0 : 1, c.k - 2);
       const sL = rng.int(6, 30) / 10;
       const sR = rng.int(6, 30) / 10;
       const H = rng.int(8, 16);
@@ -408,12 +411,13 @@ const histogramCenter: Template = {
 // 4. What side-by-side boxplots show (and what they do not show)
 // =====================================================================================================================
 
+/** `plural`: the group names are plural nouns ("Nurses have ..."), otherwise singular ("Self-checkout has ..."). */
 const BOX_CTX = [
-  { intro: 'A supermarket timed how long customers waited at three types of checkout.', what: 'waiting time', unit: 'minutes', groups: ['Self-checkout', 'Staffed till', 'Express lane'], hi: 24, step: 2 },
-  { intro: 'Three tutorial groups took the same statistics quiz.', what: 'quiz score', unit: 'points', groups: ['Monday group', 'Wednesday group', 'Friday group'], hi: 100, step: 10 },
-  { intro: 'A web shop compared the delivery times of three parcel services.', what: 'delivery time', unit: 'hours', groups: ['SpeedyBox', 'ParcelPal', 'QuickDrop'], hi: 72, step: 6 },
-  { intro: 'Researchers asked trolls living in three habitats to rate their happiness.', what: 'happiness score', unit: 'points', groups: ['Bridge trolls', 'Cave trolls', 'Forest trolls'], hi: 50, step: 5 },
-  { intro: 'A health study recorded the daily number of steps of people in three occupations.', what: 'daily steps', unit: 'thousand steps', groups: ['Students', 'Office workers', 'Nurses'], hi: 20, step: 2 },
+  { intro: 'A supermarket timed how long customers waited at three types of checkout.', what: 'waiting time', unit: 'minutes', groups: ['Self-checkout', 'Staffed till', 'Express lane'], plural: false, hi: 24, step: 2 },
+  { intro: 'Three tutorial groups took the same statistics quiz.', what: 'quiz score', unit: 'points', groups: ['Monday group', 'Wednesday group', 'Friday group'], plural: false, hi: 100, step: 10 },
+  { intro: 'A web shop compared the delivery times of three parcel services.', what: 'delivery time', unit: 'hours', groups: ['SpeedyBox', 'ParcelPal', 'QuickDrop'], plural: false, hi: 72, step: 6 },
+  { intro: 'Researchers asked trolls living in three habitats to rate their happiness.', what: 'happiness score', unit: 'points', groups: ['Bridge trolls', 'Cave trolls', 'Forest trolls'], plural: true, hi: 50, step: 5 },
+  { intro: 'A health study recorded the daily number of steps of people in three occupations.', what: 'daily steps', unit: 'thousand steps', groups: ['Students', 'Office workers', 'Nurses'], plural: true, hi: 20, step: 2 },
 ];
 
 interface GroupU {
@@ -432,8 +436,39 @@ function groupUnits(rng: Rng, U: number): GroupU {
   const out: number[] = [];
   const fenceU = q3 + 1.5 * w;
   if (rng.chance(0.35) && Math.floor(fenceU) + 1 <= U) out.push(rng.int(Math.floor(fenceU) + 1, U));
-  return { lo: q1 - rng.int(1, Math.min(Math.floor(1.5 * w), q1)), q1, med: q1 + rng.int(1, w - 1), q3, hi: q3 + rng.int(1, Math.min(Math.floor(1.5 * w), U - q3 - 1)), out };
+  // the lowest value stays above 0 (a delivery time or a step count of 0 would be absurd)
+  return { lo: q1 - rng.int(1, Math.min(Math.floor(1.5 * w), q1 - 1)), q1, med: q1 + rng.int(1, w - 1), q3, hi: q3 + rng.int(1, Math.min(Math.floor(1.5 * w), U - q3 - 1)), out };
 }
+/**
+ * What the data behind a boxplot can still do (many observations): the plot fixes the quartiles and the extremes, not
+ * where the values lie inside each quarter. Pushing every quarter to its low / high end gives the smallest / largest
+ * possible mean; piling the middle half onto the median gives the smallest SD, piling every quarter onto its outer end
+ * the largest; a quarter of the values can sit on the lowest / highest value, so that can be the mode.
+ */
+function reach(x: GroupU) {
+  const top = Math.max(x.hi, ...x.out);
+  const sdOf = (v: number[], w: number[]) => {
+    const m = sum(v.map((a, i) => a * w[i]));
+    return Math.sqrt(sum(v.map((a, i) => w[i] * (a - m) ** 2)));
+  };
+  return {
+    minMean: (x.lo + x.q1 + x.med + x.q3) / 4,
+    maxMean: (x.q1 + x.med + x.q3 + top) / 4,
+    minSd: sdOf([x.q1, x.med, x.q3], [0.25, 0.5, 0.25]),
+    maxSd: sdOf([x.lo, x.q1, x.q3, top], [0.25, 0.25, 0.25, 0.25]),
+    minMode: x.lo,
+    maxMode: top,
+  };
+}
+/** True when another group can (clearly) beat group i on the mean, the mode or the SD, so a claim about it is uncertain. */
+const beatable = (gs: GroupU[], i: number, what: 'mean' | 'mode' | 'sd') =>
+  gs.some((y, j) => {
+    if (j === i) return false;
+    const a = reach(gs[i]);
+    const b = reach(y);
+    return what === 'mean' ? b.maxMean >= a.minMean + 1 : what === 'mode' ? b.maxMode >= a.minMode + 1 : b.maxSd >= 1.1 * a.minSd;
+  });
+
 const argmaxUnique = (xs: number[]) => {
   const m = Math.max(...xs);
   return xs.filter((x) => x === m).length === 1 ? xs.indexOf(m) : -1;
@@ -459,32 +494,36 @@ const boxplotStatements: Template = {
       top = argmaxUnique(gs.map((x) => x.med));
       topIqr = argmaxUnique(gs.map((x) => x.q3 - x.q1));
       topRange = argmaxUnique(gs.map(rangeU));
-    } while (top < 0 || topIqr < 0 || topRange < 0);
+      // "the group with the highest median has the highest mean / mode" and "the longest box has the largest SD" must be
+      // genuinely uncertain: when one group lies entirely above the others, its mean and mode are certainly the highest
+    } while (top < 0 || topIqr < 0 || topRange < 0 || !beatable(gs, top, 'mean') || !beatable(gs, top, 'mode') || !beatable(gs, topIqr, 'sd'));
     const V = (u: number) => num(u * g, 2);
     const B = (i: number) => `**${names[i]}**`;
+    const has = c.plural ? 'have' : 'has';
     const st: { text: string; correct: boolean; why: string }[] = [];
     names.forEach((_, i) => {
-      st.push({ text: `${B(i)} has the highest median.`, correct: i === top, why: i === top ? `its median line (${V(gs[i].med)}) is the highest.` : `${names[top]} has the highest median (${V(gs[top].med)} against ${V(gs[i].med)}).` });
-      st.push({ text: `${B(i)} has the largest interquartile range.`, correct: i === topIqr, why: i === topIqr ? `its box is the longest (IQR ${V(gs[i].q3 - gs[i].q1)}).` : `${names[topIqr]} has the longest box (IQR ${V(gs[topIqr].q3 - gs[topIqr].q1)} against ${V(gs[i].q3 - gs[i].q1)}).` });
-      st.push({ text: `${B(i)} has the largest range.`, correct: i === topRange, why: i === topRange ? `from its lowest to its highest value (outliers included) it covers ${V(rangeU(gs[i]))}.` : `${names[topRange]} has the largest range (${V(rangeU(gs[topRange]))} against ${V(rangeU(gs[i]))}; outliers count too).` });
+      st.push({ text: `${B(i)} ${has} the highest median.`, correct: i === top, why: i === top ? `its median line (${V(gs[i].med)}) is the highest.` : `${names[top]} ${has} the highest median (${V(gs[top].med)} against ${V(gs[i].med)}).` });
+      st.push({ text: `${B(i)} ${has} the largest interquartile range.`, correct: i === topIqr, why: i === topIqr ? `its box is the longest (IQR ${V(gs[i].q3 - gs[i].q1)}).` : `${names[topIqr]} ${has} the longest box (IQR ${V(gs[topIqr].q3 - gs[topIqr].q1)} against ${V(gs[i].q3 - gs[i].q1)}).` });
+      st.push({ text: `${B(i)} ${has} the largest range.`, correct: i === topRange, why: i === topRange ? `from its lowest to its highest value (outliers included) it covers ${V(rangeU(gs[i]))}.` : `${names[topRange]} ${has} the largest range (${V(rangeU(gs[topRange]))} against ${V(rangeU(gs[i]))}; outliers count too).` });
     });
-    st.push({ text: `${B(top)} has the highest mean.`, correct: false, why: 'a boxplot shows the median, not the mean; skewness and outliers can pull the mean away from the median.' });
-    st.push({ text: `${B(topIqr)} has the largest standard deviation.`, correct: false, why: 'the standard deviation is not shown; long whiskers or outliers in another group can give that group a larger standard deviation.' });
-    st.push({ text: `${B(top)} has the highest mode.`, correct: false, why: 'a boxplot does not show the mode.' });
+    st.push({ text: `${B(top)} ${has} the highest mean.`, correct: false, why: 'a boxplot shows the median, not the mean; skewness and outliers can pull the mean away from the median, and the groups overlap.' });
+    st.push({ text: `${B(topIqr)} ${has} the largest standard deviation.`, correct: false, why: 'the standard deviation is not shown; long whiskers or outliers in another group can give that group a larger standard deviation.' });
+    st.push({ text: `${B(top)} ${has} the highest mode.`, correct: false, why: 'a boxplot does not show the mode, and the groups overlap: the most frequent value of another group can be higher.' });
     for (const i of rng.sample(names.map((_, j) => j), 2)) {
       const x = gs[i];
       const q = rng.pick(['iqr', 'quarter', 'half'] as const);
       if (q === 'iqr') {
         st.push({ text: `The interquartile range of ${B(i)} is about ${V(x.q3 - x.q1)} ${c.unit}.`, correct: true, why: `$Q_3-Q_1=${V(x.q3)}-${V(x.q1)}=${V(x.q3 - x.q1)}$.` });
         st.push({ text: `The interquartile range of ${B(i)} is about ${V(rangeU(x))} ${c.unit}.`, correct: false, why: 'that is the range (lowest to highest value), not the length of the box.' });
-        st.push({ text: `The interquartile range of ${B(i)} is about ${V(x.q3 - x.med)} ${c.unit}.`, correct: false, why: 'that is only the upper part of the box ($Q_3$ − median).' });
+        // only when it differs from the IQR by at least one grid step, so "about" cannot cover both
+        if (x.med - x.q1 >= 2) st.push({ text: `The interquartile range of ${B(i)} is about ${V(x.q3 - x.med)} ${c.unit}.`, correct: false, why: 'that is only the upper part of the box ($Q_3$ − median).' });
       } else if (q === 'quarter') {
-        st.push({ text: `About a quarter of the values in ${B(i)} are larger than ${V(x.q3)} ${c.unit}.`, correct: true, why: `${V(x.q3)} is $Q_3$: about 25% of the values lie above it.` });
-        st.push({ text: `About a quarter of the values in ${B(i)} are larger than ${V(x.med)} ${c.unit}.`, correct: false, why: `${V(x.med)} is the median: about half of the values lie above it.` });
-        st.push({ text: `About a quarter of the values in ${B(i)} are larger than ${V(x.q1)} ${c.unit}.`, correct: false, why: `${V(x.q1)} is $Q_1$: about three quarters of the values lie above it.` });
+        st.push({ text: `About a quarter of the values for ${B(i)} are larger than ${V(x.q3)} ${c.unit}.`, correct: true, why: `${V(x.q3)} is $Q_3$: about 25% of the values lie above it.` });
+        st.push({ text: `About a quarter of the values for ${B(i)} are larger than ${V(x.med)} ${c.unit}.`, correct: false, why: `${V(x.med)} is the median: about half of the values lie above it.` });
+        st.push({ text: `About a quarter of the values for ${B(i)} are larger than ${V(x.q1)} ${c.unit}.`, correct: false, why: `${V(x.q1)} is $Q_1$: about three quarters of the values lie above it.` });
       } else {
-        st.push({ text: `Half of the values in ${B(i)} lie between ${V(x.q1)} and ${V(x.q3)} ${c.unit}.`, correct: true, why: 'the box runs from $Q_1$ to $Q_3$ and holds the middle 50% of the values.' });
-        st.push({ text: `Half of the values in ${B(i)} lie between ${V(x.q1)} and ${V(x.hi)} ${c.unit}.`, correct: false, why: 'from $Q_1$ to the end of the upper whisker is about three quarters of the values.' });
+        st.push({ text: `Half of the values for ${B(i)} lie between ${V(x.q1)} and ${V(x.q3)} ${c.unit}.`, correct: true, why: 'the box runs from $Q_1$ to $Q_3$ and holds the middle 50% of the values.' });
+        st.push({ text: `Half of the values for ${B(i)} lie between ${V(x.q1)} and ${V(x.hi)} ${c.unit}.`, correct: false, why: 'from $Q_1$ to the end of the upper whisker is about three quarters of the values.' });
       }
     }
     names.forEach((_, i) =>
@@ -492,9 +531,9 @@ const boxplotStatements: Template = {
         if (i === j) return;
         const mj = Math.max(gs[j].hi, ...gs[j].out);
         if (gs[i].med >= mj)
-          st.push({ text: `At least half of the values in ${B(i)} are at least as high as the highest value in ${B(j)}.`, correct: true, why: `the median of ${names[i]} (${V(gs[i].med)}) is at or above the highest value of ${names[j]} (${V(mj)}).` });
+          st.push({ text: `At least half of the values for ${B(i)} are at least as high as the highest value for ${B(j)}.`, correct: true, why: `the median of ${names[i]} (${V(gs[i].med)}) is at or above the highest value of ${names[j]} (${V(mj)}).` });
         else if (mj - gs[i].med >= 2)
-          st.push({ text: `At least half of the values in ${B(i)} are at least as high as the highest value in ${B(j)}.`, correct: false, why: `the median of ${names[i]} (${V(gs[i].med)}) is below the highest value of ${names[j]} (${V(mj)}), so this is not certain.` });
+          st.push({ text: `At least half of the values for ${B(i)} are at least as high as the highest value for ${B(j)}.`, correct: false, why: `the median of ${names[i]} (${V(gs[i].med)}) is below the highest value of ${names[j]} (${V(mj)}), so this is not certain.` });
       }),
     );
     const boxes: Box[] = gs.map((x, i) => ({ name: names[i], min: x.lo * g, q1: x.q1 * g, med: x.med * g, q3: x.q3 * g, max: x.hi * g, outliers: x.out.map((o) => o * g) }));

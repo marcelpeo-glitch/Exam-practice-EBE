@@ -101,6 +101,9 @@ describe('normal-model.cutoff: x with P(X < x) = q by bisection on Φ, and the T
         if (type === 'numeric') {
           expect(Math.abs((g.correctAnswer as number) - exact), msg).toBeLessThanOrEqual(0.5 + 0.002 * sd);
           expect(inRange(g, exact) && inRange(g, tab), msg).toBe(true);
+          // what a student types: the Table Z (or exact) value rounded as the instruction asks
+          const dp = /whole number/.test(g.instruction!) ? 0 : 1;
+          expect(inRange(g, rnd(tab, dp)) && inRange(g, rnd(exact, dp)), `${msg}\n${rnd(tab, dp)} / ${rnd(exact, dp)} not accepted: ${g.acceptRange}`).toBe(true);
         } else {
           const dp = g.options!.some((o) => /\.\d/.test(o.text!)) ? 1 : 0;
           const r = dp ? 0.05 : 0.5;
@@ -211,7 +214,10 @@ describe('normal-model.shaded-area: region read from the SVG polygon, probabilit
         const a = edge(Math.min(...xs));
         const b = edge(Math.max(...xs));
         const msg = `seed ${seed}: ${g.stem} [${a}, ${b}]`;
+        // at μ ± 3σ the curve is practically on the axis: such an edge cannot be told apart from an open tail
+        const open = (z: number) => (z <= -3 ? -Infinity : z >= 3 ? Infinity : z);
         if (type === 'numeric') {
+          expect([a, b].some((z) => Math.abs(z) === 3), `${msg}: invisible edge in a numeric question`).toBe(false);
           const T = (z: number) => (Number.isFinite(z) ? tableZ(z) : z > 0 ? 1 : 0);
           expect(Math.abs((g.correctAnswer as number) - rnd(T(b) - T(a), 4)), msg).toBeLessThan(1e-6);
           expect(inRange(g, rnd(Phi(b) - Phi(a), 4)) && inRange(g, RULE_CDF[String(b)] - RULE_CDF[String(a)]), msg).toBe(true);
@@ -226,6 +232,11 @@ describe('normal-model.shaded-area: region read from the SVG polygon, probabilit
           };
           expect(same(keyText(g)), msg).toBe(true);
           for (const o of others(g)) expect(same(o.text!), `${msg}\n${o.text}`).toBe(false);
+          const zOf = (x: number) => (Number.isFinite(x) ? Math.round((x - mu) / sd) : x);
+          for (const o of others(g)) {
+            const [lo, hi] = interval(s, o.text!);
+            expect(open(zOf(lo)) === open(a) && open(zOf(hi)) === open(b), `${msg}\nlooks the same as the key: ${o.text}`).toBe(false);
+          }
         }
       }
     });

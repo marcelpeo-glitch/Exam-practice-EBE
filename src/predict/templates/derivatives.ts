@@ -3,8 +3,8 @@
 // marginal approximation of a change). Every key is computed in code: formula keys are checked against mathjs' own
 // derivative (assertSame), values come from mathjs or plain arithmetic. Wrong options come from modelled mistakes and
 // are dropped when they are secretly equal to the key. See derivatives.test.ts for the independent checks.
-import { buildMcq, INSTRUCTION, mistakesNote, num, numericField, sgn, type Choice } from '../build';
-import { diff, evalAt, frac } from '../mathx';
+import { buildMcq, fixed, INSTRUCTION, mistakesNote, num, numericField, sgn, type Choice } from '../build';
+import { diff, evalAt, frac, gcd } from '../mathx';
 import type { Rng } from '../rng';
 import type { GenContext, Generated, Template } from '../types';
 import { ensure, integerFallback, numTex, sumTex } from './_econ';
@@ -115,7 +115,8 @@ function finishFormula({ rng, type, optionCount }: GenContext, q: FormulaQ): Gen
       `How fast does $$${q.name}(x)=${q.fTex}$$ change at $x=${x0}$? Give $${q.name}'(${x0})$.`,
     ]);
     const exact = Math.abs(ans * 10 ** dp - Math.round(ans * 10 ** dp)) < 1e-9;
-    const explanation = `${q.steps}\nSubstitute $x=${x0}$: $$${q.name}'(${x0})=${q.atX0(x0)}${exact ? '=' : '\\approx '}${num(ans, dp)}$$`;
+    // an approximate value shows all its decimals (0.200, not 0.2); an exact one as it is (0.44)
+    const explanation = `${q.steps}\nSubstitute $x=${x0}$: $$${q.name}'(${x0})=${q.atX0(x0)}${exact ? `=${num(ans, dp)}` : `\\approx ${fixed(ans, dp)}`}$$`;
     return { type, stem, instruction: INSTRUCTION.numeric(dp), correctAnswer: f.answer, tolerance: f.tolerance, explanation };
   }
   const mcq = formulaMcq(rng, q.key, rng.shuffle(q.distractors), { count: optionCount, pts: q.pts, label: `${q.name}'(x)=`, fallback: q.fallback });
@@ -151,7 +152,7 @@ function linfracQ(rng: Rng, name: string): FormulaQ {
     b = rng.sign() * rng.int(1, 9);
     c = rng.int(1, 5);
     d = rng.sign() * rng.int(1, 9);
-  } while (a * d - b * c === 0 || (a === c && b === d));
+  } while (a * d - b * c === 0 || (a === c && b === d) || gcd(gcd(a, b), gcd(c, d)) > 1);
   const D = a * d - b * c;
   const v = lin(c, d);
   const sq = `\\left(${v}\\right)^2`;
@@ -393,16 +394,20 @@ function expChainQ(rng: Rng, name: string): FormulaQ {
     pts: pts([-1.3, -0.4, 0.3, 0.9, 1.6]),
     steps: `Chain rule: $\\frac{d}{dx}e^{u}=e^{u}\\cdot u'$ with $u=${qTex}$ and $u'=${d}$: $$${name}'(x)=\\left(${d}\\right)e^{${qTex}}$$`,
     x0s,
-    atX0: (x0) => `(${2 * a * x0 + b})\\,e^{${a * x0 * x0 + b * x0}}`,
+    // e^{-2}, -e^{3} or (5)e^{-3}: no "(1)" in front
+    atX0: (x0) => `${Math.abs(2 * a * x0 + b) === 1 ? coef(2 * a * x0 + b) : `(${2 * a * x0 + b})\\,`}e^{${a * x0 * x0 + b * x0}}`,
     fallback: (i) => fc(`\\left(${lin(2 * a, b + offset(i, b))}\\right)e^{${qTex}}`, `(${linE(2 * a, b + offset(i, b))})*exp(${qE})`, 'an arithmetic slip in the derivative of the exponent.'),
     stems: formulaStems(name, fTex, 'chain rule'),
   };
 }
 
 function recipLnQ(rng: Rng, name: string): FormulaQ {
-  const a = rng.int(1, 6);
-  const b = rng.int(1, 4);
-  const k = rng.int(1, 9);
+  let a: number, b: number, k: number;
+  do {
+    a = rng.int(1, 6);
+    b = rng.int(1, 4);
+    k = rng.int(1, 9);
+  } while (gcd(gcd(a, b), k) > 1); // no common factor such as 2/(2+4ln x)
   const den = `${a}+${coef(b)}\\ln(x)`;
   const denE = `(${a} + ${b}*log(x))`;
   const fTex = `\\dfrac{${k}}{${den}}`;
@@ -417,7 +422,8 @@ function recipLnQ(rng: Rng, name: string): FormulaQ {
       fc(`\\dfrac{${k * b}}{x\\left(${den}\\right)^2}`, `${k * b}/(x*${denE}^2)`, 'loses the minus sign of $\\frac{d}{du}u^{-1}=-u^{-2}$.'),
       fc(`-\\dfrac{${k * b}}{x\\left(${den}\\right)}`, `-${k * b}/(x*${denE})`, 'does not square the denominator (uses $-u^{-1}$ instead of $-u^{-2}$).'),
       fc(`-\\dfrac{${k * b}}{\\left(${den}\\right)^2}`, `-${k * b}/${denE}^2`, `forgets the factor $\\frac1x$ from the derivative of $\\ln(x)$.`),
-      fc(b === 1 ? `${k}x` : `\\dfrac{${k}x}{${b}}`, `${k}*x/${b}`, `divides $${k}$ by the derivative $\\frac{${b}}{x}$ of the denominator.`),
+      // k/(b/x) = kx/b, reduced (never "1x" or "2x/4")
+      fc(b / gcd(k, b) === 1 ? `${coef(k / b)}x` : `\\dfrac{${coef(k / gcd(k, b))}x}{${b / gcd(k, b)}}`, `${k}*x/${b}`, `divides $${k}$ by the derivative $\\frac{${b}}{x}$ of the denominator.`),
       ...(b !== 1 ? [fc(`-\\dfrac{${k}}{x\\left(${den}\\right)^2}`, `-${k}/(x*${denE}^2)`, `forgets the factor $${b}$ in front of $\\ln(x)$.`)] : []),
     ],
     pts: pts([1.1, 1.6, 2.5, 4, 7]),
@@ -550,7 +556,8 @@ function tangentLine({ rng, type, optionCount }: GenContext): Generated {
   // self-check of the hand-derived value and slope against mathjs
   ensure(Math.abs(evalAt(fExpr, { x: x0 }) - y0) < 1e-9 && Math.abs(evalAt(diff(fExpr), { x: x0 }) - m) < 1e-9, `tangent at ${fExpr}`);
   const q = y0 - m * x0;
-  const pm = (v: number) => (v < 0 ? `-${numTex(-v)}` : `+${numTex(v)}`);
+  // the slope in front of (x − x0): "+3", "-\frac{1}{2}", and "+" / "-" alone for ±1 (no "1(x-1)")
+  const pm = (v: number) => (v < 0 ? `-${v === -1 ? '' : numTex(-v)}` : `+${v === 1 ? '' : numTex(v)}`);
   const explanation = `${deriv}\nThe tangent line is $$y=${name}(${x0})+${name}'(${x0})(x-${x0})=${numTex(y0)}${pm(m)}(x-${x0})$$ which simplifies to $y=${lineTex(m, q)}$.`;
   if (type === 'numeric') {
     const dp = 2;
@@ -654,7 +661,9 @@ function marginalApprox({ rng, type, optionCount }: GenContext): Generated {
   const x0 = D - A;
   const slope = (c.inc ? 1 : -1) * dmag; // y'(x0) = ±C/(x0 + A)²
   const v = slope * dx;
-  const dp = Math.abs(v) < 0.1 ? 3 : 2;
+  // 3 decimals for small changes and for values such as 0.125 (rounding that to 2 decimals would be a tie: 0.12 or 0.13?)
+  const dpOf = (w: number) => (Math.abs(w) < 0.1 || Math.abs(Math.round(w * 100) - w * 100) > 1e-9 ? 3 : 2);
+  const dp = dpOf(v);
   const rel = c.inc ? `\\left(${c.x}+${A}\\right)\\left(${B}-${c.y}\\right)=${C}` : `\\left(${c.x}+${A}\\right)\\left(${c.y}+${B}\\right)=${C}`;
   const yOf = c.inc ? `${B}-\\frac{${C}}{${c.x}+${A}}` : `\\frac{${C}}{${c.x}+${A}}-${B}`;
   const dyOf = `${c.inc ? '' : '-'}\\frac{${C}}{\\left(${c.x}+${A}\\right)^2}`;
@@ -678,7 +687,7 @@ function marginalApprox({ rng, type, optionCount }: GenContext): Generated {
       explanation,
     };
   }
-  const fmt = (w: number) => `The ${c.yw} ${w > 0 ? 'increases' : 'decreases'} by about ${num(Math.abs(w), Math.abs(w) < 0.1 ? 3 : 2)} ${c.unit}.`;
+  const fmt = (w: number) => `The ${c.yw} ${w > 0 ? 'increases' : 'decreases'} by about ${num(Math.abs(w), dpOf(w))} ${c.unit}.`;
   const mistakes = [
     { value: -v, why: `gets the sign of the derivative wrong (${c.inc ? 'misses that' : 'misses the minus sign:'} $${c.y}'(${c.x})=${dyOf}$).` },
     { value: 10 * v, why: 'misplaces the decimal point (a factor 10 too large).' },

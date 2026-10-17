@@ -70,6 +70,11 @@ interface ReadBox {
   hi: number;
   out: number[];
 }
+/** Distance between two grid lines of a figure (from the printed tick labels). */
+function axisStep(src: string): number {
+  const t = els(svgOf(src), 'text', 'yt').map((e) => Number(e.text));
+  return t[1] - t[0];
+}
 function readBoxes(src: string): ReadBox[] {
   const svg = svgOf(src);
   const ax = axis(svg);
@@ -284,6 +289,46 @@ describe('describing-distributions.histogram-center', () => {
 
 // ---------- 4. boxplot statements ----------
 
+/**
+ * A concrete data set (n = 4m + 3) whose course-book boxplot is exactly `b`, with the values inside each quarter placed
+ * as the `how` asks: 'low' / 'high' push every quarter to its low / high end (smallest / largest mean), 'tight' piles
+ * the middle half onto the median (smallest SD), 'wide' piles every quarter onto its outer end (largest SD),
+ * 'modeLow' / 'modeHigh' put a quarter of the values on the lowest / highest value and spread the rest out.
+ */
+function witness(b: ReadBox, how: 'low' | 'high' | 'tight' | 'wide' | 'modeLow' | 'modeHigh', m = 40): number[] {
+  const top = Math.max(b.hi, ...b.out);
+  const rep = (v: number, k: number) => Array<number>(Math.max(0, k)).fill(v);
+  const spread = (a: number, c: number, k: number) => Array.from({ length: k }, (_, i) => a + ((c - a) * (i + 1)) / (k + 1));
+  const fixedTop = [b.hi, ...b.out];
+  const restTop = m - fixedTop.length;
+  let bottom: number[], s2: number[], s3: number[], upper: number[];
+  if (how === 'low') [bottom, s2, s3, upper] = [rep(b.lo, m), rep(b.q1, m), rep(b.med, m), [...fixedTop, ...rep(b.q3, restTop)]];
+  else if (how === 'high') [bottom, s2, s3, upper] = [[b.lo, ...rep(b.q1, m - 1)], rep(b.med, m), rep(b.q3, m), [...fixedTop, ...rep(top, restTop)]];
+  else if (how === 'tight') [bottom, s2, s3, upper] = [[b.lo, ...rep(b.q1, m - 1)], rep(b.med, m), rep(b.med, m), [...fixedTop, ...rep(b.q3, restTop)]];
+  else if (how === 'wide') [bottom, s2, s3, upper] = [rep(b.lo, m), rep(b.q1, m), rep(b.q3, m), [...fixedTop, ...rep(top, restTop)]];
+  else if (how === 'modeLow') [bottom, s2, s3, upper] = [rep(b.lo, m), spread(b.q1, b.med, m), spread(b.med, b.q3, m), [...fixedTop, ...spread(b.q3, b.hi, restTop)]];
+  else [bottom, s2, s3, upper] = [[b.lo, ...spread(b.lo, b.q1, m - 1)], spread(b.q1, b.med, m), spread(b.med, b.q3, m), [...fixedTop, ...rep(top, restTop)]];
+  const xs = [...bottom, b.q1, ...s2, b.med, ...s3, b.q3, ...upper].sort((x, y) => x - y);
+  expect(xs.length).toBe(4 * m + 3);
+  const own = ownBox(xs);
+  expect(sameBox(own, b), `witness ${how} does not reproduce ${JSON.stringify(b)}: ${JSON.stringify(own)}`).toBe(true);
+  return xs;
+}
+const meanOf = (xs: number[]) => xs.reduce((a, x) => a + x, 0) / xs.length;
+function modeOf(xs: number[]): number {
+  const cnt = new Map<number, number>();
+  for (const x of xs) cnt.set(x, (cnt.get(x) ?? 0) + 1);
+  return [...cnt].sort((a, b) => b[1] - a[1])[0][0];
+}
+/** "X has the highest mean / mode, the largest SD" is certain only if no data behind the plots lets another group reach it. */
+function certainTop(boxes: ReadBox[], name: string, what: 'mean' | 'mode' | 'sd'): boolean {
+  const x = boxes.find((b) => b.name === name)!;
+  const others = boxes.filter((b) => b.name !== name);
+  if (what === 'mean') return others.every((y) => meanOf(witness(y, 'high')) < meanOf(witness(x, 'low')));
+  if (what === 'mode') return others.every((y) => modeOf(witness(y, 'modeHigh')) < modeOf(witness(x, 'modeLow')));
+  return others.every((y) => ownSd(witness(y, 'wide')) < ownSd(witness(x, 'tight')));
+}
+
 function judge(text: string, boxes: ReadBox[]): boolean {
   const get = (name: string) => boxes.find((b) => b.name === name)!;
   const top = (f: (b: ReadBox) => number, name: string) => {
@@ -293,14 +338,17 @@ function judge(text: string, boxes: ReadBox[]): boolean {
   const range = (b: ReadBox) => Math.max(b.hi, ...b.out) - Math.min(b.lo, ...b.out);
   const near = (a: number, b: number) => Math.abs(a - b) < 0.01;
   let m: RegExpExecArray | null;
-  if ((m = /^\*\*(.+?)\*\* has the highest median\.$/.exec(text))) return top((b) => b.med, m[1]);
-  if ((m = /^\*\*(.+?)\*\* has the largest interquartile range\.$/.exec(text))) return top((b) => b.q3 - b.q1, m[1]);
-  if ((m = /^\*\*(.+?)\*\* has the largest range\.$/.exec(text))) return top(range, m[1]);
-  if (/has the (highest mean|largest standard deviation|highest mode)\.$/.test(text)) return false; // not shown by a boxplot
+  if ((m = /^\*\*(.+?)\*\* ha(?:s|ve) the highest median\.$/.exec(text))) return top((b) => b.med, m[1]);
+  if ((m = /^\*\*(.+?)\*\* ha(?:s|ve) the largest interquartile range\.$/.exec(text))) return top((b) => b.q3 - b.q1, m[1]);
+  if ((m = /^\*\*(.+?)\*\* ha(?:s|ve) the largest range\.$/.exec(text))) return top(range, m[1]);
+  // not shown by a boxplot: certain only when the other groups cannot possibly reach it
+  if ((m = /^\*\*(.+?)\*\* ha(?:s|ve) the highest mean\.$/.exec(text))) return certainTop(boxes, m[1], 'mean');
+  if ((m = /^\*\*(.+?)\*\* ha(?:s|ve) the highest mode\.$/.exec(text))) return certainTop(boxes, m[1], 'mode');
+  if ((m = /^\*\*(.+?)\*\* ha(?:s|ve) the largest standard deviation\.$/.exec(text))) return certainTop(boxes, m[1], 'sd');
   if ((m = /^The interquartile range of \*\*(.+?)\*\* is about ([\d.]+) /.exec(text))) return near(get(m[1]).q3 - get(m[1]).q1, Number(m[2]));
-  if ((m = /^About a quarter of the values in \*\*(.+?)\*\* are larger than ([\d.]+) /.exec(text))) return near(get(m[1]).q3, Number(m[2]));
-  if ((m = /^Half of the values in \*\*(.+?)\*\* lie between ([\d.]+) and ([\d.]+) /.exec(text))) return near(get(m[1]).q1, Number(m[2])) && near(get(m[1]).q3, Number(m[3]));
-  if ((m = /^At least half of the values in \*\*(.+?)\*\* are at least as high as the highest value in \*\*(.+?)\*\*\.$/.exec(text))) {
+  if ((m = /^About a quarter of the values for \*\*(.+?)\*\* are larger than ([\d.]+) /.exec(text))) return near(get(m[1]).q3, Number(m[2]));
+  if ((m = /^Half of the values for \*\*(.+?)\*\* lie between ([\d.]+) and ([\d.]+) /.exec(text))) return near(get(m[1]).q1, Number(m[2])) && near(get(m[1]).q3, Number(m[3]));
+  if ((m = /^At least half of the values for \*\*(.+?)\*\* are at least as high as the highest value for \*\*(.+?)\*\*\.$/.exec(text))) {
     const b = get(m[2]);
     return get(m[1]).med >= Math.max(b.hi, ...b.out) - 1e-9;
   }
@@ -317,6 +365,18 @@ describe('describing-distributions.boxplots', () => {
         expect(b.lo <= b.q1 && b.q1 < b.med && b.med < b.q3 && b.q3 <= b.hi).toBe(true);
         expect(b.lo >= b.q1 - 1.5 * iqr - 0.01 && b.hi <= b.q3 + 1.5 * iqr + 0.01, `seed ${seed} whiskers inside the fences ${JSON.stringify(b)}`).toBe(true);
         for (const o of b.out) expect(o > b.q3 + 1.5 * iqr + 0.01 || o < b.q1 - 1.5 * iqr - 0.01, 'outlier beyond a fence').toBe(true);
+      }
+      const plural = /trolls|Students|Office workers|Nurses/.test(boxes.map((b) => b.name).join());
+      for (const o of g.options!) if (/^\*\*.+?\*\* ha(s|ve) /.test(o.text!)) expect(/ have /.test(o.text!), `seed ${seed} verb: ${o.text}`).toBe(plural);
+      // a wrong "IQR is about v" is at least one grid step (two half-steps) away from the true IQR
+      const halfStep = axisStep(g.images![0].src) / 2;
+      for (const o of g.options!) {
+        const mm = /^The interquartile range of \*\*(.+?)\*\* is about ([\d.]+) /.exec(o.text!);
+        if (mm) {
+          const b = boxes.find((x) => x.name === mm[1])!;
+          const d = Math.abs(b.q3 - b.q1 - Number(mm[2]));
+          expect(d < 0.01 || d >= 2 * halfStep - 0.01, `seed ${seed}: ${o.text}`).toBe(true);
+        }
       }
       const truth = g.options!.filter((o) => judge(o.text!, boxes)).map((o) => o.id);
       if (type === 'single-choice') expect(truth, `seed ${seed}`).toEqual([g.correctAnswer]);

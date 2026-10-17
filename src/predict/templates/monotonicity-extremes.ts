@@ -207,13 +207,14 @@ const countPoints: Template = {
         fTex = `\\ln\\left(x^{${n}}+${k}\\right)`;
         stat = 1;
         ext = n % 2 ? 0 : 1;
+        const xn1 = powTex('x', n - 1);
         work =
-          `$$f'(x)=\\frac{${n}x^{${n - 1}}}{x^{${n}}+${k}}$$ The only zero is $x=0$${n % 2 ? ` (which lies in the domain $x^{${n}}>-${k}$)` : ''}. ` +
-          `The denominator is positive, so $f'$ has the sign of $x^{${n - 1}}$, which ${(n - 1) % 2 ? 'changes sign at $x=0$: a minimum' : 'does not change sign: no extreme'}. ` +
+          `$$f'(x)=\\frac{${n}${xn1}}{x^{${n}}+${k}}$$ The only zero is $x=0$${n % 2 ? ` (which lies in the domain $x^{${n}}>-${k}$)` : ''}. ` +
+          `The denominator is positive${n % 2 ? ' on the domain' : ''}, so $f'$ has the sign of $${xn1}$, which ${(n - 1) % 2 ? 'changes sign at $x=0$: a minimum' : 'does not change sign: no extreme'}. ` +
           `So $f$ has ${plural(stat, 'stationary point')} and ${plural(ext, 'extreme point')}.`;
         const den = n % 2 ? 1 : 0;
         mistakes = [
-          { value: n - 1, why: `counts the zero $x=0$ of $x^{${n - 1}}$ as ${n - 1} separate zeros.` },
+          { value: n - 1, why: `counts the zero $x=0$ of $${xn1}$ as ${n - 1} separate zeros.` },
           { value: ask === 'stat' ? ext : stat, why: ask === 'stat' ? "only counts the stationary points where $f'$ changes sign." : 'assumes every stationary point is an extreme point.' },
           { value: den, why: `solves $x^{${n}}+${k}=0$ (the denominator) instead of the numerator $=0$.` },
           { value: k === 1 ? 1 : n % 2, why: "solves $f(x)=0$ instead of $f'(x)=0$." },
@@ -273,12 +274,13 @@ const countPoints: Template = {
         fTex = `\\left(${quad}\\right)e^{x}`;
         stat = disc > 0 ? 2 : disc === 0 ? 1 : 0;
         ext = disc > 0 ? 2 : 0;
+        const neg = (v: number) => (v < 0 ? `(${v})` : String(v));
         work =
-          `Product rule: $$f'(x)=${sumTex([
+          `Product rule: $$f'(x)=\\left(${sumTex([
             [2, 'x'],
             [B, ''],
-          ])}\\cdot e^{x}+\\left(${quad}\\right)e^{x}=\\left(${dquad}\\right)e^{x}$$` +
-          `Since $e^{x}>0$, only the bracket can be zero. Its discriminant is $${B + 2}^2-4\\cdot ${B + C}=${disc}$, ` +
+          ])}\\right)e^{x}+\\left(${quad}\\right)e^{x}=\\left(${dquad}\\right)e^{x}$$` +
+          `Since $e^{x}>0$, only the bracket can be zero. Its discriminant is $${neg(B + 2)}^2-4\\cdot ${neg(B + C)}=${disc}$, ` +
           (disc > 0
             ? 'positive: two zeros, at each of which $f\'$ changes sign. So 2 stationary points, both extreme points.'
             : disc === 0
@@ -385,7 +387,7 @@ function famFrac(rng: Rng): Family {
     poles: [pole],
     extra,
     work:
-      `Quotient rule: $$f'(x)=${p === 0 ? `\\frac{${-q}}{${dp}^2}` : `\\frac{${p}${dp}-(${num})}{${dp}^2}=\\frac{${-K}}{${dp}^2}`}, \\qquad f''(x)=\\frac{${2 * K}}{${dp}^3}$$` +
+      `Quotient rule: $$f'(x)=${p === 0 ? `\\frac{${-q}}{${dp}^2}` : `\\frac{${coefTex(p)}${dp}-(${num})}{${dp}^2}=\\frac{${-K}}{${dp}^2}`}, \\qquad f''(x)=\\frac{${2 * K}}{${dp}^3}$$` +
       `The sign of $f''$ is the sign of $${2 * K}${dp}^3$, which only changes at the vertical asymptote $x=${b}$ (where $f$ is not defined).`,
   };
 }
@@ -408,7 +410,7 @@ function famOdd(rng: Rng): Family {
       { b: [...symm(k), brk(0)], s: (x) => a * x * (x * x - k), why: `solves $x^2=${k}$ instead of $x^2=${3 * k}$.` },
     ],
     work:
-      `Quotient rule (twice): $$f'(x)=\\frac{${ca}(${k}-x^2)}{(x^2+${k})^2}, \\qquad f''(x)=\\frac{${2 * a}x(x^2-${3 * k})}{(x^2+${k})^3}$$` +
+      `Quotient rule (twice): $$f'(x)=\\frac{${ca === '' ? `${k}-x^2` : `${ca}(${k}-x^2)`}}{(x^2+${k})^2}, \\qquad f''(x)=\\frac{${2 * a}x(x^2-${3 * k})}{(x^2+${k})^3}$$` +
       `The denominator is positive, so $f''$ changes sign at $x=-${rootTex(3 * k)}$, $x=0$ and $x=${rootTex(3 * k)}$.`,
   };
 }
@@ -426,7 +428,7 @@ function famLog(rng: Rng): Family {
     poles: [],
     extra: k === 1 ? [] : [{ b: [brk(-k), brk(k)], s: (x) => a * (k * k - x * x), why: `forgets the square root when solving $x^2=${k}$ (the end points are $\\pm ${rootTex(k)}$, not $\\pm ${k}$).` }],
     work:
-      `Chain rule and quotient rule: $$f'(x)=\\frac{${2 * a}x}{x^2+${k}}, \\qquad f''(x)=\\frac{${2 * a}(x^2+${k})-${2 * a}x\\cdot 2x}{(x^2+${k})^2}=\\frac{${2 * a}(${k}-x^2)}{(x^2+${k})^2}$$` +
+      `Chain rule and quotient rule: $$f'(x)=\\frac{${2 * a}x}{x^2+${k}}, \\qquad f''(x)=\\frac{${2 * a}(x^2+${k})-${a < 0 ? `(${2 * a}x)` : `${2 * a}x`}\\cdot 2x}{(x^2+${k})^2}=\\frac{${2 * a}(${k}-x^2)}{(x^2+${k})^2}$$` +
       `The denominator is positive, so $f''$ changes sign at $x=\\pm ${rootTex(k)}$.`,
   };
 }
@@ -574,7 +576,7 @@ const cubicShape: Template = {
           : `on $(${i.lo},${i.hi})$ we have $f'(x)${i.d1 > 0 ? '>' : '<'}0$ and $f''(x)${i.d2 > 0 ? '>' : '<'}0$, so $f$ is ${MONO(i.d1)} and ${CURV(i.d2)} there`;
       return { text: `$f$ is ${MONO(mono)} and ${CURV(curv)} on $(${i.lo},${i.hi})$`, correct, why: `${actual}.` };
     };
-    const fpTex = `${coefTex(A)}${facTex(r1)}${facTex(r2)}`;
+    const fpTex = `${coefTex(A)}${[r1, r2].sort((u, v) => Number(v === 0) - Number(u === 0)).map(facTex).join('')}`; // a bare x first: 3x(x-4)
     const explanation =
       `$$f'(x)=${sumTex([
         [A, 'x^2'],
@@ -650,7 +652,7 @@ const transformed: Template = {
     } else if (form === 'recip') {
       const k = rng.pick([1, 2, 3, 5, -1, -2, -4]);
       gTex = `${k < 0 ? '-' : ''}\\dfrac{${Math.abs(k)}}{f(x)}`;
-      gPrime = `g'(x)=${k > 0 ? '-' : ''}\\dfrac{${Math.abs(k)}f'(x)}{f(x)^2}$, where $f(x)^2>0`;
+      gPrime = `g'(x)=${k > 0 ? '-' : ''}\\dfrac{${Math.abs(k) === 1 ? '' : Math.abs(k)}f'(x)}{f(x)^2}$, where $f(x)^2>0`;
       flip = k > 0;
     } else if (form === 'exp') {
       const neg = rng.chance(0.5);

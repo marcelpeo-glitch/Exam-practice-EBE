@@ -8,7 +8,7 @@ import { buildMcq, buildMulti, fixed, INSTRUCTION, mistakesNote, num, numericFie
 import type { Rng } from '../rng';
 import { normCdf, normInv, round, zStar, zTable, type TableLevel } from '../stats';
 import type { Template } from '../types';
-import { acceptAround } from './_normal';
+import { acceptAround, zFor, zSpread } from './_normal';
 
 const TOPIC = 'Errors & power' as const;
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -318,7 +318,7 @@ const powerChanges: Template = {
       const txt = (c: { a: number; n: number }) => `$\\alpha=${c.a}$ and $n=${c.n}$`;
       const ds: Choice[] = rng.shuffle(combos.filter((c) => c !== best)).map((c) => {
         const parts = [c.a !== best.a ? `a ${c.a < best.a ? 'smaller' : 'larger'} $\\alpha$` : '', c.n !== best.n ? `a ${c.n < best.n ? 'smaller' : 'larger'} $n$` : ''].filter(Boolean);
-        return { text: txt(c), why: `${parts.join(' and ')} gives ${c.p < best.p ? 'less' : 'more'} power than ${txt(best)}.` };
+        return { text: txt(c), why: `${parts.join(' and ')} ${parts.length > 1 ? 'give' : 'gives'} ${c.p < best.p ? 'less' : 'more'} power than ${txt(best)}.` };
       });
       ds.push({ text: `It cannot be determined without knowing the standard deviation of ${sc.measure}.`, why: 'the best option is best on both counts (α and n), so the comparison holds for every σ.' });
       const mcq = buildMcq(rng, { text: txt(best) }, ds, { count: optionCount });
@@ -391,7 +391,7 @@ const powerChanges: Template = {
 // 3. Computing the power (or β) of a one-sided z-test with Table Z
 // =====================================================================================================================
 
-/** z rounded to 2 decimals for Table Z, halves away from zero (robust to floating-point noise). */
+/** z (or a cut-off) rounded to 2 decimals, halves away from zero (robust to floating-point noise: 8.165 → 8.17). */
 const z2r = (z: number) => (Math.sign(z) * Math.round(Math.abs(z) * 100 + 1e-7)) / 100;
 
 const LEVEL: Record<number, { one: TableLevel; two: TableLevel }> = { 0.1: { one: 0.8, two: 0.9 }, 0.05: { one: 0.9, two: 0.95 }, 0.01: { one: 0.98, two: 0.99 } };
@@ -414,11 +414,13 @@ const computePower: Template = {
       s = rng.pick(sc.sigmas);
       a = rng.pick([0.05, 0.05, 0.01, 0.1]);
       se = s / Math.sqrt(n);
-      if (Math.abs(se * 1000 - Math.round(se * 1000)) > 1e-6) continue;
+      // SE with at most 3 decimals, and not so small that rounding the cut-off to 2 decimals moves z by more than 0.02
+      if (Math.abs(se * 1000 - Math.round(se * 1000)) > 1e-6 || se < 0.25) continue;
       const ks: number[] = [];
       for (let k = 1; k <= 400; k++) {
         const p = powerOf(sc, { n, s, a, m: meanAt(sc, k), two: false });
-        if (p >= 0.3 && p <= 0.95) ks.push(k);
+        // power not close to 0.5: otherwise β = 1 − power is almost the same number (and a tempting distractor)
+        if (p >= 0.3 && p <= 0.95 && Math.abs(p - 0.5) >= 0.05) ks.push(k);
       }
       if (!ks.length) continue;
       m = meanAt(sc, rng.pick(ks));
@@ -435,7 +437,19 @@ const computePower: Template = {
     const key = val(pw);
     const zb = (cut - m) / se;
     const exact = powerOf(sc, { n, s, a, m, two: false });
-    const routes = [pw, exact, powerAt(round(cut, 2), se), powerAt(cut - (zb - Math.floor(zb * 100) / 100) * se, se), powerAt(cut - (zb - Math.ceil(zb * 100) / 100) * se, se)];
+    /** Exact Normal probability of rejecting H0 for a cut-off c (no table rounding). */
+    const exactAt = (c: number) => (sc.dir > 0 ? 1 - normCdf((c - m) / se) : normCdf((c - m) / se));
+    // accepted routes: z* from Table T (1.645) or read from Table Z in reverse (both 2-decimal neighbours), the cut-off
+    // unrounded or rounded to 2 decimals (as asked), and the probability from Table Z or computed exactly
+    const zi = zFor(1 - a);
+    const cutsOk = zSpread((z) => sc.mu0 + sc.dir * z * se, zi);
+    const routes = [
+      pw,
+      exact,
+      powerAt(cut - (zb - Math.floor(zb * 100) / 100) * se, se),
+      powerAt(cut - (zb - Math.ceil(zb * 100) / 100) * se, se),
+      ...cutsOk.flatMap((c) => [c, z2r(c)]).flatMap((c) => [powerAt(c, se), exactAt(c)]),
+    ];
     const what = askBeta ? 'probability of a Type II error' : 'power';
     const tail = sc.dir > 0 ? `P(Z>${fixed(z2r(zb), 2)})=1-${fixed(zTable(z2r(zb)), 4)}` : `P(Z<${fixed(z2r(zb), 2)})`;
     const stem =
@@ -449,14 +463,15 @@ const computePower: Template = {
       `3. Cut-off: $c=\\mu_0${sc.dir > 0 ? '+' : '-'}z^*\\cdot SE=${sc.mu0}${sc.dir > 0 ? '+' : '-'}${zs}\\times ${num(se, 4)}=${num(cut, 4)}$; $H_0$ is rejected when $\\bar y${op}${num(cut, 4)}$.\n` +
       `4. Power = $P(\\bar y${op}${num(cut, 4)}\\mid\\mu=${num(m, 4)})=P\\left(Z${op}\\dfrac{${num(cut, 4)}-${num(m, 4)}}{${num(se, 4)}}\\right)=${tail}=${fixed(pw, 4)}$ (Table Z).\n` +
       (askBeta ? `5. Probability of a Type II error: $\\beta=1-\\text{power}=1-${fixed(pw, 4)}=${fixed(key, 4)}$.\n` : '') +
-      `So the ${what} is about ${fixed(key, 4)}: if the true mean is ${num(m, 4)}, the test ${askBeta ? 'fails to reject $H_0$' : 'rejects $H_0$'} in about ${Math.round(key * 100)}% of samples. (Exact value without table rounding: ${fixed(val(exact), 4)}; answers between these are accepted.)`;
+      `So the ${what} is about ${fixed(key, 4)}: if the true mean is ${num(m, 4)}, the test ${askBeta ? 'fails to reject $H_0$' : 'rejects $H_0$'} in about ${Math.round(key * 100)}% of samples. (Exact value without table rounding: ${fixed(val(exact), 4)}.)` +
+      (type === 'numeric' ? `\n\nAlso accepted: answers that use $z^*=${zi.lo}$ or $z^*=${zi.hi}$ read from Table Z, or the cut-off rounded to 2 decimals.` : '');
     if (type === 'numeric') {
       return {
         type,
         stem,
         instruction: `Instruction: fill in every box: the cut-off with 2 decimals and the ${what} with 4 decimals. To separate decimals, use a dot and not a comma (example: 0.51 instead of 0,51)!`,
         fields: [
-          numericField('c', 'Cut-off value $c$', cut, 2, acceptAround(2, cut, sc.mu0 + sc.dir * normInv(1 - a) * se)),
+          numericField('c', 'Cut-off value $c$', cut, 2, acceptAround(2, cut, ...cutsOk)),
           numericField('p', askBeta ? 'Probability of a Type II error' : 'Power', key, 4, acceptAround(4, ...routes.map(val))),
         ],
         explanation,

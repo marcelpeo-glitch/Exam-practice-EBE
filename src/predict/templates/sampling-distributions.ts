@@ -81,12 +81,21 @@ const popSentence = (rng: Rng, s: MScn, mu: number, sd: number) => {
 /** A grid step for cut-off values, given the standard deviation of the sampling distribution. */
 const gridFor = (sd: number) => (sd >= 50 ? 10 : sd >= 5 ? 1 : sd >= 0.5 ? 0.1 : 0.01);
 
+/** The standard deviation as printed in the worked solution (4 decimals); students go on with this rounded value. */
+const shownSd = (sd: number) => round(sd, 4);
+
+/**
+ * True when z is an unambiguous 2-decimal Table Z entry, also for a student who works with the printed (rounded)
+ * standard deviation: zs, computed from the rounded numbers, must round to the same entry.
+ */
+const sameEntry = (z: number, zs: number) => clearZ(z) && clearZ(zs) && round(z, 2) === round(zs, 2);
+
 /** A value centre + zΣ on a grid with zmin ≤ |z| ≤ zmax, the given sign, and an unambiguous 2-decimal z. */
 function cutAt(rng: Rng, centre: number, sd: number, step: number, sign: number, zmin: number, zmax: number): number {
   for (let i = 0; i < 300; i++) {
     const x = round(centre + sign * Math.round((rng.step(zmin, zmax, 0.01) * sd) / step) * step, 6);
     const z = (x - centre) / sd;
-    if (Math.abs(z) >= zmin - 1e-9 && Math.abs(z) <= zmax + 1e-9 && clearZ(z)) return x;
+    if (Math.abs(z) >= zmin - 1e-9 && Math.abs(z) <= zmax + 1e-9 && sameEntry(z, (x - centre) / shownSd(sd))) return x;
   }
   throw new Error('sampling-distributions: no suitable cut-off');
 }
@@ -245,7 +254,7 @@ const meanProbability: Template = {
       for (;;) {
         L = Math.round((n * (mu + rng.step(0.3, 2.2, 0.01) * se)) / st) * st;
         const z = (L / n - mu) / se;
-        if (z >= 0.3 && z <= 2.4 && clearZ(z)) break;
+        if (z >= 0.3 && z <= 2.4 && sameEntry(z, (round(L / n, 4) - mu) / shownSd(se))) break;
       }
       a = L / n;
     } else if (kind === 'between') {
@@ -275,11 +284,14 @@ const meanProbability: Template = {
       (kind === 'total' ? `The total is more than ${L} ${u} exactly when the mean weight is more than $\\frac{${L}}{${n}}=${num(a, 4)}$ ${u}.\n` : '');
     const M = num(mu, 2);
     const S = num(se, 4);
+    // z as a student computes it from the printed (rounded) numbers; it gives the same Table Z entry (see sameEntry)
+    const zs = (x: number) => (round(x, 4) - mu) / shownSd(se);
+    const es = kind === 'between' ? { kind, za: zs(a), zb: zs(b) } : { kind: e.kind, z: zs(a) } as Ev;
     if (e.kind === 'between')
-      how += `$$${zStep('z_a', num(a, 4), M, S, e.za)}\\qquad ${zStep('z_b', num(b, 4), M, S, e.zb)}$$ Table Z: $${phiTex(e.zb)}$ and $${phiTex(e.za)}$, so $$P(${num(a, 4)}<\\bar y<${num(b, 4)})=${p4(zTable(e.zb))}-${p4(zTable(e.za))}=${p4(P)}$$`;
-    else if (e.kind === 'below') how += `$$${zStep('z', num(a, 4), M, S, e.z)}$$ $$P(\\bar y<${num(a, 4)})=${phiTex(e.z)}$$`;
-    else how += `$$${zStep('z', num(a, 4), M, S, e.z)}$$ Table Z: $${phiTex(e.z)}$; we need the right tail: $$P(\\bar y>${num(a, 4)})=1-${p4(zTable(e.z))}=${p4(P)}$$`;
-    if (type === 'numeric') return numeric(stem, P, 4, how + `\n(Without rounding $z$: ${p4(Px)}; accepted too.)`, acceptAround(4, P, Px));
+      how += `$$${zStep('z_a', num(a, 4), M, S, zs(a))}\\qquad ${zStep('z_b', num(b, 4), M, S, zs(b))}$$ Table Z: $${phiTex(e.zb)}$ and $${phiTex(e.za)}$, so $$P(${num(a, 4)}<\\bar y<${num(b, 4)})=${p4(zTable(e.zb))}-${p4(zTable(e.za))}=${p4(P)}$$`;
+    else if (e.kind === 'below') how += `$$${zStep('z', num(a, 4), M, S, zs(a))}$$ $$P(\\bar y<${num(a, 4)})=${phiTex(e.z)}$$`;
+    else how += `$$${zStep('z', num(a, 4), M, S, zs(a))}$$ Table Z: $${phiTex(e.z)}$; we need the right tail: $$P(\\bar y>${num(a, 4)})=1-${p4(zTable(e.z))}=${p4(P)}$$`;
+    if (type === 'numeric') return numeric(stem, P, 4, how + `\n(Without rounding $z$: ${p4(Px)}; accepted too.)`, acceptAround(4, P, Px, exactP(es)));
     const wrong: [number, string][] = [
       [sd, kind === 'total' ? 'uses $n\\sigma$ instead of $\\sqrt n\\,\\sigma$ as the standard deviation of the total (this is the probability for a single item).' : 'uses $\\sigma$ instead of $\\sigma/\\sqrt n$: the probability for one individual, not for the mean.'],
       [sd / n, 'divides $\\sigma$ by $n$ instead of by $\\sqrt n$.'],
@@ -323,14 +335,17 @@ const proportion: Template = {
     const event = kind === 'between' ? `between ${pctText(a)} and ${pctText(b)}` : `${kind === 'below' ? 'less' : 'more'} than ${pctText(a)}`;
     const stem = `${s.intro(pctText(p))} A random sample of $n=${n}$ ${s.who} is taken.\nWhat is the probability that the proportion of ${s.who} in the sample who ${s.act} is ${event}?`;
     const [Pp, S] = [num(p, 2), num(sd, 4)];
+    // z as a student computes it with the printed SD (4 decimals); it gives the same Table Z entry (see sameEntry)
+    const zs = (x: number) => (x - p) / shownSd(sd);
+    const es: Ev = kind === 'between' ? { kind, za: zs(a), zb: zs(b) } : { kind, z: zs(a) };
     let how =
       `Conditions: the sample is random, $n$ is less than 10% of the population, and $np=${num(n * p, 2)}\\ge 10$ and $n(1-p)=${num(n * (1 - p), 2)}\\ge 10$. ` +
       `So $\\hat p$ is approximately Normal with mean $p=${Pp}$ and standard deviation $$SD(\\hat p)=\\sqrt{\\frac{p(1-p)}{n}}=\\sqrt{\\frac{${Pp}\\times ${num(1 - p, 2)}}{${n}}}=${S}$$`;
     if (e.kind === 'between')
-      how += `$$${zStep('z_a', num(a, 3), Pp, S, e.za)}\\qquad ${zStep('z_b', num(b, 3), Pp, S, e.zb)}$$ $$P(${num(a, 3)}<\\hat p<${num(b, 3)})=${p4(zTable(e.zb))}-${p4(zTable(e.za))}=${p4(P)}$$`;
-    else if (e.kind === 'below') how += `$$${zStep('z', num(a, 3), Pp, S, e.z)}$$ $$P(\\hat p<${num(a, 3)})=${phiTex(e.z)}$$`;
-    else how += `$$${zStep('z', num(a, 3), Pp, S, e.z)}$$ $$P(\\hat p>${num(a, 3)})=1-${p4(zTable(e.z))}=${p4(P)}$$`;
-    if (type === 'numeric') return numeric(stem, P, 4, how + `\n(Without rounding $z$: ${p4(Px)}; accepted too.)`, acceptAround(4, P, Px));
+      how += `$$${zStep('z_a', num(a, 3), Pp, S, zs(a))}\\qquad ${zStep('z_b', num(b, 3), Pp, S, zs(b))}$$ Table Z: $${phiTex(e.zb)}$ and $${phiTex(e.za)}$, so $$P(${num(a, 3)}<\\hat p<${num(b, 3)})=${p4(zTable(e.zb))}-${p4(zTable(e.za))}=${p4(P)}$$`;
+    else if (e.kind === 'below') how += `$$${zStep('z', num(a, 3), Pp, S, zs(a))}$$ $$P(\\hat p<${num(a, 3)})=${phiTex(e.z)}$$`;
+    else how += `$$${zStep('z', num(a, 3), Pp, S, zs(a))}$$ Table Z: $${phiTex(e.z)}$; we need the right tail: $$P(\\hat p>${num(a, 3)})=1-${p4(zTable(e.z))}=${p4(P)}$$`;
+    if (type === 'numeric') return numeric(stem, P, 4, how + `\n(Without rounding $z$: ${p4(Px)}; accepted too.)`, acceptAround(4, P, Px, exactP(es)));
     const ds = probMistakes(e, at, [
       [Math.sqrt(p * (1 - p)), 'forgets to divide by $n$: uses $\\sqrt{p(1-p)}$, the standard deviation for a single person.'],
       [Math.sqrt(p * (1 - p)) / n, 'divides by $n$ instead of by $\\sqrt n$.'],
@@ -460,7 +475,7 @@ const clt: Template = {
     const cols = panels.length === 4 ? 2 : 3;
     const candImg = {
       src: histPanelsSvg(panels.map((c, i) => ({ title: `(${letters[i]})`, bars: c.bars })), axis, cols, `Sample mean (percentage of the samples)`),
-      alt: 'Candidate histograms (a) to (e) for the distribution of the sample means',
+      alt: `Candidate histograms (a) to (${letters[panels.length - 1]}) for the distribution of the sample means`,
     };
     const options = panels.map((_, i) => ({ id: 'ABCDE'[i], text: `Histogram (${letters[i]})` }));
     const ki = panels.findIndex((c) => c.bars === correct);

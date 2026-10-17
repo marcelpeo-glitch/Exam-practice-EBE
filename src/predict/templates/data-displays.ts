@@ -213,11 +213,11 @@ function whyWrong(d: Disp, c: DispCase): string {
     case 'hist':
       if (s === 'time') return 'a histogram throws away the time order, so it cannot show the development over time.';
       if (s === 'two-quant') return 'a histogram shows one variable at a time, not the relationship between two variables.';
-      return 'a histogram needs a quantitative variable; these data are counts of categories.';
+      return `a histogram needs a quantitative variable; these data are ${s === 'multi' ? 'percentages' : 'counts'} per category of a categorical variable.`;
     case 'box':
       if (s === 'time') return 'a boxplot summarises the values but hides the time order.';
       if (s === 'two-quant') return 'a boxplot summarises one variable at a time; it cannot show the relationship between two.';
-      return 'a boxplot summarises a quantitative variable; these data are counts of categories.';
+      return `a boxplot summarises a quantitative variable; these data are ${s === 'multi' ? 'percentages' : 'counts'} per category of a categorical variable.`;
     case 'line':
       return 'a line graph (time plot) is for values measured at successive moments in time; there is no time order here.';
     case 'scatter':
@@ -254,9 +254,10 @@ function dispCase(rng: Rng, struct: Struct): DispCase {
         { intro: (n: number) => `A pet-food company asked ${n} households which pets they keep (several answers were possible).`, head: ['Pet', '% of households'], cats: ['Cat', 'Dog', 'Fish', 'Rabbit', 'Bird'], goal: 'compare how common the different pets are' },
         { intro: (n: number) => `A music festival asked ${n} visitors which extras they paid for; visitors could mention several extras.`, head: ['Extra', '% of visitors'], cats: ['Drink tokens', 'Food', 'Merchandise', 'Locker', 'Camping upgrade'], goal: 'compare how often each extra was bought' },
       ]);
+      // the categories are listed from most to least common, so the percentages are sorted to match
       let p: number[];
-      do p = c.cats.map(() => rng.int(80, 850) / 10);
-      while (sum(p) < 130);
+      do p = c.cats.map(() => rng.int(80, 850) / 10).sort((x, y) => y - x);
+      while (sum(p) < 130 || new Set(p).size < p.length);
       return {
         struct,
         intro: c.intro(rng.pick([200, 250, 400, 500, 800])),
@@ -507,7 +508,7 @@ const ORDINAL_ANSWERS = [
 const BACKGROUND = {
   age: { q: 'How old are you?', classes: ['under 8 years', '8–11 years', '12–15 years', '16 years or older'], unit: 'years', noun: 'the age' },
   hours: { q: 'How many hours per week do you watch series?', classes: ['0–2 hours', '3–5 hours', '6–10 hours', 'more than 10 hours'], unit: 'hours', noun: 'the weekly viewing time' },
-  visits: { q: 'How many times did you eat in the student restaurant last month?', classes: ['once', '2–5 times', '6–10 times', 'more than 10 times'], unit: 'times', noun: 'the number of visits' },
+  visits: { q: 'How many times did you eat in the student restaurant last month?', classes: ['0–1 times', '2–5 times', '6–10 times', 'more than 10 times'], unit: 'times', noun: 'the number of visits' },
 };
 const an = (t: AType) => (t === 'ordinal' ? 'an ordinal' : `a ${t}`);
 const box = (xs: string[]) => xs.map((x) => `☐ ${x}`).join('   ');
@@ -543,7 +544,7 @@ const unitsVariables: Template = {
         explanation:
           `Each case in the data is one ${s.unit.replace(/^An? /, '').toLowerCase()}, so the **observational unit** is "${s.unit}". ` +
           `What is recorded for every case is the **variable** "${s.variable}"; ${st.values.map((v) => `"${v}"`).join(' and ')} are values of that variable (or other details of the story), not variables. ` +
-          `"${s.other}" collects the data but is not a case. ${s.why} So the **variable type** is ${s.type.toLowerCase()}.`,
+          `"${s.other}" appears in the story, but it is not a case: the data have one entry per ${s.unit.replace(/^An? /, '').toLowerCase()}. ${s.why} So the **variable type** is ${s.type.toLowerCase()}.`,
       };
     }
     // single-choice: questionnaire with two opinion questions and one background question
@@ -590,12 +591,77 @@ const unitsVariables: Template = {
 // 4. Two-way tables: joint, marginal and conditional percentages
 // =====================================================================================================================
 
-const TWO_WAY = [
-  { units: 'coffee orders', rv: 'cup size', rows: ['Small', 'Medium', 'Large'], cv: 'time of day', cols: ['Morning', 'Afternoon', 'Evening'], intro: (n: number) => `A campus coffee bar recorded the cup size and the time of day of its last ${n} coffee orders.` },
-  { units: 'visitors', rv: 'ticket type', rows: ['Adult', 'Student', 'Child'], cv: 'day', cols: ['Weekday', 'Weekend'], intro: (n: number) => `A science museum classified its last ${n} visitors by ticket type and by the day of their visit.` },
-  { units: 'students', rv: 'transport', rows: ['Bike', 'Bus', 'Train', 'On foot'], cv: 'housing', cols: ['With parents', 'Rented room'], intro: (n: number) => `A survey among ${n} students asked how they usually travel to campus and where they live.` },
-  { units: 'festival-goers', rv: 'favourite stage', rows: ['Main stage', 'Techno tent', 'Indie stage'], cv: 'age group', cols: ['Under 25', '25 or older'], intro: (n: number) => `At a music festival, ${n} visitors were asked for their favourite stage; their age group was recorded too.` },
-  { units: 'adopted pets', rv: 'species', rows: ['Cat', 'Dog', 'Rabbit'], cv: 'household', cols: ['Family', 'Single', 'Couple'], intro: (n: number) => `An animal shelter recorded the species of each of the ${n} pets adopted last year and the type of household that adopted it.` },
+interface TwoWay {
+  units: string;
+  /** Relative pronoun for the units ("the students who ...", "the orders that ..."). */
+  who: 'who' | 'that';
+  rv: string;
+  rows: string[];
+  cv: string;
+  cols: string[];
+  /** Plural predicates naming a row / column category in bold (the label in lower case), e.g. "prefer the **main stage**". */
+  rp: (r: string) => string;
+  cp: (c: string) => string;
+  intro: (n: number) => string;
+}
+const lc = (s: string) => s.toLowerCase();
+const plain = (s: string) => s.replace(/\*\*/g, '');
+const TWO_WAY: TwoWay[] = [
+  {
+    units: 'coffee orders',
+    who: 'that',
+    rv: 'cup size',
+    rows: ['Small', 'Medium', 'Large'],
+    cv: 'time of day',
+    cols: ['Morning', 'Afternoon', 'Evening'],
+    rp: (r) => `were for a **${lc(r)}** cup`,
+    cp: (c) => `were placed in the **${lc(c)}**`,
+    intro: (n) => `A campus coffee bar recorded the cup size and the time of day of its last ${n} coffee orders.`,
+  },
+  {
+    units: 'visitors',
+    who: 'who',
+    rv: 'ticket type',
+    rows: ['Adult', 'Student', 'Child'],
+    cv: 'day of visit',
+    cols: ['Weekday', 'Weekend'],
+    rp: (r) => `bought ${r === 'Adult' ? 'an' : 'a'} **${lc(r)}** ticket`,
+    cp: (c) => (c === 'Weekday' ? 'came on a **weekday**' : 'came at the **weekend**'),
+    intro: (n) => `A science museum classified its last ${n} visitors by ticket type and by the day of their visit.`,
+  },
+  {
+    units: 'students',
+    who: 'who',
+    rv: 'transport',
+    rows: ['Bike', 'Bus', 'Train', 'On foot'],
+    cv: 'housing',
+    cols: ['With their parents', 'In a rented room'],
+    rp: (r) => (r === 'On foot' ? 'usually come to campus **on foot**' : `usually come to campus by **${lc(r)}**`),
+    cp: (c) => `live **${lc(c)}**`,
+    intro: (n) => `A survey among ${n} students asked how they usually travel to campus and where they live.`,
+  },
+  {
+    units: 'festival-goers',
+    who: 'who',
+    rv: 'favourite stage',
+    rows: ['Main stage', 'Techno tent', 'Indie stage'],
+    cv: 'age group',
+    cols: ['Under 25', '25 or older'],
+    rp: (r) => `prefer the **${lc(r)}**`,
+    cp: (c) => `are **${lc(c)}**`,
+    intro: (n) => `At a music festival, ${n} visitors were asked for their favourite stage; their age group was recorded too.`,
+  },
+  {
+    units: 'pets',
+    who: 'that',
+    rv: 'species',
+    rows: ['Cats', 'Dogs', 'Rabbits'],
+    cv: 'household',
+    cols: ['Families', 'Singles', 'Couples'],
+    rp: (r) => `were **${lc(r)}**`,
+    cp: (c) => `were adopted by **${lc(c)}**`,
+    intro: (n) => `An animal shelter recorded the species of each of the ${n} pets adopted last year and the type of household that adopted it.`,
+  },
 ];
 
 type CtKind = 'cond-col' | 'cond-row' | 'marginal' | 'joint';
@@ -617,6 +683,9 @@ const twoWayTable: Template = {
     const a = cnt[i][j];
     const R = c.rows[i];
     const C = c.cols[j];
+    const rP = c.rp(R);
+    const cP = c.cp(C);
+    const the = (pred: string) => `the ${c.units} ${c.who} ${plain(pred)}`;
     const kind = rng.pick<CtKind>(['cond-col', 'cond-row', 'marginal', 'joint']);
     const P = (x: number, d: number) => (100 * x) / d;
     const pc = (x: number) => `${fixed(x, 1)}%`;
@@ -627,25 +696,47 @@ const twoWayTable: Template = {
     let ds: Choice[];
     const ch = (v: number, why: string): Choice => ({ text: pc(v), value: v, why });
     if (kind === 'cond-col') {
-      ask = `Among the ${c.units} with ${c.cv} **${C}**, what percentage has ${c.rv} **${R}**?`;
+      ask = `Among the ${c.units} ${c.who} ${cP}, what percentage ${rP}?`;
       key = P(a, colT[j]);
       how = `Condition on the column **${C}** (total ${colT[j]}) and take the cell ${R}/${C} (${a}): $$${frac(a, colT[j])}$$`;
-      ds = [ch(P(a, n), `divides by the grand total ${n}: that is the joint percentage "${C} and ${R}".`), ch(P(a, rowT[i]), `divides by the row total ${rowT[i]}: that is the percentage of the ${R} ${c.units} that are ${C}.`), ch(P(rowT[i], n), `ignores the condition: the percentage of all ${c.units} with ${c.rv} ${R}.`), ch(P(colT[j], n), `gives the share of the group ${C} itself.`), ch(P(a, colT[j] - a), 'divides by the rest of the column instead of the column total.')];
+      ds = [
+        ch(P(a, n), `divides by the grand total ${n}: that is the joint percentage of all ${c.units} (${R} and ${C}).`),
+        ch(P(a, rowT[i]), `divides by the row total ${rowT[i]} (${the(rP)}): the condition is the wrong way round.`),
+        ch(P(rowT[i], n), `ignores the condition: that is the percentage of all ${c.units} ${c.who} ${plain(rP)}.`),
+        ch(P(colT[j], n), `gives the percentage of all ${c.units} ${c.who} ${plain(cP)}: the size of the group itself.`),
+        ch(P(a, colT[j] - a), `divides by the rest of the column (${colT[j] - a}) instead of the column total ${colT[j]}.`),
+      ];
     } else if (kind === 'cond-row') {
-      ask = `Among the ${c.units} with ${c.rv} **${R}**, what percentage has ${c.cv} **${C}**?`;
+      ask = `Among the ${c.units} ${c.who} ${rP}, what percentage ${cP}?`;
       key = P(a, rowT[i]);
       how = `Condition on the row **${R}** (total ${rowT[i]}) and take the cell ${R}/${C} (${a}): $$${frac(a, rowT[i])}$$`;
-      ds = [ch(P(a, n), `divides by the grand total ${n}: that is the joint percentage "${R} and ${C}".`), ch(P(a, colT[j]), `divides by the column total ${colT[j]}: that is the percentage of the ${C} ${c.units} that are ${R}.`), ch(P(colT[j], n), `ignores the condition: the percentage of all ${c.units} with ${c.cv} ${C}.`), ch(P(rowT[i], n), `gives the share of the group ${R} itself.`), ch(P(a, rowT[i] - a), 'divides by the rest of the row instead of the row total.')];
+      ds = [
+        ch(P(a, n), `divides by the grand total ${n}: that is the joint percentage of all ${c.units} (${R} and ${C}).`),
+        ch(P(a, colT[j]), `divides by the column total ${colT[j]} (${the(cP)}): the condition is the wrong way round.`),
+        ch(P(colT[j], n), `ignores the condition: that is the percentage of all ${c.units} ${c.who} ${plain(cP)}.`),
+        ch(P(rowT[i], n), `gives the percentage of all ${c.units} ${c.who} ${plain(rP)}: the size of the group itself.`),
+        ch(P(a, rowT[i] - a), `divides by the rest of the row (${rowT[i] - a}) instead of the row total ${rowT[i]}.`),
+      ];
     } else if (kind === 'marginal') {
-      ask = `What percentage of all ${n} ${c.units} has ${c.rv} **${R}**?`;
+      ask = `What percentage of all ${n} ${c.units} ${rP}?`;
       key = P(rowT[i], n);
       how = `Add the row **${R}**: ${cnt[i].join(' + ')} = ${rowT[i]}. Divide by the grand total: $$${frac(rowT[i], n)}$$`;
-      ds = [ch(P(a, colT[j]), `uses only the column ${C} (a conditional percentage).`), ch(P(a, n), `takes the single cell ${R}/${C} instead of the whole row.`), ch(P(rowT[i], n - rowT[i]), 'divides by the other rows instead of the grand total.'), ...c.cols.map((_, jj) => ch(P(cnt[i][jj], colT[jj]), `uses only the column ${c.cols[jj]}.`))];
+      ds = [
+        ch(P(a, colT[j]), `uses only the column ${C} (a conditional percentage).`),
+        ch(P(a, n), `takes the single cell ${R}/${C} instead of the whole row.`),
+        ch(P(rowT[i], n - rowT[i]), `divides by the other rows (${n - rowT[i]}) instead of the grand total.`),
+        ...c.cols.map((_, jj) => ch(P(cnt[i][jj], colT[jj]), `uses only the column ${c.cols[jj]} (a conditional percentage).`)),
+      ];
     } else {
-      ask = `What percentage of all ${n} ${c.units} has ${c.rv} **${R}** and ${c.cv} **${C}**?`;
+      ask = `What percentage of all ${n} ${c.units} ${rP} and ${cP}?`;
       key = P(a, n);
       how = `"${R} and ${C}" is the single cell ${a}, out of all ${n}: $$${frac(a, n)}$$`;
-      ds = [ch(P(a, colT[j]), `divides by the column total ${colT[j]} (a conditional percentage).`), ch(P(a, rowT[i]), `divides by the row total ${rowT[i]} (a conditional percentage).`), ch((100 * rowT[i] * colT[j]) / n ** 2, 'multiplies the two marginal percentages, which assumes the variables are independent.'), ch(P(rowT[i] + colT[j] - a, n), `computes "${R} or ${C}" instead of "${R} and ${C}".`)];
+      ds = [
+        ch(P(a, colT[j]), `divides by the column total ${colT[j]} (a conditional percentage).`),
+        ch(P(a, rowT[i]), `divides by the row total ${rowT[i]} (a conditional percentage).`),
+        ch((100 * rowT[i] * colT[j]) / n ** 2, 'multiplies the two marginal percentages, which assumes the variables are independent.'),
+        ch(P(rowT[i] + colT[j] - a, n), `adds the whole row and the whole column: that counts "${R} or ${C}" instead of "${R} and ${C}".`),
+      ];
     }
     const table: TableData = { header: [`${cap(c.rv)} / ${c.cv}`, ...c.cols], rows: c.rows.map((r, ii) => [r, ...cnt[ii].map(String)]), caption: `Number of ${c.units}` };
     const totals = `Row totals: ${c.rows.map((r, ii) => `${r} ${rowT[ii]}`).join(', ')}. Column totals: ${c.cols.map((cc, jj) => `${cc} ${colT[jj]}`).join(', ')}. Grand total: ${n}.`;
@@ -655,15 +746,21 @@ const twoWayTable: Template = {
       const f = numericField('x', undefined, key, 1);
       return { type, stem, instruction: INSTRUCTION.numeric(1), table, correctAnswer: f.answer, tolerance: f.tolerance, suffix: '%', explanation };
     }
-    const mcq = buildMcq(rng, { text: pc(key), value: key }, ds, {
-      count: optionCount,
-      order: 'ascending',
-      fallback: (t) => {
-        const ii = (i + 1 + t) % c.rows.length;
-        const jj = (j + Math.floor(t / c.rows.length)) % c.cols.length;
-        return ch(P(cnt[ii][jj], [colT[jj], rowT[ii], n][t % 3]), 'reads the wrong cell of the table.');
+    // a percentage above 100% gives itself away, so such "mistakes" are not offered
+    const mcq = buildMcq(
+      rng,
+      { text: pc(key), value: key },
+      ds.filter((d) => d.value! <= 100),
+      {
+        count: optionCount,
+        order: 'ascending',
+        fallback: (t) => {
+          const ii = (i + 1 + t) % c.rows.length;
+          const jj = (j + Math.floor(t / c.rows.length)) % c.cols.length;
+          return ch(P(cnt[ii][jj], [colT[jj], rowT[ii], n][t % 3]), 'reads the wrong cell of the table.');
+        },
       },
-    });
+    );
     return { type, stem, table, options: mcq.options, correctAnswer: mcq.correctAnswer, explanation: explanation + mistakesNote(mcq.distractors) };
   },
 };

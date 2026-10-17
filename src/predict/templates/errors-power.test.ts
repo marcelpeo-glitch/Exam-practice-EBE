@@ -8,7 +8,8 @@
 //   combinations at several values of σ;
 // - computed power: cut-off and power recomputed from the printed numbers (Table Z as printed, z* rounded from the
 //   exact quantile), checked against a Monte Carlo simulation of samples with a seeded rng, and no distractor may be
-//   within reach of the exact value.
+//   within reach of the exact value; a student who reads z* from Table Z (e.g. 1.64 or 1.65) and carries on with the
+//   rounded cut-off must be accepted (numeric) or land nearest to the key (single choice).
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../rng';
 import type { GenType, Generated } from '../types';
@@ -245,6 +246,18 @@ describe('errors-power.compute-power: recomputed from the printed numbers, Table
           expect(inField(fc, x.up ? x.mu0 + PhiInv(1 - x.a) * se : x.mu0 - PhiInv(1 - x.a) * se)).toBe(true);
           expect(Math.abs(fp.answer - want(table)), `${fp.answer} vs table ${want(table)}`).toBeLessThan(1e-9);
           expect(inField(fp, want(exact)), `exact ${want(exact)} vs ${JSON.stringify(fp)}`).toBe(true);
+          // a student who reads z* from Table Z in reverse (either 2-decimal neighbour of the exact quantile, e.g. 1.64
+          // or 1.65) and carries on with the cut-off rounded to 2 decimals (as asked) is accepted in both boxes
+          const zq0 = PhiInv(1 - x.a);
+          for (const z of [Math.floor(zq0 * 100) / 100, Math.ceil(zq0 * 100) / 100]) {
+            const c = x.up ? x.mu0 + z * se : x.mu0 - z * se;
+            expect(inField(fc, rnd(c, 2)), `seed ${seed}: cut-off with z*=${z}: ${rnd(c, 2)} vs ${JSON.stringify(fc)}`).toBe(true);
+            for (const cc of [c, rnd(c, 2)]) {
+              const zz = rnd((cc - x.m) / se, 2);
+              const p = x.up ? rnd(1 - tableZ(zz), 4) : tableZ(zz);
+              expect(inField(fp, want(p)), `seed ${seed}: z*=${z}, c=${cc}: ${want(p)} vs ${JSON.stringify(fp)}`).toBe(true);
+            }
+          }
           // the range may include the route via the cut-off rounded to 2 decimals, but no wrong method
           expect(fp.acceptRange![1] - fp.acceptRange![0]).toBeLessThan(0.02);
           expect(inField(fp, 1 - want(exact))).toBe(false);
@@ -257,6 +270,18 @@ describe('errors-power.compute-power: recomputed from the printed numbers, Table
             expect(close, `${o.id} ${o.text} vs exact ${want(exact)} (key ${g.correctAnswer})\n${g.stem}`).toBe(o.id === g.correctAnswer);
             if (o.id === g.correctAnswer) expect(Math.abs(v - want(table))).toBeLessThan(1e-9);
             else expect(Math.abs(v - want(exact))).toBeGreaterThan(0.005);
+          }
+          // every reasonable route (z* from Table T or either Table Z neighbour, cut-off rounded to 2 decimals or not)
+          // lands closest to the key
+          const zq0 = PhiInv(1 - x.a);
+          for (const z of [zt, Math.floor(zq0 * 100) / 100, Math.ceil(zq0 * 100) / 100]) {
+            const c = x.up ? x.mu0 + z * se : x.mu0 - z * se;
+            for (const cc of [c, rnd(c, 2)]) {
+              const zz = rnd((cc - x.m) / se, 2);
+              const v = want(x.up ? rnd(1 - tableZ(zz), 4) : tableZ(zz));
+              const nearest = g.options!.reduce((b, o) => (Math.abs(Number(o.text) - v) < Math.abs(Number(b.text) - v) ? o : b));
+              expect(nearest.id, `seed ${seed}: z*=${z}, c=${cc} gives ${v}`).toBe(g.correctAnswer);
+            }
           }
         }
       }

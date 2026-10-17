@@ -19,10 +19,11 @@ describe('exponential-logistic.percentage-growth', () => {
   const read = (stem: string) => {
     const p = Number(/(\d+)% per year/.exec(stem)![1]);
     const Y0 = Number(/1 January (\d{4})/.exec(stem)![1]);
-    const times = /(\d+(?:\.\d+)?) times as large/.exec(stem);
+    const times = /(\d+(?:\.\d+)?|twice|three times|four times)(?: times)? as large/.exec(stem);
     const pct = /(?:below|dropped to) (\d+)% of/.exec(stem);
     const grow = !!times;
-    return { Y0, grow, g: grow ? 1 + p / 100 : 1 - p / 100, k: grow ? Number(times![1]) : Number(pct![1]) / 100 };
+    const words: Record<string, number> = { twice: 2, 'three times': 3, 'four times': 4 };
+    return { Y0, grow, g: grow ? 1 + p / 100 : 1 - p / 100, k: grow ? (words[times![1]] ?? Number(times![1])) : Number(pct![1]) / 100 };
   };
   it('the key year is found by compounding year by year; no other option is', () => {
     for (let seed = 1; seed <= SEEDS; seed++) {
@@ -148,5 +149,17 @@ it('keys are not always the same option letter', () => {
     const letters = new Set(Array.from({ length: 40 }, (_, i) => gen(t.id, i + 1).correctAnswer));
     expect(letters.size, t.id).toBeGreaterThan(1);
     expect(keyText(gen(t.id, 1)).length).toBeGreaterThan(0);
+  }
+});
+
+it('ascending value options: the key is sometimes the first and sometimes the last option (its place gives nothing away)', () => {
+  for (const t of TEMPLATES) {
+    const places = new Set<string>();
+    for (let seed = 1; seed <= 100; seed++) {
+      const g = gen(t.id, seed);
+      const i = g.options!.findIndex((o) => o.id === g.correctAnswer);
+      places.add(i === 0 ? 'first' : i === g.options!.length - 1 ? 'last' : 'middle');
+    }
+    expect([...places].sort(), t.id).toEqual(['first', 'last', 'middle']);
   }
 });

@@ -23,6 +23,8 @@ const whole = (x: number) => {
   return { correctAnswer: f.answer, tolerance: f.tolerance };
 };
 const orText = (xs: readonly string[]) => `${xs.slice(0, -1).join(', ')} or ${xs[xs.length - 1]}`;
+/** The picked items in the order of the full list (e.g. rising times 2, 8, 24 hours instead of 24, 2, 8). */
+const inOrder = <T>(all: readonly T[], picked: readonly T[]) => all.filter((x) => picked.includes(x));
 
 // =====================================================================================================================
 // 1. Sampling methods
@@ -211,14 +213,14 @@ const samplingMethod: Template = {
         explanation:
           ms.map((m, i) => `- Plan ${i + 1} ("${plans[i].split(' ').slice(0, 9).join(' ')} …") is **${lc(METHOD_NAME[m])}**: ${METHOD_DEF[m]}.`).join('\n') +
           `\n\nThe key difference: stratified sampling samples *within every* group, cluster sampling takes *everyone* in a *few random* groups, and multi-stage sampling takes a random sample within a few random groups. ` +
-          `${extra.map((m) => METHOD_NAME[m]).join(' and ')} ${extra.length > 1 ? 'are' : 'is'} not used.`,
+          `${cap(listText(extra.map((m) => lc(METHOD_NAME[m]))))} ${extra.length > 1 ? 'are' : 'is'} not used.`,
       };
     }
     if (rng.chance(0.6)) {
       const meth = rng.pick(METHODS);
       const text = plan(meth, p, d, rng);
       const mcq = buildMcq(rng, { text: METHOD_NAME[meth] }, CONFUSE[meth].map((w) => ({ text: METHOD_NAME[w], why: methodWhy(meth, w) })), { count: optionCount });
-      const lead = rng.pick(['The sample is selected as follows.', 'Its research team proposes the following plan.', 'Respondents are selected like this:']);
+      const lead = rng.pick(['The sample is selected as follows.', 'The research team proposes the following plan.', 'Respondents are selected like this:']);
       return {
         type,
         stem: `${p.intro} ${lead}\n${text}\nWhich sampling method is used here?`,
@@ -296,7 +298,7 @@ const small = (rng: Rng) => rng.pick([150, 200, 250, 300, 400, 500]);
 interface BiasCase { kind: Bias; text: (rng: Rng) => string; note: string }
 export const BIAS_CASES: BiasCase[] = [
   { kind: 'undercoverage', text: (rng) => `To estimate the share of residents of ${rng.pick(TOWNS)} who take the bus at least once a week, the municipality draws a simple random sample of ${small(rng)} residents from its register of parking-permit holders. Everyone selected answers the question.`, note: 'residents without a parking permit (often exactly the people who take the bus) are not in the register, so they cannot be selected.' },
-  { kind: 'undercoverage', text: (rng) => `A polling agency wants to know how many adults stream music every day. It calls ${small(rng)} numbers drawn at random from the landline telephone directory, and every person reached answers the questions.`, note: 'many (especially younger) people only have a mobile phone and are not in the landline directory, so they cannot be selected.' },
+  { kind: 'undercoverage', text: (rng) => `A polling agency wants to know how many adults stream music every day. It calls ${small(rng)} numbers drawn at random from the landline telephone directory; someone picks up at every number and answers all the questions.`, note: 'many (especially younger) people only have a mobile phone and are not in the landline directory, so they cannot be selected.' },
   { kind: 'undercoverage', text: (rng) => `To learn how students rate the campus Wi-Fi, the IT department e-mails ${small(rng)} students drawn at random from the list of students who logged in to the campus Wi-Fi last week. Every selected student replies.`, note: 'students who did not use the Wi-Fi last week (perhaps because it works badly for them) are not on the list.' },
   { kind: 'undercoverage', text: (rng) => `The Dwarf Council wants to know what all dwarves of the mountain think about a new tunnel tax. It draws ${small(rng)} names at random from the register of dwarves who own a mine, and each of them is interviewed anonymously.`, note: 'dwarves without a mine are not in the register, so they cannot be selected, and they may think differently about a tunnel tax.' },
   { kind: 'nonresponse', text: (rng) => { const v = resp(rng); return `A random sample of ${v.n} households is drawn from the complete address list of ${rng.pick(TOWNS)} and sent a twelve-page paper questionnaire about leisure time. Only ${v.r} households (${v.p}%) send it back, and the report is based on these.`; }, note: 'most selected households did not respond; busy households, for instance, rarely return a long questionnaire, so the households that did respond may not be representative.' },
@@ -330,7 +332,7 @@ const TERM_STORIES: TermStory[] = [
     Parameter: `The share of all ${N} elves who would like a bridge`, Statistic: `The ${p}% of the visited elves who want the bridge`,
   }),
   (N, F, n, p) => ({
-    story: `A city wants to know which share of its ${N} restaurants would join a car-free Sunday market. Its licence register contains ${F} restaurants (the newest ones are still missing). ${n} restaurants are picked at random from the register and phoned, and ${p}% of them would join.`,
+    story: `A city wants to know which share of its ${N} restaurants would join a car-free Sunday market. Its licence register contains ${F} restaurants (the newest ones are still missing). The city phones ${n} restaurants picked at random from the register, and ${p}% of them would join.`,
     Population: `All ${N} restaurants in the city`, 'Sampling frame': `The licence register with ${F} restaurants`, Sample: `The ${n} restaurants that are phoned`,
     Parameter: `The share of all ${N} restaurants that would join the market`, Statistic: `The ${p}% of the phoned restaurants that would join`,
   }),
@@ -397,15 +399,15 @@ const surveyBias: Template = {
 
 interface Exp { story: (rng: Rng) => string; unit: string; treat: string; factor: string; response: string; block: string; who: string }
 export const EXPS: Exp[] = [
-  { story: (rng) => { const l = rng.sample(['compost', 'seaweed extract', 'chicken manure', 'a chemical fertiliser'], rng.int(2, 4)); return `A horticulturist compares ${l.length} fertilisers for tomato plants: ${listText(l)}. Her plants grow in ${rng.int(2, 4)} greenhouses that get different amounts of sunlight, so within each greenhouse she assigns ${rng.int(4, 10)} plants at random to each fertiliser. After ten weeks, she weighs the tomatoes picked from every plant.`; },
+  { story: (rng) => { const all = ['compost', 'seaweed extract', 'chicken manure', 'a chemical fertiliser']; const l = inOrder(all, rng.sample(all, rng.int(2, 4))); return `A horticulturist compares ${l.length} fertilisers for tomato plants: ${listText(l)}. Her plants grow in ${rng.int(2, 4)} greenhouses that get different amounts of sunlight, so within each greenhouse she assigns ${rng.int(4, 10)} plants at random to each fertiliser. After ten weeks, she weighs the tomatoes picked from every plant.`; },
     unit: 'a tomato plant', treat: 'a particular fertiliser', factor: 'The fertiliser', response: 'The weight of the tomatoes per plant', block: 'The greenhouse', who: 'the horticulturist' },
-  { story: (rng) => { const l = rng.sample(['Moonwater', 'Dreamdust', 'Owl Whisper', 'Slumberroot'], rng.int(2, 4)); return `The potion master of a school of wizardry tests ${l.length} sleeping potions: ${listText(l)}. Her test subjects are dwarves and elves, who are known to react differently to potions, so she assigns the potions at random separately among the dwarves and among the elves. For every subject she records how many minutes it takes to fall asleep.`; },
+  { story: (rng) => { const all = ['Moonwater', 'Dreamdust', 'Owl Whisper', 'Slumberroot']; const l = inOrder(all, rng.sample(all, rng.int(2, 4))); return `The potion master of a school of wizardry tests ${l.length} sleeping potions: ${listText(l)}. Her test subjects are dwarves and elves, who are known to react differently to potions, so she assigns the potions at random separately among the dwarves and among the elves. For every subject she records how many minutes it takes to fall asleep.`; },
     unit: 'a test subject', treat: 'a particular sleeping potion', factor: 'The sleeping potion', response: 'The time until falling asleep', block: 'The species (dwarf or elf)', who: 'the potion master' },
-  { story: (rng) => { const l = rng.sample(['flashcards', 'practice exams', 'study groups', 'rereading the slides'], rng.int(2, 4)); return `A study coach compares ${l.length} ways of preparing for a statistics exam: ${listText(l)}. First-year and second-year students differ in experience, so she assigns the methods at random separately within each year. Afterwards she records the exam score of each of the ${rng.int(6, 12) * 10} students.`; },
+  { story: (rng) => { const all = ['flashcards', 'practice exams', 'study groups', 'rereading the slides']; const l = inOrder(all, rng.sample(all, rng.int(2, 4))); return `A study coach compares ${l.length} ways of preparing for a statistics exam: ${listText(l)}. First-year and second-year students differ in experience, so she assigns the methods at random separately within each year. Afterwards she records the exam score of each of the ${rng.int(6, 12) * 10} students.`; },
     unit: 'a student', treat: 'a particular preparation method', factor: 'The preparation method', response: 'The exam score', block: 'The year of study', who: 'the study coach' },
-  { story: (rng) => { const l = rng.sample(['2 hours', '8 hours', '24 hours', '48 hours'], rng.int(2, 4)); return `A pizza chain tests ${l.length} rising times for its dough: ${listText(l)}. Some restaurants bake in wood-fired ovens and others in electric ovens, so within each oven type, ${rng.int(4, 9)} batches of dough per rising time are assigned at random. A tasting panel gives each baked crust a score from 1 to 10.`; },
+  { story: (rng) => { const all = ['2 hours', '8 hours', '24 hours', '48 hours']; const l = inOrder(all, rng.sample(all, rng.int(2, 4))); return `A pizza chain tests ${l.length} rising times for its dough: ${listText(l)}. Some restaurants bake in wood-fired ovens and others in electric ovens, so within each oven type the batches of dough are assigned at random to the rising times, ${rng.int(4, 9)} batches per rising time. A tasting panel gives each baked crust a score from 1 to 10.`; },
     unit: 'a batch of dough', treat: 'a particular rising time', factor: 'The rising time', response: 'The tasting score of the crust', block: 'The type of oven', who: 'the tasting panel' },
-  { story: (rng) => { const l = rng.sample(['classical music', 'pop music', 'no music'], rng.int(2, 3)); return `A dairy farmer wonders whether music in the barn affects milk production. Her herd has two breeds that give very different amounts of milk, so within each breed she assigns the cows at random to barns with ${orText(l)}. After a month she records the daily milk yield of each of her ${rng.int(4, 12) * 10} cows.`; },
+  { story: (rng) => { const all = ['classical music', 'pop music', 'no music']; const l = inOrder(all, rng.sample(all, rng.int(2, 3))); return `A dairy farmer wonders whether music in the barn affects milk production. Her herd has two breeds that give very different amounts of milk, so within each breed she assigns the cows at random to barns with ${orText(l)}. After a month she records the daily milk yield of each of her ${rng.int(4, 12) * 10} cows.`; },
     unit: 'a cow', treat: 'a particular type of music', factor: 'The music played in the barn', response: 'The daily milk yield', block: 'The breed of the cow', who: 'the dairy farmer' },
 ];
 interface Obs { story: (rng: Rng) => string; explanatory: string; response: string; confounder: string }
@@ -439,8 +441,9 @@ const studyAnatomy: Template = {
   generate({ rng, type, optionCount }) {
     if (type === 'numeric') {
       const f = rng.pick(FACT2);
-      const l1 = rng.sample(f.l1, rng.int(2, 4));
-      const l2 = rng.sample(f.l2, rng.int(2, 3));
+      // levels in their natural order; never 2 × 2, where adding the numbers of levels (2 + 2) gives the right count
+      const l1 = inOrder(f.l1, rng.sample(f.l1, rng.int(2, 4)));
+      const l2 = inOrder(f.l2, rng.sample(f.l2, l1.length === 2 ? 3 : rng.int(2, 3)));
       const r = rng.int(3, 8);
       const k = rng.chance(0.5) ? rng.int(2, 4) : 1;
       const askUnits = rng.chance(0.6) || k > 1;
@@ -544,7 +547,7 @@ const TRIALS: Trial[] = [
   { intro: 'A sports-drink company wants to know whether its new energy drink makes amateur cyclists faster.', subjects: 'cyclists', population: 'all amateur cyclists in the Netherlands', treat: 'energy drink', placebo: 'a drink that looks and tastes the same but contains no active ingredients', outcome: 'the time needed to ride 20 km', evaluators: 'The coaches who time the rides', blockVar: 'Gender', blockHow: 'separately for men and for women', confounder: 'the fitness of the cyclists' },
   { intro: 'An education start-up wants to know whether its reading app improves the reading skills of eight-year-olds.', subjects: 'children', population: 'all eight-year-olds in the country', treat: 'reading app', placebo: 'a look-alike app with games but without reading exercises', outcome: 'the score on a reading test', evaluators: 'The teachers who mark the reading tests', blockVar: 'School', blockHow: 'separately within each participating school', confounder: 'how much the parents read with their children' },
   { intro: 'A tea brand claims that its new evening tea helps people sleep longer.', subjects: 'adults', population: 'all adults in Belgium', treat: 'evening tea', placebo: 'an ordinary herbal tea with the same taste and colour', outcome: 'the number of hours slept', evaluators: 'The researchers who read out the sleep trackers', blockVar: 'Age group', blockHow: 'separately for adults under 40 and adults aged 40 or older', confounder: 'the stress level of the participants' },
-  { intro: 'A wizard claims that his potion makes beards grow faster.', subjects: 'dwarves', population: 'all dwarves of the Iron Hills', treat: 'potion', placebo: 'coloured water that smells exactly like the potion', outcome: 'the beard growth after one month', evaluators: 'The barbers who measure the beards', blockVar: 'Clan', blockHow: 'separately within each of the three dwarf clans', confounder: 'the age of the dwarves' },
+  { intro: 'A wizard claims that his potion makes beards grow faster.', subjects: 'dwarves', population: 'all dwarves of the Iron Hills', treat: 'potion', placebo: 'coloured water that looks, smells and tastes exactly like the potion', outcome: 'the beard growth after one month', evaluators: 'The barbers who measure the beards', blockVar: 'Clan', blockHow: 'separately within each of the three dwarf clans', confounder: 'the age of the dwarves' },
 ];
 export interface Design { randomSample: boolean; randomAssign: boolean; placebo: boolean; evalBlind: boolean; blocked: boolean }
 

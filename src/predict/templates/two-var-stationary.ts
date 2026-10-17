@@ -5,7 +5,7 @@
 // stationary point is checked to make both partial derivatives exactly zero. See two-var-stationary.test.ts for the
 // independent checks (Newton's method on the printed function, numerical Hessians, direct maximisation).
 import { buildMcq, INSTRUCTION, mistakesNote, num, numericField, type Choice } from '../build';
-import { gcd } from '../mathx';
+import { frac, gcd } from '../mathx';
 import type { Rng } from '../rng';
 import type { Generated, Template } from '../types';
 import { choiceQuestion, ensure, euro, integerFallback, numericQuestion, valueMcq } from './_econ';
@@ -171,8 +171,8 @@ function cubics(): Cubic[] {
   return (cubicCache = out);
 }
 
-/** A coefficient that is a fraction, in front of a symbol: 1 → "", −1 → "-", 2/3 → "\frac{2}{3}". */
-const fracCoef = (x: number) => (x === 1 ? '' : x === -1 ? '-' : ratTex(x));
+/** A coefficient that is a fraction, in front of a symbol: 1 → "", −1 → "-", 2/3 → "\frac{2}{3}" (any denominator up to 1000). */
+const fracCoef = (x: number) => (x === 1 ? '' : x === -1 ? '-' : ratTex(x, 1000));
 
 /** Cubic functions: the general a·u³ + b·u²v + c·v³ + d·v, a separable one, or a·(u³ + v³) − 3ak·uv. */
 function cubicFamily(rng: Rng, s: Shift): Family {
@@ -207,7 +207,7 @@ function cubicFamily(rng: Rng, s: Shift): Family {
     const yOfX = k === 1 ? `${X}^2` : k === -1 ? `-${X}^2` : k > 0 ? `\\dfrac{${X}^2}{${k}}` : `-\\dfrac{${X}^2}{${-k}}`;
     const solve =
       `$$f'_x=${prodTex(3 * a, [[[1, 2, 0], [-k, 0, 1]]], s)},\\qquad f'_y=${prodTex(3 * a, [[[1, 0, 2], [-k, 1, 0]]], s)}$$ ` +
-      `$f'_x=0$ gives $${Y}=${yOfX}$. Substituting this into $f'_y=0$: $$\\dfrac{${X}^4}{${k * k}}${k < 0 ? '+' : '-'}${Math.abs(k) === 1 ? '' : Math.abs(k)}${X}=0\;\\Leftrightarrow\; ${X}\\left(${X}^3${k < 0 ? '+' : '-'}${Math.abs(k ** 3)}\\right)=0$$ ` +
+      `$f'_x=0$ gives $${Y}=${yOfX}$. Substituting this into $f'_y=0$: $$${Math.abs(k) === 1 ? `${X}^4` : `\\dfrac{${X}^4}{${k * k}}`}${k < 0 ? '+' : '-'}${Math.abs(k) === 1 ? '' : Math.abs(k)}${X}=0\\;\\Leftrightarrow\\; ${X}\\left(${X}^3${k < 0 ? '+' : '-'}${Math.abs(k ** 3)}\\right)=0$$ ` +
       `so $x=${s.p}$ (then $y=${s.q}$) or $${X}^3=${k ** 3}$, i.e. $x=${xv(s, k)}$ (then $y=${yv(s, k)}$).`;
     const countMistakes = [
       { value: 1, why: `divides by $${X}$ and so loses the solution $x=${s.p}$.` },
@@ -221,15 +221,18 @@ function cubicFamily(rng: Rng, s: Shift): Family {
   const { a, b, c, d, v1sq, v2sq, pts } = rng.pick(rng.chance(0.4) ? four : all);
   const P: Poly2 = [[a, 3, 0], [b, 2, 1], [c, 0, 3], [d, 0, 1]];
   const m = (-2 * b) / (3 * a);
-  const den = b * m * m + 3 * c;
+  // b·m² + 3c = N/(9a²) with N = 4b³ + 27a²c: printed as an exact fraction (the denominator can exceed 60)
+  const N = 4 * b ** 3 + 27 * a * a * c;
+  const den = N / (9 * a * a);
+  ensure(Math.abs(den - (b * m * m + 3 * c)) < 1e-9 && Math.abs(v2sq - (-9 * a * a * d) / N) < 1e-9, 'cubic second case');
   const g = gcd(3 * a, 2 * b) * Math.sign(a);
   const [s1, s2] = [Math.sqrt(Math.abs(v1sq)), Math.sqrt(Math.abs(v2sq))];
   const solve =
     `$$f'_x=${prodTex(g, [U, [[(3 * a) / g, 1, 0], [(2 * b) / g, 0, 1]]], s)},\\qquad f'_y=${p2Tex([[b, 2, 0], [3 * c, 0, 2], [d, 0, 0]], s)}$$ ` +
-    `$f'_x=0$ gives $x=${s.p}$ or $${termsTex([[3 * a, X], [2 * b, Y]])}=0$, i.e. $${X}=${fracCoef(m)}${Y}$.\n\n` +
+    `$f'_x=0$ gives $x=${s.p}$ or $${termsTex([[(3 * a) / g, X], [(2 * b) / g, Y]])}=0$, i.e. $${X}=${fracCoef(m)}${Y}$.\n\n` +
     `- If $x=${s.p}$: $f'_y=${termsTex([[3 * c, `${Y}^2`], [d, '']])}=0$ gives $${Y}^2=${ratTex(v1sq)}$` +
     (v1sq > 0 ? `, so $y=${yv(s, s1)}$ or $y=${yv(s, -s1)}$: the points ${listPts(s, [[0, s1], [0, -s1]])}.\n` : ', which has no solution.\n') +
-    `- If $${X}=${fracCoef(m)}${Y}$: $f'_y=${fracCoef(den)}${Y}^2${d < 0 ? '-' : '+'}${Math.abs(d)}=0$ gives $${Y}^2=${ratTex(v2sq)}$` +
+    `- If $${X}=${fracCoef(m)}${Y}$: $f'_y=${fracCoef(den)}${Y}^2${d < 0 ? '-' : '+'}${Math.abs(d)}=0$ gives $${Y}^2=${frac(-9 * a * a * d, N)}$` +
     (v2sq > 0 ? `: the points ${listPts(s, [[m * s2, s2], [-m * s2, -s2]])}.` : ', which has no solution.');
   const [n1, n2] = [v1sq > 0 ? 2 : 0, v2sq > 0 ? 2 : 0];
   const countMistakes = [
@@ -317,7 +320,7 @@ const findPoint: Template = {
       fallback: (i) => ({ text: pt(x0 + (i % 2 ? -1 : 1) * (Math.floor(i / 2) + 1), y0 + (i % 3) - 1), why: 'an arithmetic slip while solving the two equations.' }),
     });
     const stem = rng.pick([
-      `Which of the following points is the stationary point of ${stemF}`,
+      `Consider the function ${stemF} Which of the following points is its stationary point?`,
       `The function ${stemF} has exactly one stationary point. Which point is it?`,
       `Solve the first-order conditions $f'_x=0$ and $f'_y=0$ for ${stemF} Which point do you find?`,
     ]);
@@ -413,7 +416,7 @@ const count: Template = {
         ])
       : rng.pick([
           `Determine the total number of stationary points of ${stemF}`,
-          `At how many points $(x,y)$ are both first-order conditions $f'_x=0$ and $f'_y=0$ satisfied for ${stemF}`,
+          `Consider the function ${stemF} At how many points $(x,y)$ are both first-order conditions $f'_x=0$ and $f'_y=0$ satisfied?`,
         ]);
     const explanation =
       `${fam.solve}\n\nSo $f$ has ${total} stationary point${total === 1 ? '' : 's'}: ${listPts(s, fam.pts)}.` +
@@ -435,16 +438,17 @@ const count: Template = {
 
 const SELLERS = [
   { who: 'A theatre', what: 'tickets', m1: 'students', m2: 'other visitors' },
-  { who: 'A software company', what: 'licences of its planning tool', m1: 'Europe', m2: 'Asia' },
+  { who: 'A software company', what: 'monthly subscriptions to its planning app', m1: 'Europe', m2: 'Asia' },
   { who: 'A climbing gym', what: 'day passes', m1: 'members of the university sports centre', m2: 'tourists' },
   { who: 'A publisher', what: 'an e-book', m1: 'the Dutch market', m2: 'the German market' },
-  { who: 'A football club', what: 'season tickets', m1: 'youth fans', m2: 'adult fans' },
+  { who: 'A football club', what: 'match tickets', m1: 'youth fans', m2: 'adult fans' },
 ];
+// The prices come out between €40 and €330, so only products for which such prices are realistic.
 const PRODUCERS = [
-  { who: 'A bakery', x: 'loaves of bread', y: 'cakes', per: 'day' },
-  { who: 'A small brewery', x: 'crates of lager', y: 'crates of special beer', per: 'week' },
   { who: 'A furniture workshop', x: 'chairs', y: 'tables', per: 'month' },
-  { who: 'A print shop', x: 'posters', y: 'banners', per: 'week' },
+  { who: 'A catering company', x: 'lunch buffets', y: 'dinner buffets', per: 'month' },
+  { who: 'A ceramics studio', x: 'vases', y: 'dinner sets', per: 'month' },
+  { who: 'A carpentry workshop', x: 'bookcases', y: 'wardrobes', per: 'month' },
 ];
 
 interface ProfitCase {
@@ -517,7 +521,7 @@ function twoProducts(rng: Rng, askProfit: boolean): ProfitCase {
   while (4 * a * c - b * b <= 0 || a * c === b * b);
   let x0: number, y0: number;
   do [x0, y0] = [2 * rng.int(5, 30), 2 * rng.int(5, 30)];
-  while (x0 === y0);
+  while (x0 === y0 || Math.min(2 * a * x0 + b * y0, b * x0 + 2 * c * y0) < 40);
   const F = rng.pick([100, 200, 250, 400, 500]);
   const [p, q] = [2 * a * x0 + b * y0, b * x0 + 2 * c * y0];
   const cost = (x: number, y: number) => a * x * x + b * x * y + c * y * y + F;
@@ -531,7 +535,7 @@ function twoProducts(rng: Rng, askProfit: boolean): ProfitCase {
   const det = 4 * a * c - b * b;
   const explanation =
     `Profit is $\\pi(x,y)=${p}x+${q}y-\\left(${costTex}\\right)$. The first-order conditions are $$\\pi'_x=${termsTex([[p, ''], [-2 * a, 'x'], [-b, 'y']])}=0,\\qquad \\pi'_y=${termsTex([[q, ''], [-b, 'x'], [-2 * c, 'y']])}=0$$ ` +
-    `From the first, $x=${2 * a === 1 ? termsTex([[p, ''], [-b, 'y']]) : `\\dfrac{${termsTex([[p, ''], [-b, 'y']])}}{${num(2 * a)}}`}$. Substituting this into the second equation and solving for $y$ (or eliminating $x$) gives $$y=\\dfrac{${num(2 * a)}\\cdot ${q}-${num(b)}\\cdot ${p}}{${num(2 * a)}\\cdot ${num(2 * c)}-${num(b)}^2}=\\dfrac{${num(2 * a * q - b * p)}}{${num(det)}}=${y0}$$ and then $x=${x0}$. ` +
+    `From the first, $x=${2 * a === 1 ? termsTex([[p, ''], [-b, 'y']]) : `\\dfrac{${termsTex([[p, ''], [-b, 'y']])}}{${num(2 * a)}}`}$. Substituting this into the second equation and solving for $y$ (or eliminating $x$) gives $$y=\\dfrac{${num(2 * a)}\\cdot ${q}-${num(b)}\\cdot ${p}}{${num(2 * a)}\\cdot ${num(2 * c)}-${num(b)}^2}${det === 1 ? '' : `=\\dfrac{${num(2 * a * q - b * p)}}{${num(det)}}`}=${y0}$$ and then $x=${x0}$. ` +
     `Second-order test: $\\pi''_{xx}=${num(-2 * a)}<0$, $\\pi''_{yy}=${num(-2 * c)}$, $\\pi''_{xy}=${num(-b)}$, so $C=(${num(-2 * a)})\\cdot(${num(-2 * c)})-(${num(-b)})^2=${num(det)}>0$: a maximum. ` +
     `$$\\pi(${x0},${y0})=${p}\\cdot ${x0}+${q}\\cdot ${y0}-${num(cost(x0, y0))}=${num(best)}$$`;
   const solve2 = (a11: number, a12: number, a21: number, a22: number): [number, number] => {

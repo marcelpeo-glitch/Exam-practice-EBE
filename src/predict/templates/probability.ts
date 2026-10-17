@@ -76,8 +76,8 @@ const TWO_WAY: readonly TwoWay[] = [
     unit: 'dog', units: 'dogs', rowVar: 'Age group', rows: ['puppy', 'adult dog', 'senior dog'], colVar: 'adoption', cols: ['adopted within a month', 'still waiting after a month'],
   },
   {
-    intro: (n) => `A board-game café noted for ${n} tables which kind of game was played and how large the group at the table was.`,
-    unit: 'table', units: 'tables', rowVar: 'Kind of game', rows: ['strategy game', 'party game', 'cooperative game'], colVar: 'group size', cols: ['two players', 'three or more players'],
+    intro: (n) => `A board-game café noted for ${n} games played last month which kind of game it was and how many players took part.`,
+    unit: 'game', units: 'games', rowVar: 'Kind of game', rows: ['strategy game', 'party game', 'cooperative game'], colVar: 'group size', cols: ['two players', 'three or more players'],
   },
   {
     intro: (n) => `An escape-room company kept track of ${n} teams: the size of the team and whether the team got out before the clock ran out.`,
@@ -521,9 +521,12 @@ const QUANT: Record<Quant, string> = { atLeastOne: '**at least one**', none: '**
 export interface RepeatScenario {
   /** Mentions n (as digits) and the single percentage p. */
   intro: (n: number, p: string) => string;
+  item: string;
   items: string;
   sing: string;
   pl: string;
+  /** The opposite of `sing` ("is not contaminated"). */
+  notSing: string;
   p: [number, number, number];
   n: [number, number];
   asks: readonly Quant[];
@@ -532,27 +535,27 @@ export interface RepeatScenario {
 const REPEAT: readonly RepeatScenario[] = [
   {
     intro: (n, p) => `To save time, a water lab mixes the samples of ${n} wells into one pooled sample, which tests positive as soon as one of the wells is contaminated. Each well is contaminated with probability ${p}, independently of the other wells.`,
-    items: 'wells', sing: 'is contaminated', pl: 'are contaminated', p: [2, 15, 1], n: [4, 10], asks: ['atLeastOne', 'none'],
+    item: 'well', items: 'wells', sing: 'is contaminated', pl: 'are contaminated', notSing: 'is not contaminated', p: [2, 15, 1], n: [4, 10], asks: ['atLeastOne', 'none'],
   },
   {
     intro: (n, p) => `A floor of an office building has ${n} smoke detectors. In a fire, each detector fails to go off with probability ${p}, independently of the others.`,
-    items: 'detectors', sing: 'fails to go off', pl: 'fail to go off', p: [5, 30, 5], n: [2, 5], asks: ['atLeastOne', 'none', 'all'],
+    item: 'detector', items: 'detectors', sing: 'fails to go off', pl: 'fail to go off', notSing: 'goes off', p: [5, 30, 5], n: [2, 5], asks: ['atLeastOne', 'none', 'all'],
   },
   {
     intro: (n, p) => `During a training session a football player takes ${n} penalty kicks. She scores each kick with probability ${p}, independently of the other kicks.`,
-    items: 'kicks', sing: 'is scored', pl: 'are scored', p: [70, 90, 5], n: [3, 8], asks: ['all', 'none', 'atLeastOne'],
+    item: 'kick', items: 'kicks', sing: 'is scored', pl: 'are scored', notSing: 'is missed', p: [70, 90, 5], n: [3, 8], asks: ['all', 'none', 'atLeastOne'],
   },
   {
     intro: (n, p) => `A travel blogger books ${n} flights this year. Each flight is delayed by more than an hour with probability ${p}, independently of the other flights.`,
-    items: 'flights', sing: 'is delayed by more than an hour', pl: 'are delayed by more than an hour', p: [4, 20, 1], n: [4, 12], asks: ['atLeastOne', 'none'],
+    item: 'flight', items: 'flights', sing: 'is delayed by more than an hour', pl: 'are delayed by more than an hour', notSing: 'is not delayed by more than an hour', p: [4, 20, 1], n: [4, 12], asks: ['atLeastOne', 'none'],
   },
   {
     intro: (n, p) => `A shop sells packs of ${n} LED bulbs. Each bulb is defective with probability ${p}, independently of the other bulbs in the pack.`,
-    items: 'bulbs', sing: 'is defective', pl: 'are defective', p: [1, 8, 1], n: [4, 12], asks: ['atLeastOne', 'none'],
+    item: 'bulb', items: 'bulbs', sing: 'is defective', pl: 'are defective', notSing: 'is not defective', p: [1, 8, 1], n: [4, 12], asks: ['atLeastOne', 'none'],
   },
   {
     intro: (n, p) => `A student sets ${n} alarm clocks on the morning of an exam, all working independently. Each one rings with probability ${p}.`,
-    items: 'alarm clocks', sing: 'rings', pl: 'ring', p: [80, 95, 5], n: [2, 4], asks: ['atLeastOne', 'all', 'none'],
+    item: 'alarm clock', items: 'alarm clocks', sing: 'rings', pl: 'ring', notSing: 'does not ring', p: [80, 95, 5], n: [2, 4], asks: ['atLeastOne', 'all', 'none'],
   },
 ];
 
@@ -604,7 +607,8 @@ function repeatQuestion(rng: Rng, type: GenType, optionCount: number): Generated
   const p = pp / 100;
   const dp = key < 0.1 ? 4 : 3;
   const verb = q === 'all' ? sc.pl : sc.sing;
-  const subject = q === 'all' ? `${QUANT.all} ${n} ${sc.items}` : `${QUANT[q]} of the ${n} ${sc.items}`;
+  const subject =
+    n === 2 && q === 'all' ? `**both** ${sc.items}` : n === 2 && q === 'none' ? `**neither** of the 2 ${sc.items}` : q === 'all' ? `${QUANT.all} ${n} ${sc.items}` : `${QUANT[q]} of the ${n} ${sc.items}`;
   const stem = `${sc.intro(n, `${num(pp, 1)}%`)}\n\nWhat is the probability that ${subject} ${verb}?`;
   const none = (1 - p) ** n;
   const all = p ** n;
@@ -623,21 +627,23 @@ function repeatQuestion(rng: Rng, type: GenType, optionCount: number): Generated
       { value: one, why: 'computes the probability of exactly one.' },
       { value: all, why: `computes the probability that all ${n} happen.` },
       { value: 1 - all, why: 'takes the complement of "all" instead of the complement of "none".' },
+      { value: p, why: `gives the probability for a single one of the ${sc.items}.` },
     ];
   } else if (q === 'none') {
-    explanation = `For each of the ${sc.items} the probability that it does not happen is $1-${pT}=${qT}$. They are independent, so multiply: $$P(\\text{none})=${qT}^{${n}}\\approx ${fixed(key, dp)}$$`;
+    explanation = `The probability that one ${sc.item} ${sc.notSing} is $1-${pT}=${qT}$. The ${sc.items} are independent, so multiply: $$P(\\text{none})=${qT}^{${n}}\\approx ${fixed(key, dp)}$$`;
     wrong = [
       { value: 1 - none, why: 'computes "at least one" instead of "none".' },
       { value: 1 - n * p, why: `subtracts $${n}\\cdot ${pT}$ from 1, which ignores the overlap between the events.` },
-      { value: all, why: `uses $${pT}^{${n}}$: the probability that all of them happen.` },
+      { value: all, why: `uses $${pT}^{${n}}$: the probability that all of them ${sc.pl}.` },
       { value: 1 - all, why: 'computes the complement of "all".' },
       { value: (1 - p) ** (n - 1), why: `uses the exponent ${n - 1} instead of ${n}.` },
+      { value: 1 - p, why: `gives the probability for a single one of the ${sc.items}.` },
     ];
   } else {
-    explanation = `The ${sc.items} are independent, so the multiplication rule gives $$P(\\text{all ${n}})=${pT}^{${n}}\\approx ${fixed(key, dp)}$$`;
+    explanation = `The ${sc.items} are independent, so the multiplication rule gives $$P(\\text{${n === 2 ? 'both' : `all ${n}`}})=${pT}^{${n}}\\approx ${fixed(key, dp)}$$`;
     wrong = [
       { value: 1 - (1 - p) ** n, why: 'computes "at least one" instead of "all".' },
-      { value: none, why: `uses $(1-${pT})^{${n}}$: the probability that none of them happen.` },
+      { value: none, why: `uses $(1-${pT})^{${n}}$: the probability that none of them ${sc.sing}.` },
       { value: 1 - all, why: 'computes the complement: "not all".' },
       { value: p, why: `gives the probability for a single one of the ${sc.items}.` },
       { value: p ** (n - 1), why: `uses the exponent ${n - 1} instead of ${n}.` },
@@ -684,6 +690,8 @@ function vennQuestion(rng: Rng, type: GenType, optionCount: number): Generated {
       { value: (1 - pa) * (1 - pb), why: 'multiplies $P(A^c)\\cdot P(B^c)$, which assumes independence.' },
       { value: 1 - pab, why: 'takes the complement of "both" instead of the complement of "or".' },
       { value: pOr, why: 'computes "$A$ or $B$" and forgets the complement.' },
+      { value: 1 - pa, why: `gives $P(A^c)$: it only excludes those who ${sc.baseA}.` },
+      { value: 1 - pb, why: `gives $P(B^c)$: it only excludes those who ${sc.baseB}.` },
     ];
   } else if (kind === 'onlyA') {
     q = `What is the probability that a randomly chosen ${u} ${sc.A} but does **not** ${sc.baseB}?`;

@@ -88,7 +88,10 @@ describe('functions-domains.excluded-point', () => {
       expect(poles.length, `poles of ${g.stem}`).toBe(1);
       expect(Math.abs(poles[0] - (g.correctAnswer as number))).toBeLessThanOrEqual(g.tolerance!);
       // the worked solution ends with the same rounded value as the key (no double rounding such as 3.6945 → 3.695)
-      expect(g.explanation).toContain(`x_0\\approx ${g.correctAnswer}$`);
+      const shown = /Rounded to (\d) decimals: \$x_0\\approx (-?\d+\.\d+)\$/.exec(g.explanation);
+      expect(shown, g.explanation).not.toBeNull();
+      expect(shown![2].split('.')[1].length).toBe(Number(shown![1])); // all decimals shown, e.g. 0.050 (not 0.05)
+      expect(Number(shown![2])).toBe(g.correctAnswer);
     }
   });
 });

@@ -126,10 +126,14 @@ const partialDerivative: Template = {
     const D = p2Tex(dw);
     const special: FormulaChoice[] = {
       exp: [{ tex: times(g, `e^{${G}}`), expr: `(${p2Expr(g)})*exp(${p2Expr(g)})`, why: 'multiplies by the exponent itself instead of by its derivative.' }],
-      ln: [{ tex: `\\dfrac{${G}}{${D}}`, expr: `(${p2Expr(g)})/(${p2Expr(dw)})`, why: 'turns the fraction upside down.' }],
+      ln: [{ tex: D === '1' ? G : D === '-1' ? `-\\left(${G}\\right)` : `\\dfrac{${G}}{${D}}`, expr: `(${p2Expr(g)})/(${p2Expr(dw)})`, why: 'turns the fraction upside down.' }],
       sqrt: [
         { tex: `\\dfrac{${D}}{\\sqrt{${G}}}`, expr: `(${p2Expr(dw)})/sqrt(${p2Expr(g)})`, why: 'forgets the factor $\\tfrac12$ from the power rule.' },
-        { tex: `\\dfrac{${times(dw, `\\sqrt{${G}}`)}}{2}`, expr: `(${p2Expr(dw)})*sqrt(${p2Expr(g)})/2`, why: 'keeps the power $+\\tfrac12$ instead of lowering it to $-\\tfrac12$.' },
+        {
+          tex: dw.every(([c]) => c % 2 === 0) ? times(p2Scale(dw, 0.5), `\\sqrt{${G}}`) : `\\dfrac{${times(dw, `\\sqrt{${G}}`)}}{2}`,
+          expr: `(${p2Expr(dw)})*sqrt(${p2Expr(g)})/2`,
+          why: 'keeps the power $+\\tfrac12$ instead of lowering it to $-\\tfrac12$.',
+        },
       ],
       pow: [
         { tex: times(p2Scale(dw, n), `\\left(${G}\\right)^{${n}}`), expr: `${n}*(${p2Expr(dw)})*(${p2Expr(g)})^${n}`, why: 'does not lower the power by one.' },
@@ -192,6 +196,8 @@ const OUTER: Record<Out, { wrap: (I: string) => string; K: string; name: string;
 interface Family {
   I: string;
   solve: string;
+  /** Text before the displayed solution (default: "Solving for $y$:"). */
+  lead?: string;
   shape: Shape;
   wrong: { shape: Shape; why: string }[];
 }
@@ -275,6 +281,7 @@ function levelFamily(rng: Rng): Family {
   return {
     I: `${shifted('x', p)}^2+${shifted('y', q)}^2`,
     solve: `${shifted('x', p)}^2+${shifted('y', q)}^2=K`,
+    lead: `This is the equation of a circle with centre $(${p},${q})$ and radius $\\sqrt{K}$ (for $K>0$):`,
     shape: 'circle',
     wrong: [
       { shape: 'parab', why: 'treats the expression as a quadratic function of $x$, but $y$ is squared as well: all points at distance $\\sqrt{K}$ from the centre form a circle.' },
@@ -300,7 +307,7 @@ const levelCurveShape: Template = {
         : `The outer ${O.name} is strictly increasing, so it can be undone: $f(x,y)=c$ holds exactly when $${fam.I}=K$, where $K=${O.K}$ is a constant. `;
     const explanation =
       undo +
-      `Solving for $y$: $$${fam.solve}$$ So every level curve is ${SHAPE_PHRASE[fam.shape]}.`;
+      `${fam.lead ?? 'Solving for $y$:'} $$${fam.solve}$$ So every level curve is ${SHAPE_PHRASE[fam.shape]}.`;
     const looks = O.looks.filter((s) => s !== fam.shape).map((s) => ({ shape: s, why: `judges the shape by the outer ${O.name}; it only changes the constant $K$, not the shape of the curves.` }));
     const wrong = [...fam.wrong, ...looks];
     const others = (Object.keys(SHAPE_TEXT) as Shape[]).filter((s) => s !== fam.shape && !wrong.some((w) => w.shape === s));
@@ -349,7 +356,7 @@ const sameLevelCurves: Template = {
       { text: `${F}+y^2`, why: vary('the added term $y^2$') },
       { text: `x${F}`, why: vary('the factor $x$') },
       { text: `${F}-${coef(k)}xy`, why: vary(`the added term $-${coef(k)}xy$`) },
-      { text: `${F}+${c}x^2`, why: vary(`the added term $${c}x^2$`) },
+      { text: `${F}+${coef(c)}x^2`, why: vary(`the added term $${coef(c)}x^2$`) },
     ];
     const g = (t: string) => `$g(x,y)=${t}$`;
     const theory =
