@@ -86,7 +86,7 @@ describe('scoreExam', () => {
     expect(scoreExam(e, ids, ans, {}, 'full').passed).toBe(false);
     const retry = scoreExam(e, ids, ans, {}, 'retry');
     expect(retry.passed).toBe(true);
-    expect(retry.passReason).toContain('5.5');
+    expect(retry.passCheck).toEqual({ kind: 'grade', passGrade: 5.5 });
   });
   it('section minimums compare the rounded section score (thirds add up)', () => {
     const qs: Question[] = [0, 1, 2].map((i) => ({ ...fields, id: `f${i}`, number: i + 1, points: 1, section: 'A' }));

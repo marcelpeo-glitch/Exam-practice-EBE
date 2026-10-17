@@ -42,9 +42,9 @@
   ],
   "notes": [
     "Source is a student's TestVision result view. Where TestVision says 'Your answer is correct', the selected option is taken as the official answer.",
-    "Where the screenshot says 'Your answer is incorrect', the correct option is not visible; those answers were solved by AI (each one agrees with the option the uploader marked).",
+    "Where the screenshot says 'Your answer is incorrect (See correct answer below)', the file does not show a clear key; those 7 answers were solved by AI, and each one agrees with the option marked in the screenshot (most likely TestVision's own key).",
     "TestVision shuffles options per student, so the option order may differ from your own exam.",
-    "The duration is not stated in the source; 180 minutes is assumed. Edit durationMinutes in the JSON to change it."
+    "The duration is not stated in the source; 180 minutes is assumed."
   ],
   "questions": [
     {

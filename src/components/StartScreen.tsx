@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { examLabel, keyKind, loadExams } from '../lib/exams';
-import { fmtClock, fmtDate, fmtGrade, fmtPoints } from '../lib/format';
+import { useI18n } from '../i18n';
+import { courseShortName, examLabel, getExam, isPredictedId, keyKind, loadExams } from '../lib/exams';
+import { fmtClock } from '../lib/format';
+import { loadPredictedExams, storageBlocked } from '../lib/storage';
+import { blueprintFor } from '../predict/courses';
 import type { Attempt, Exam, Session } from '../types';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { Modal } from './Modal';
+import { PredictedPanel } from './PredictedPanel';
 
 interface Props {
   attempts: Attempt[];
@@ -10,6 +15,9 @@ interface Props {
   onResume: () => void;
   onDiscard: () => void;
   onClearAll: () => void;
+  onGenerate: (courseCode: string) => void;
+  generating: boolean;
+  generateError: boolean;
 }
 
 function best(attempts: Attempt[], exam: Exam): Attempt | undefined {
@@ -18,37 +26,49 @@ function best(attempts: Attempt[], exam: Exam): Attempt | undefined {
     .sort((a, b) => b.score.grade - a.score.grade || b.score.points - a.score.points)[0];
 }
 
-export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll }: Props) {
+export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll, onGenerate, generating, generateError }: Props) {
+  const { t, tn, rich, fmt } = useI18n();
   const { exams, problems } = loadExams();
   // In-page confirmations (browser confirm() dialogs are blocked in some embedded viewers).
   const [ask, setAsk] = useState<'discard' | 'clear' | null>(null);
-  const sessionExam = session ? exams.find((e) => e.id === session.examId) : undefined;
+  const predicted = loadPredictedExams();
+  const sessionExam = session ? (isPredictedId(session.examId) ? getExam(session.examId) : exams.find((e) => e.id === session.examId)) : undefined;
+  // Labels in the active language for predicted exams (attempts store an English label).
+  const labelOf = (examId: string, stored: string) => {
+    const e = isPredictedId(examId) ? getExam(examId) : undefined;
+    return e?.prediction ? `${courseShortName(e.courseName)} · ${t('predict.label')}` : stored;
+  };
   const courses = [...new Set(exams.map((e) => `${e.courseCode}|${e.courseName}`))];
   const history = [...attempts].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+  const keyLabel = { Official: t('key.official'), 'AI-solved': t('key.ai'), Mixed: t('key.mixed'), Generated: t('key.generated') };
 
   return (
     <>
       <div className="topbar">
         <div className="topbar-inner">
           <span className="brand">
-            Mock TestVision<small>practice exams, marked at the end</small>
+            Mock TestVision<small>{t('start.tagline')}</small>
           </span>
+          <div className="spacer" />
+          <LanguageSwitcher />
         </div>
       </div>
       <div className="page">
+        {storageBlocked() && (
+          <div className="banner bad" data-testid="storage-blocked">
+            <strong>{t('storage.blocked.title')}</strong> {t('storage.blocked.body')}
+          </div>
+        )}
         {session && sessionExam && (
           <div className="banner warn" data-testid="resume-banner">
             <div className="row">
-              <div>
-                <strong>Exam in progress:</strong> {examLabel(sessionExam)}
-                {session.mode === 'retry' && ' (retry of wrong questions)'} — {fmtClock(session.remainingSec)} left.
-              </div>
+              <div>{rich(session.mode === 'retry' ? 'start.inProgressRetry' : 'start.inProgress', { exam: labelOf(sessionExam.id, examLabel(sessionExam)), time: fmtClock(session.remainingSec) })}</div>
               <div className="spacer" />
               <button className="btn primary" onClick={onResume} data-testid="resume">
-                Resume
+                {t('common.resume')}
               </button>
               <button className="btn" onClick={() => setAsk('discard')} data-testid="discard">
-                Discard
+                {t('common.discard')}
               </button>
             </div>
           </div>
@@ -56,12 +76,12 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
 
         {problems.length > 0 && (
           <div className="banner bad">
-            <strong>Some exam files have problems:</strong>
+            <strong>{t('start.fileProblems')}</strong>
             <ul>
               {problems.map((p) => (
                 <li key={p.file}>
                   <code>{p.file}</code>: {p.errors.slice(0, 5).join('; ')}
-                  {p.errors.length > 5 && ` (+${p.errors.length - 5} more)`}
+                  {p.errors.length > 5 && ` ${t('start.moreProblems', { n: p.errors.length - 5 })}`}
                 </li>
               ))}
             </ul>
@@ -71,22 +91,33 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
         {courses.map((c) => {
           const [code, name] = c.split('|');
           const list = exams.filter((e) => e.courseCode === code && e.courseName === name);
+          const bp = blueprintFor(code);
           return (
             <section className="card" key={c}>
               <h2>
                 {name} <span className="muted small">{code}</span>
               </h2>
+              {bp && (
+                <PredictedPanel
+                  blueprint={bp}
+                  predicted={predicted.filter((e) => e.courseCode === code)}
+                  attempts={attempts}
+                  generating={generating}
+                  error={generateError}
+                  onGenerate={() => onGenerate(code)}
+                />
+              )}
               <div className="table-wrap">
                 <table className="list" data-testid="exam-table">
                   <thead>
                     <tr>
-                      <th>Year</th>
-                      <th>Exam</th>
-                      <th>Type</th>
-                      <th className="num">Questions</th>
-                      <th className="num">Duration</th>
-                      <th>Answer key</th>
-                      <th className="num">Best score</th>
+                      <th>{t('start.col.year')}</th>
+                      <th>{t('start.col.exam')}</th>
+                      <th>{t('start.col.type')}</th>
+                      <th className="num">{t('start.col.questions')}</th>
+                      <th className="num">{t('start.col.duration')}</th>
+                      <th>{t('start.col.key')}</th>
+                      <th className="num">{t('start.col.best')}</th>
                       <th />
                     </tr>
                   </thead>
@@ -97,33 +128,43 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
                       const kind = keyKind(e);
                       return (
                         <tr key={e.id} data-testid={`exam-row-${e.id}`}>
-                          <td>{e.academicYear}</td>
-                          <td>{e.title}</td>
-                          <td>
-                            {e.examType === 'resit' ? 'Resit' : 'Regular'}
-                            {e.examTypeAssumed && <span className="muted small"> (assumed)</span>}
+                          <td data-label={t('start.col.year')}>{e.academicYear}</td>
+                          <td data-label={t('start.col.exam')}>{e.title}</td>
+                          <td data-label={t('start.col.type')}>
+                            {e.examType === 'resit' ? t('examType.resit') : t('examType.regular')}
+                            {e.examTypeAssumed && <span className="muted small"> {t('common.assumed')}</span>}
                           </td>
-                          <td className="num">{e.questions.length}</td>
-                          <td className="num">
-                            {e.durationMinutes} min
-                            {e.durationSource === 'assumed' && <span className="muted small" title="Not stated in the source; assumed"> *</span>}
+                          <td className="num" data-label={t('start.col.questions')}>
+                            {fmt.num(e.questions.length)}
                           </td>
-                          <td>
-                            <span className={`pill ${kind === 'Official' ? 'official' : kind === 'AI-solved' ? 'ai' : 'mixed'}`}>{kind}</span>
+                          <td className="num" data-label={t('start.col.duration')}>
+                            {fmt.minutes(e.durationMinutes, 'short')}
+                            {e.durationSource === 'assumed' && (
+                              <span className="muted small" title={t('start.durationAssumed')}>
+                                {' '}
+                                *
+                              </span>
+                            )}
                           </td>
-                          <td className="num" data-testid="best-score">
+                          <td data-label={t('start.col.key')}>
+                            <span className={`pill ${kind === 'Official' ? 'official' : kind === 'AI-solved' ? 'ai' : 'mixed'}`}>{keyLabel[kind]}</span>
+                          </td>
+                          <td className="num" data-label={t('start.col.best')} data-testid="best-score">
                             {b ? (
                               <>
-                                {fmtGrade(b.score.grade)} <span className="muted small">({fmtPoints(b.score.points)}/{fmtPoints(b.score.maxPoints)})</span>
+                                {fmt.grade(b.score.grade)}{' '}
+                                <span className="muted small">
+                                  ({fmt.points(b.score.points)}/{fmt.points(b.score.maxPoints)})
+                                </span>
                               </>
                             ) : (
                               <span className="muted">—</span>
                             )}
-                            {n > 0 && <div className="muted small">{n} attempt{n > 1 ? 's' : ''}</div>}
+                            {n > 0 && <div className="muted small">{tn('start.attempts', n)}</div>}
                           </td>
                           <td className="num">
                             <a className="btn primary small" href={`#/start/${e.id}`} data-testid={`start-${e.id}`}>
-                              Start
+                              {t('common.start')}
                             </a>
                           </td>
                         </tr>
@@ -133,45 +174,46 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
                 </table>
               </div>
               <p className="small muted" style={{ marginBottom: 0 }}>
-                * Duration not stated in the source file; assumed. Answer key: <span className="pill official">Official</span> from the exam files,{' '}
-                <span className="pill ai">AI-solved</span> solved by AI (verify), <span className="pill mixed">Mixed</span> both.
+                {t('start.legend.assumed')} {t('start.legend.key')} <span className="pill official">{keyLabel.Official}</span> {t('start.legend.official')},{' '}
+                <span className="pill ai">{keyLabel['AI-solved']}</span> {t('start.legend.ai')}, <span className="pill mixed">{keyLabel.Mixed}</span>{' '}
+                {t('start.legend.mixed')}.
               </p>
             </section>
           );
         })}
 
         <section className="card">
-          <h2>Attempt history</h2>
+          <h2>{t('start.history')}</h2>
           {history.length === 0 ? (
-            <p className="muted">No attempts yet. Your results will be listed here.</p>
+            <p className="muted">{t('start.historyEmpty')}</p>
           ) : (
             <div className="table-wrap">
               <table className="list" data-testid="history">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Exam</th>
-                    <th>Mode</th>
-                    <th className="num">Score</th>
-                    <th className="num">Grade</th>
-                    <th>Result</th>
+                    <th>{t('start.col.date')}</th>
+                    <th>{t('start.col.exam')}</th>
+                    <th>{t('start.col.mode')}</th>
+                    <th className="num">{t('start.col.score')}</th>
+                    <th className="num">{t('start.col.grade')}</th>
+                    <th>{t('start.col.result')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {history.map((a) => (
                     <tr key={a.id} className="clickable" onClick={() => (window.location.hash = `#/results/${a.id}`)}>
-                      <td>{fmtDate(a.submittedAt)}</td>
+                      <td>{fmt.date(a.submittedAt)}</td>
                       <td>
-                        <a href={`#/results/${a.id}`}>{a.examLabel}</a>
+                        <a href={`#/results/${a.id}`}>{labelOf(a.examId, a.examLabel)}</a>
                       </td>
-                      <td>{a.mode === 'full' ? 'Full exam' : `Retry (${a.questionIds.length} q.)`}</td>
+                      <td>{a.mode === 'full' ? t('start.modeFull') : tn('start.modeRetry', a.questionIds.length)}</td>
                       <td className="num">
-                        {fmtPoints(a.score.points)} / {fmtPoints(a.score.maxPoints)}
+                        {fmt.points(a.score.points)} / {fmt.points(a.score.maxPoints)}
                       </td>
-                      <td className="num">{fmtGrade(a.score.grade)}</td>
+                      <td className="num">{fmt.grade(a.score.grade)}</td>
                       <td>
-                        <span className={a.score.passed ? 'pill pass' : 'pill fail'}>{a.score.passed ? 'Pass' : 'Fail'}</span>
-                        {a.score.ungradedOpen > 0 && <span className="pill neutral"> {a.score.ungradedOpen} to mark</span>}
+                        <span className={a.score.passed ? 'pill pass' : 'pill fail'}>{a.score.passed ? t('common.pass') : t('common.fail')}</span>
+                        {a.score.ungradedOpen > 0 && <span className="pill neutral"> {tn('start.toMark', a.score.ungradedOpen)}</span>}
                       </td>
                     </tr>
                   ))}
@@ -182,13 +224,11 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
         </section>
 
         <div className="row small muted">
-          <span>
-            Exams are read from <code>data/exams/*.json</code>. Progress and history are stored in this browser (localStorage).
-          </span>
+          <span>{t('start.storedLocally')}</span>
           <div className="spacer" />
           {(history.length > 0 || session) && (
             <button className="btn small" onClick={() => setAsk('clear')} data-testid="clear-data">
-              Clear saved data
+              {t('start.clearData')}
             </button>
           )}
         </div>
@@ -196,13 +236,13 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
 
       {ask && (
         <Modal
-          title={ask === 'discard' ? 'Discard the exam in progress?' : 'Clear all saved data?'}
+          title={ask === 'discard' ? t('start.discardTitle') : t('start.clearTitle')}
           onClose={() => setAsk(null)}
           testId="confirm-dialog"
           footer={
             <>
               <button className="btn" onClick={() => setAsk(null)}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 className="btn danger"
@@ -213,16 +253,12 @@ export function StartScreen({ attempts, session, onResume, onDiscard, onClearAll
                   setAsk(null);
                 }}
               >
-                {ask === 'discard' ? 'Discard exam' : 'Delete everything'}
+                {ask === 'discard' ? t('start.discardYes') : t('start.clearYes')}
               </button>
             </>
           }
         >
-          <p>
-            {ask === 'discard'
-              ? 'Your answers and remaining time for this exam will be lost.'
-              : 'This deletes every attempt in your history and any exam in progress from this browser.'}
-          </p>
+          <p>{ask === 'discard' ? t('start.discardBody') : t('start.clearBody')}</p>
         </Modal>
       )}
     </>

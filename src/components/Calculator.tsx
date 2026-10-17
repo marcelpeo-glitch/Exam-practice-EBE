@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
+import { useI18n } from '../i18n';
 import { evaluate, formatResult, type AngleMode } from '../lib/calc';
 
 interface Props {
   onClose: () => void;
 }
 
-type Key = { label: string; insert?: string; cls?: string; action?: 'eq' | 'del' | 'ac' | 'neg'; title?: string };
+type Key = { label: string; insert?: string; cls?: string; action?: 'eq' | 'del' | 'ac' | 'neg'; title?: 'calc.log10' | 'calc.sciNotation' };
 
 const KEYS: Key[] = [
   { label: 'sin', insert: 'sin(', cls: 'fn' },
   { label: 'cos', insert: 'cos(', cls: 'fn' },
   { label: 'tan', insert: 'tan(', cls: 'fn' },
   { label: 'ln', insert: 'ln(', cls: 'fn' },
-  { label: 'log', insert: 'log(', cls: 'fn', title: 'log base 10' },
+  { label: 'log', insert: 'log(', cls: 'fn', title: 'calc.log10' },
   { label: 'x²', insert: '^2', cls: 'fn' },
   { label: 'xʸ', insert: '^', cls: 'fn' },
   { label: '√', insert: '√(', cls: 'fn' },
@@ -40,13 +41,16 @@ const KEYS: Key[] = [
   { label: '−', insert: '−', cls: 'op' },
   { label: '0', insert: '0' },
   { label: '.', insert: '.' },
-  { label: '×10ˣ', insert: 'E', title: 'Scientific notation, e.g. 1.5E3' },
+  { label: '×10ˣ', insert: 'E', title: 'calc.sciNotation' },
   { label: 'Ans', insert: 'Ans', cls: 'fn' },
   { label: '=', action: 'eq', cls: 'eq' },
 ];
 
 /** Basic scientific calculator in a draggable pop-up. */
 export function Calculator({ onClose }: Props) {
+  const { t } = useI18n();
+  // calc.ts reports errors in English ("Syntax error" / "Math error"); show them in the active language.
+  const errText = (msg: string) => (msg === 'Math error' ? t('calc.mathError') : t('calc.syntaxError'));
   const [expr, setExpr] = useState('');
   const [result, setResult] = useState<{ text: string; err?: boolean } | null>(null);
   const [ans, setAns] = useState(0);
@@ -79,11 +83,12 @@ export function Calculator({ onClose }: Props) {
     if (!expr.trim()) return;
     try {
       const v = evaluate(expr, { ans, angle });
-      setResult({ text: formatResult(v) });
+      const text = formatResult(v);
+      setResult(text === 'Math error' ? { text: errText(text), err: true } : { text });
       if (Number.isFinite(v)) setAns(v);
       justEvaluated.current = true;
     } catch (e) {
-      setResult({ text: (e as Error).message || 'Syntax error', err: true });
+      setResult({ text: errText((e as Error).message), err: true });
     }
   };
 
@@ -110,7 +115,7 @@ export function Calculator({ onClose }: Props) {
   };
 
   return (
-    <div className="calc" style={{ left: pos.x, top: pos.y }} role="dialog" aria-label="Calculator" data-testid="calculator">
+    <div className="calc" style={{ left: pos.x, top: pos.y }} role="dialog" aria-label={t('calc.title')} data-testid="calculator">
       <div
         className="calc-head"
         onPointerDown={(e) => {
@@ -118,8 +123,8 @@ export function Calculator({ onClose }: Props) {
           drag.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y };
         }}
       >
-        <span style={{ flex: 1 }}>Calculator</span>
-        <button onClick={onClose} aria-label="Close calculator">
+        <span style={{ flex: 1 }}>{t('calc.title')}</span>
+        <button onClick={onClose} aria-label={t('calc.close')}>
           ×
         </button>
       </div>
@@ -127,7 +132,7 @@ export function Calculator({ onClose }: Props) {
         <input
           ref={inputRef}
           className="calc-expr"
-          aria-label="Calculator input"
+          aria-label={t('calc.input')}
           data-testid="calc-input"
           value={expr}
           onChange={(e) => {
@@ -146,7 +151,7 @@ export function Calculator({ onClose }: Props) {
         </div>
       </div>
       <div className="calc-mode">
-        Angle:
+        {t('calc.angle')}
         <button className={angle === 'deg' ? 'btn small active' : 'btn small'} onClick={() => setAngle('deg')}>
           DEG
         </button>
@@ -156,7 +161,7 @@ export function Calculator({ onClose }: Props) {
       </div>
       <div className="calc-keys">
         {KEYS.map((k) => (
-          <button key={k.label} className={k.cls} title={k.title} onClick={() => press(k)}>
+          <button key={k.label} className={k.cls} title={k.title && t(k.title)} onClick={() => press(k)}>
             {k.label}
           </button>
         ))}

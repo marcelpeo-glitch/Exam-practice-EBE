@@ -1,11 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ConfirmScreen } from './components/ConfirmScreen';
 import { ExamScreen } from './components/ExamScreen';
 import { ResultsScreen } from './components/ResultsScreen';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { StartScreen } from './components/StartScreen';
-import { examLabel, getExam } from './lib/exams';
+import { useI18n } from './i18n';
+import type { TextKey } from './i18n/ui-en';
+import { addPredictedExam, examLabel, getExam, loadExams } from './lib/exams';
 import { scoreExam, snapshot } from './lib/scoring';
-import { clearAll, loadAttempts, loadSession, newId, saveSession, upsertAttempt } from './lib/storage';
+import { KEY_ATTEMPTS, KEY_PREDICTED, KEY_SESSION, clearAll, loadAttempts, loadSession, newId, saveSession, upsertAttempt } from './lib/storage';
+import { blueprintFor } from './predict/courses';
+import { randomSeed } from './predict/rng';
 import type { Attempt, Session } from './types';
 
 // Hash routes: #/  ·  #/start/<examId>  ·  #/start/<examId>/retry/<attemptId>  ·  #/exam  ·  #/results/<attemptId>
@@ -35,17 +40,30 @@ function Redirect({ to, navigate }: { to: string; navigate: Navigate }) {
   return null;
 }
 
-function NotFound({ what }: { what: string }) {
+function NotFound({ what }: { what: 'notFound.exam' | 'notFound.attempt' | 'notFound.result' | 'notFound.noWrong' }) {
+  const { t } = useI18n();
   return (
-    <div className="page">
-      <div className="banner bad">
-        {what} not found. <a href="#/">Back to the overview</a>
+    <>
+      <div className="topbar">
+        <div className="topbar-inner">
+          <span className="brand">Mock TestVision</span>
+          <div className="spacer" />
+          <LanguageSwitcher />
+        </div>
       </div>
-    </div>
+      <div className="page">
+        <div className="banner bad" data-testid="not-found">
+          {t(what)} <a href="#/">{t('notFound.back')}</a>
+        </div>
+      </div>
+    </>
   );
 }
 
+const PAGE_TITLE: Record<string, TextKey> = { '': 'meta.overview', start: 'meta.start', exam: 'meta.exam', results: 'meta.results' };
+
 export default function App() {
+  const { t } = useI18n();
   const [hash, go] = useHash();
   const [session, setSession] = useState<Session | null>(() => loadSession());
   const [attempts, setAttempts] = useState<Attempt[]>(() => loadAttempts());
@@ -53,10 +71,34 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // The exam screen autosaves to localStorage; re-read it on every route change so the resume
-    // banner and a remounted exam screen never work from a stale copy.
+    // The exam screen autosaves to localStorage, and another tab may have changed things; re-read both on
+    // every route change so the resume banner, the history and a remounted exam screen are never stale.
     setSession(loadSession());
+    setAttempts(loadAttempts());
   }, [hash]);
+
+  // Idle tabs (overview, confirm page, results) follow what other tabs do: a stale "Resume" button must never
+  // bring back an exam that was handed in or discarded elsewhere. The exam screen handles takeovers itself.
+  useEffect(() => {
+    const on = (e: StorageEvent) => {
+      if (e.storageArea !== window.localStorage) return;
+      if (e.key !== null && e.key !== KEY_SESSION && e.key !== KEY_ATTEMPTS && e.key !== KEY_PREDICTED) return;
+      if (window.location.hash.startsWith('#/exam')) return;
+      setSession(loadSession());
+      setAttempts(loadAttempts());
+    };
+    window.addEventListener('storage', on);
+    return () => window.removeEventListener('storage', on);
+  }, []);
+
+  // Page title in the active language, e.g. "Results · Mock TestVision".
+  const titleKey = PAGE_TITLE[parts[0] ?? ''] ?? 'meta.notFound';
+  useEffect(() => {
+    document.title = `${t(titleKey)} · Mock TestVision`;
+  }, [t, titleKey]);
+
+  // The exam route always works from what is saved right now, never from this tab's in-memory copy.
+  const examSession = useMemo(() => (parts[0] === 'exam' ? loadSession() : null), [hash]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startSession = useCallback((examId: string, questionIds: string[], durationMinutes: number, mode: 'full' | 'retry', retryOf?: string) => {
     const s: Session = {
@@ -105,30 +147,64 @@ export default function App() {
     go(`#/results/${attempt.id}`, true);
   }, [go]);
 
+  // "Generate predicted exam": build a new exam from the course's stored blueprint (all in the browser; the
+  // generator is loaded on first use), save it, and open its start page.
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState(false);
+  const generate = useCallback(
+    async (courseCode: string) => {
+      setGenerating(true);
+      setGenerateError(false);
+      try {
+        const blueprint = blueprintFor(courseCode);
+        if (!blueprint) throw new Error(`No blueprint for ${courseCode}`);
+        const { generatePredictedExam } = await import('./predict/generate');
+        const past = loadExams().exams.filter((e) => e.courseCode === courseCode && !e.isDemo);
+        const newest = past.find((e) => e.id === blueprint.exams[0]?.id) ?? past[past.length - 1];
+        const exam = generatePredictedExam({
+          blueprint,
+          seed: randomSeed(),
+          pastStems: past.flatMap((e) => e.questions.map((q) => q.stem)),
+          resources: newest?.resources,
+          generatedAt: new Date().toISOString(),
+        });
+        addPredictedExam(exam);
+        go(`#/start/${exam.id}`);
+      } catch (e) {
+        console.error(e);
+        setGenerateError(true);
+      } finally {
+        setGenerating(false);
+      }
+    },
+    [go],
+  );
+
   // ---- routes ----
   if (parts[0] === 'exam') {
-    const exam = session ? getExam(session.examId) : undefined;
-    if (!session || !exam) return <Redirect to="#/" navigate={go} />;
-    return <ExamScreen key={session.attemptId} exam={exam} session={session} onHandIn={handIn} />;
+    const exam = examSession ? getExam(examSession.examId) : undefined;
+    if (!examSession || !exam) return <Redirect to="#/" navigate={go} />;
+    return <ExamScreen key={examSession.attemptId} exam={exam} session={examSession} onHandIn={handIn} />;
   }
 
   if (parts[0] === 'start' && parts[1]) {
     const exam = getExam(parts[1]);
-    if (!exam) return <NotFound what="Exam" />;
+    if (!exam) return <NotFound what="notFound.exam" />;
     let questionIds = exam.questions.map((q) => q.id);
     let mode: 'full' | 'retry' = 'full';
     let duration = exam.durationMinutes;
     const retryOf = parts[2] === 'retry' ? parts[3] : undefined;
     if (retryOf) {
       const prev = attempts.find((a) => a.id === retryOf);
-      if (!prev) return <NotFound what="Attempt" />;
+      if (!prev) return <NotFound what="notFound.attempt" />;
       const r = scoreExam(exam, prev.questionIds, prev.answers, prev.selfScores, prev.mode);
       questionIds = r.perQuestion.filter((p) => p.status !== 'correct').map((p) => p.questionId);
-      if (questionIds.length === 0) return <NotFound what="Wrong question" />;
+      if (questionIds.length === 0) return <NotFound what="notFound.noWrong" />;
       mode = 'retry';
       duration = Math.max(5, Math.round((exam.durationMinutes * questionIds.length) / exam.questions.length));
     }
     const otherExam = session ? getExam(session.examId) : undefined;
+    const resumable = !!session && session.examId === exam.id && session.mode === mode && session.retryOf === retryOf;
     return (
       <ConfirmScreen
         exam={exam}
@@ -137,7 +213,22 @@ export default function App() {
         mode={mode}
         otherSession={session}
         otherLabel={otherExam ? examLabel(otherExam) : undefined}
-        onStart={() => startSession(exam.id, questionIds, duration, mode, retryOf)}
+        resumable={resumable}
+        onResume={() => {
+          // Re-check what is saved right now (this page may be stale, e.g. the exam was handed in in another tab).
+          const live = loadSession();
+          setSession(live);
+          if (live && live.examId === exam.id && live.mode === mode && live.retryOf === retryOf) go('#/exam', true);
+        }}
+        onStart={() => {
+          // Never replace an exam this page does not know about (started in another tab since it was loaded).
+          const live = loadSession();
+          if ((live?.attemptId ?? null) !== (session?.attemptId ?? null)) {
+            setSession(live);
+            return;
+          }
+          startSession(exam.id, questionIds, duration, mode, retryOf);
+        }}
       />
     );
   }
@@ -145,11 +236,13 @@ export default function App() {
   if (parts[0] === 'results' && parts[1]) {
     const attempt = attempts.find((a) => a.id === parts[1]);
     const exam = attempt ? getExam(attempt.examId) : undefined;
-    if (!attempt || !exam) return <NotFound what="Result" />;
+    if (!attempt || !exam) return <NotFound what="notFound.result" />;
     return (
       <ResultsScreen
         exam={exam}
         attempt={attempt}
+        onGenerate={() => generate(exam.courseCode)}
+        generating={generating}
         onSelfScore={(qid, score) => {
           const selfScores = { ...attempt.selfScores };
           if (score === undefined) delete selfScores[qid];
@@ -166,8 +259,17 @@ export default function App() {
     <StartScreen
       attempts={attempts}
       session={session}
-      onResume={() => go('#/exam')}
+      onResume={() => {
+        const live = loadSession();
+        setSession(live);
+        if (live) go('#/exam');
+      }}
       onDiscard={() => {
+        const live = loadSession();
+        if (live && live.attemptId !== session?.attemptId) {
+          setSession(live); // another tab started a different exam since this page was loaded
+          return;
+        }
         saveSession(null);
         setSession(null);
       }}
@@ -176,6 +278,9 @@ export default function App() {
         setSession(null);
         setAttempts([]);
       }}
+      onGenerate={generate}
+      generating={generating}
+      generateError={generateError}
     />
   );
 }

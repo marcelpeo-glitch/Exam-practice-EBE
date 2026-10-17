@@ -43,7 +43,7 @@
   "notes": [
     "Answer key and explanations: official (TestVision export with feedback).",
     "The source only says 'Exam 2023 first sit'; the academic year is not stated.",
-    "The duration is not stated in the source; 180 minutes is assumed. Edit durationMinutes in the JSON to change it."
+    "The duration is not stated in the source; 180 minutes is assumed."
   ],
   "questions": [
     {
